@@ -1,0 +1,16 @@
+(tests
+ (names
+  min
+  sdlevents
+  test_tsdl
+  test_audio
+  test_audio_queue
+  test_audio_capture)
+ (package tsdl)
+ (deps rw_test_data)
+ (libraries tsdl))
+
+(install
+ (section doc)
+ (package tsdl)
+ (files min.ml minc.c))
