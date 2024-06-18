@@ -1,10 +1,16 @@
+(rule
+ (targets c_flags.sexp c_library_flags.sexp)
+ (action
+  (run ../config/discover.exe)))
+
 (executable
  (name consts)
  (modules Consts)
  (foreign_stubs
   (language c)
   (names consts_stub)
-  (flags -I/usr/include/SDL2)))
+  (flags
+   (:include c_flags.sexp))))
 
 (rule
  (target tsdl_consts.ml)

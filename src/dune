@@ -5,8 +5,10 @@
  (foreign_stubs
   (language c)
   (names tsdl_stubs)
-  (flags -I/usr/include/SDL2))
- (c_library_flags -Wl,-no-as-needed -lSDL2)
+  (flags (:include ../support/c_library_flags.sexp)))
+ (c_library_flags
+  -Wl,-no-as-needed
+  (:include ../support/c_library_flags.sexp))
  (libraries tsdl_consts ctypes-foreign))
 
 (install
