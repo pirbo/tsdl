@@ -1,0 +1,16 @@
+(library
+ (name tsdl)
+ (public_name tsdl)
+ (modules Tsdl)
+ (foreign_stubs
+  (language c)
+  (names tsdl_stubs)
+  (flags -I/usr/include/SDL2))
+ (c_library_flags -Wl,-no-as-needed -lSDL2)
+ (libraries tsdl_consts ctypes-foreign))
+
+(install
+ (section lib)
+ (package tsdl)
+ (files
+  (tsdl_top_init.ml as top/tsdl_top_init.ml)))
