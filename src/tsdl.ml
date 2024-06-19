@@ -161,21 +161,12 @@ let access_ptr_typ_of_ba_kind : ('a, 'b) Bigarray.kind -> 'a ptr typ = fun k ->
 
 module Init = struct
   type t = Unsigned.uint32
-  let i = Unsigned.UInt32.of_int
   let ( + ) = Unsigned.UInt32.logor
   let ( - ) f f' = Unsigned.UInt32.(logand f (lognot f'))
   let test f m = Unsigned.UInt32.(compare (logand f m) zero <> 0)
   let eq f f' = Unsigned.UInt32.(compare f f' = 0)
-  let nothing = i 0
-  let timer = i sdl_init_timer
-  let audio = i sdl_init_audio
-  let video = i sdl_init_video
-  let joystick = i sdl_init_joystick
-  let haptic = i sdl_init_haptic
-  let gamecontroller = i sdl_init_gamecontroller
-  let events = i sdl_init_events
-  let everything = i sdl_init_everything
-  let noparachute = i sdl_init_noparachute
+  let nothing = Unsigned.UInt32.zero
+  include C.Types.Init
 end
 
 let init =
@@ -223,9 +214,7 @@ module Hint = struct
     sdl_hint_window_frame_usable_while_cursor_hidden
 
   type priority = int
-  let default = sdl_hint_default
-  let normal = sdl_hint_normal
-  let override = sdl_hint_override
+  include C.Types.Hint
 end
 
 let clear_hints =
@@ -259,23 +248,11 @@ let set_error fmt =
 
 module Log = struct
   type category = int
-  let category_application = sdl_log_category_application
-  let category_error = sdl_log_category_error
-  let category_system = sdl_log_category_system
-  let category_audio = sdl_log_category_audio
-  let category_video = sdl_log_category_video
-  let category_render = sdl_log_category_render
-  let category_input = sdl_log_category_input
-  let category_custom = sdl_log_category_custom
 
   type priority = int
   let priority_compare : int -> int -> int = compare
-  let priority_verbose = sdl_log_priority_verbose
-  let priority_debug = sdl_log_priority_debug
-  let priority_info = sdl_log_priority_info
-  let priority_warn = sdl_log_priority_warn
-  let priority_error = sdl_log_priority_error
-  let priority_critical = sdl_log_priority_critical
+
+  include C.Types.Log
 end
 
 external log_message : int -> int -> string -> unit = "ocaml_tsdl_log_message"
@@ -751,30 +728,9 @@ let calculate_gamma_ramp g =
 
 module Blend = struct
   type mode = Unsigned.UInt.t
-  let mode_none = Unsigned.UInt.of_int sdl_blendmode_none
-  let mode_blend = Unsigned.UInt.of_int sdl_blendmode_blend
-  let mode_add = Unsigned.UInt.of_int sdl_blendmode_add
-  let mode_mod = Unsigned.UInt.of_int sdl_blendmode_mod
-
   type operation = int
-  let add = sdl_blendoperation_add
-  let subtract = sdl_blendoperation_subtract
-  let rev_subtract = sdl_blendoperation_rev_subtract
-  let minimum = sdl_blendoperation_minimum
-  let maximum = sdl_blendoperation_maximum
-
   type factor = int
-  let zero = sdl_blendfactor_zero
-  let one = sdl_blendfactor_one
-  let src_color = sdl_blendfactor_src_color
-  let one_minus_src_color = sdl_blendfactor_one_minus_src_color
-  let src_alpha = sdl_blendfactor_src_alpha
-  let one_minus_src_alpha = sdl_blendfactor_one_minus_src_alpha
-  let dst_color = sdl_blendfactor_dst_color
-  let one_minus_dst_color = sdl_blendfactor_one_minus_dst_color
-  let dst_alpha = sdl_blendfactor_dst_alpha
-  let one_minus_dst_alpha = sdl_blendfactor_one_minus_dst_alpha
-
+  include C.Types.Blend
 end
 
 let compose_custom_blend_mode =
@@ -783,45 +739,9 @@ let compose_custom_blend_mode =
 
 module Pixel = struct
   type format_enum = Unsigned.UInt32.t
-  let i = Unsigned.UInt32.of_int32
   let to_uint32 = Unsigned.UInt32.to_int32
   let eq f f' = Unsigned.UInt32.(compare f f' = 0)
-  let format_unknown = i sdl_pixelformat_unknown
-  let format_index1lsb = i sdl_pixelformat_index1lsb
-  let format_index1msb = i sdl_pixelformat_index1msb
-  let format_index4lsb = i sdl_pixelformat_index4lsb
-  let format_index4msb = i sdl_pixelformat_index4msb
-  let format_index8 = i sdl_pixelformat_index8
-  let format_rgb332 = i sdl_pixelformat_rgb332
-  let format_rgb444 = i sdl_pixelformat_rgb444
-  let format_rgb555 = i sdl_pixelformat_rgb555
-  let format_bgr555 = i sdl_pixelformat_bgr555
-  let format_argb4444 = i sdl_pixelformat_argb4444
-  let format_rgba4444 = i sdl_pixelformat_rgba4444
-  let format_abgr4444 = i sdl_pixelformat_abgr4444
-  let format_bgra4444 = i sdl_pixelformat_bgra4444
-  let format_argb1555 = i sdl_pixelformat_argb1555
-  let format_rgba5551 = i sdl_pixelformat_rgba5551
-  let format_abgr1555 = i sdl_pixelformat_abgr1555
-  let format_bgra5551 = i sdl_pixelformat_bgra5551
-  let format_rgb565 = i sdl_pixelformat_rgb565
-  let format_bgr565 = i sdl_pixelformat_bgr565
-  let format_rgb24 = i sdl_pixelformat_rgb24
-  let format_bgr24 = i sdl_pixelformat_bgr24
-  let format_rgb888 = i sdl_pixelformat_rgb888
-  let format_rgbx8888 = i sdl_pixelformat_rgbx8888
-  let format_bgr888 = i sdl_pixelformat_bgr888
-  let format_bgrx8888 = i sdl_pixelformat_bgrx8888
-  let format_argb8888 = i sdl_pixelformat_argb8888
-  let format_rgba8888 = i sdl_pixelformat_rgba8888
-  let format_abgr8888 = i sdl_pixelformat_abgr8888
-  let format_bgra8888 = i sdl_pixelformat_bgra8888
-  let format_argb2101010 = i sdl_pixelformat_argb2101010
-  let format_yv12 = i sdl_pixelformat_yv12
-  let format_iyuv = i sdl_pixelformat_iyuv
-  let format_yuy2 = i sdl_pixelformat_yuy2
-  let format_uyvy = i sdl_pixelformat_uyvy
-  let format_yvyu = i sdl_pixelformat_yvyu
+  include C.Types.Pixel
 end
 
 (* Note. Giving direct access to the palette field of SDL_PixelFormat
@@ -1237,9 +1157,7 @@ let unlock_surface =
 type flip = int
 module Flip = struct
   let ( + ) = ( lor )
-  let none = sdl_flip_none
-  let horizontal = sdl_flip_horizontal
-  let vertical = sdl_flip_vertical
+  include C.Types.Flip
 end
 
 type texture = unit ptr
@@ -1262,15 +1180,11 @@ let unsafe_ptr_of_renderer renderer =
 
 module Renderer = struct
   type flags = Unsigned.uint32
-  let i = Unsigned.UInt32.of_int
   let ( + ) = Unsigned.UInt32.logor
   let ( - ) f f' = Unsigned.UInt32.(logand f (lognot f'))
   let test f m = Unsigned.UInt32.(compare (logand f m) zero <> 0)
   let eq f f' = Unsigned.UInt32.(compare f f' = 0)
-  let software = i sdl_renderer_software
-  let accelerated = i sdl_renderer_accelerated
-  let presentvsync = i sdl_renderer_presentvsync
-  let targettexture = i sdl_renderer_targettexture
+  include C.Types.Renderer
 end
 
 type renderer_info =
@@ -1692,15 +1606,8 @@ let set_render_target r t =
 
 module Texture = struct
   type access = int
-  let access_static = sdl_textureaccess_static
-  let access_streaming = sdl_textureaccess_streaming
-  let access_target = sdl_textureaccess_target
-
-  let i = Unsigned.UInt32.of_int
   type modulate = Unsigned.uint32
-  let modulate_none = i sdl_texturemodulate_none
-  let modulate_color = i sdl_texturemodulate_color
-  let modulate_alpha = i sdl_texturemodulate_alpha
+  include C.Types.Texture
 end
 
 let create_texture =
@@ -1978,36 +1885,13 @@ let get_num_video_displays () = get_num_video_displays () |> nat_to_ok
 (* Windows *)
 
 module Window = struct
-  let pos_undefined = sdl_windowpos_undefined
-  let pos_centered = sdl_windowpos_centered
-
   type flags = Unsigned.uint32
-  let i = Unsigned.UInt32.of_int
   let ( + ) = Unsigned.UInt32.logor
   let ( - ) f f' = Unsigned.UInt32.(logand f (lognot f'))
   let test f m = Unsigned.UInt32.(compare (logand f m) zero <> 0)
   let eq f f' = Unsigned.UInt32.(compare f f' = 0)
-  let windowed = i 0
-  let fullscreen = i sdl_window_fullscreen
-  let fullscreen_desktop = i sdl_window_fullscreen_desktop
-  let opengl = i sdl_window_opengl
-  let shown = i sdl_window_shown
-  let hidden = i sdl_window_hidden
-  let borderless = i sdl_window_borderless
-  let resizable = i sdl_window_resizable
-  let minimized = i sdl_window_minimized
-  let maximized = i sdl_window_maximized
-  let input_grabbed = i sdl_window_input_grabbed
-  let input_focus = i sdl_window_input_focus
-  let mouse_focus = i sdl_window_mouse_focus
-  let foreign = i sdl_window_foreign
-  let allow_highdpi = i sdl_window_allow_highdpi
-  let mouse_capture = i sdl_window_mouse_capture
-  let always_on_top = i sdl_window_always_on_top
-  let skip_taskbar = i sdl_window_skip_taskbar
-  let utility = i sdl_window_utility
-  let popup_menu = i sdl_window_popup_menu
-  let vulkan = i sdl_window_vulkan
+  let windowed = Unsigned.UInt32.zero
+  include C.Types.Window
 end
 
 let create_window =
@@ -2284,41 +2168,10 @@ let unsafe_ptr_of_gl_context gl_context =
 
 module Gl = struct
   type context_flags = int
-  let context_debug_flag = sdl_gl_context_debug_flag
-  let context_forward_compatible_flag = sdl_gl_context_forward_compatible_flag
-  let context_robust_access_flag = sdl_gl_context_robust_access_flag
-  let context_reset_isolation_flag = sdl_gl_context_reset_isolation_flag
-
   type profile = int
-  let context_profile_core = sdl_gl_context_profile_core
-  let context_profile_compatibility = sdl_gl_context_profile_compatibility
-  let context_profile_es = sdl_gl_context_profile_es
-
   type attr = int
-  let red_size = sdl_gl_red_size
-  let green_size = sdl_gl_green_size
-  let blue_size = sdl_gl_blue_size
-  let alpha_size = sdl_gl_alpha_size
-  let buffer_size = sdl_gl_buffer_size
-  let doublebuffer = sdl_gl_doublebuffer
-  let depth_size = sdl_gl_depth_size
-  let stencil_size = sdl_gl_stencil_size
-  let accum_red_size = sdl_gl_accum_red_size
-  let accum_green_size = sdl_gl_accum_green_size
-  let accum_blue_size = sdl_gl_accum_blue_size
-  let accum_alpha_size = sdl_gl_accum_alpha_size
-  let stereo = sdl_gl_stereo
-  let multisamplebuffers = sdl_gl_multisamplebuffers
-  let multisamplesamples = sdl_gl_multisamplesamples
-  let accelerated_visual = sdl_gl_accelerated_visual
-  let context_major_version = sdl_gl_context_major_version
-  let context_minor_version = sdl_gl_context_minor_version
-  let context_egl = sdl_gl_context_egl
-  let context_flags = sdl_gl_context_flags
-  let context_profile_mask = sdl_gl_context_profile_mask
-  let context_release_behavior = sdl_gl_context_release_behavior
-  let share_with_current_context = sdl_gl_share_with_current_context
-  let framebuffer_srgb_capable = sdl_gl_framebuffer_srgb_capable
+
+  include C.Types.Gl
 end
 
 let gl_bind_texture =
@@ -2464,12 +2317,10 @@ let is_screen_saver_enabled =
 (* Message boxes *)
 
 module Message_box = struct
-  let i = Unsigned.UInt32.of_int
+  include C.Types.Message_box
 
   type button_flags = Unsigned.uint32
-  let button_no_default = i 0
-  let button_returnkey_default = i sdl_messagebox_button_returnkey_default
-  let button_escapekey_default = i sdl_messagebox_button_escapekey_default
+  let button_no_default = Unsigned.UInt32.zero
 
   type button_data =
     { button_flags : button_flags;
@@ -2483,9 +2334,6 @@ module Message_box = struct
   let () = seal button_data
 
   type flags = Unsigned.uint32
-  let error = i sdl_messagebox_error
-  let warning = i sdl_messagebox_warning
-  let information = i sdl_messagebox_information
 
   type color = int * int * int
   let color = structure "SDL_MessageBoxColor"
@@ -2495,12 +2343,6 @@ module Message_box = struct
   let () = seal color
 
   type _color_type = int
-  let color_background = sdl_messagebox_color_background
-  let color_text = sdl_messagebox_color_text
-  let color_button_border = sdl_messagebox_color_button_border
-  let color_button_background = sdl_messagebox_color_button_background
-  let color_button_selected = sdl_messagebox_color_button_selected
-  let color_button_max = sdl_messagebox_color_max
 
   type color_scheme =
     { color_background : color;
@@ -2616,13 +2458,13 @@ let set_clipboard_text s = set_clipboard_text s |> zero_to_ok
 
 (* Input *)
 
-type button_state = uint8
-let pressed = sdl_pressed
-let released = sdl_released
+type button_state = Unsigned.uint8
+let pressed = C.Types.pressed
+let released = C.Types.released
 
-type toggle_state = uint8
-let disable = sdl_disable
-let enable = sdl_enable
+type toggle_state = Unsigned.uint8
+let disable = C.Types.disable
+let enable = C.Types.enable
 
 (* Keyboard *)
 
@@ -2630,248 +2472,7 @@ type scancode = int
 let scancode = int
 
 module Scancode = struct
-  let num_scancodes = sdl_num_scancodes
-  let unknown = sdl_scancode_unknown
-  let a = sdl_scancode_a
-  let b = sdl_scancode_b
-  let c = sdl_scancode_c
-  let d = sdl_scancode_d
-  let e = sdl_scancode_e
-  let f = sdl_scancode_f
-  let g = sdl_scancode_g
-  let h = sdl_scancode_h
-  let i = sdl_scancode_i
-  let j = sdl_scancode_j
-  let k = sdl_scancode_k
-  let l = sdl_scancode_l
-  let m = sdl_scancode_m
-  let n = sdl_scancode_n
-  let o = sdl_scancode_o
-  let p = sdl_scancode_p
-  let q = sdl_scancode_q
-  let r = sdl_scancode_r
-  let s = sdl_scancode_s
-  let t = sdl_scancode_t
-  let u = sdl_scancode_u
-  let v = sdl_scancode_v
-  let w = sdl_scancode_w
-  let x = sdl_scancode_x
-  let y = sdl_scancode_y
-  let z = sdl_scancode_z
-  let k1 = sdl_scancode_1
-  let k2 = sdl_scancode_2
-  let k3 = sdl_scancode_3
-  let k4 = sdl_scancode_4
-  let k5 = sdl_scancode_5
-  let k6 = sdl_scancode_6
-  let k7 = sdl_scancode_7
-  let k8 = sdl_scancode_8
-  let k9 = sdl_scancode_9
-  let k0 = sdl_scancode_0
-  let return = sdl_scancode_return
-  let escape = sdl_scancode_escape
-  let backspace = sdl_scancode_backspace
-  let tab = sdl_scancode_tab
-  let space = sdl_scancode_space
-  let minus = sdl_scancode_minus
-  let equals = sdl_scancode_equals
-  let leftbracket = sdl_scancode_leftbracket
-  let rightbracket = sdl_scancode_rightbracket
-  let backslash = sdl_scancode_backslash
-  let nonushash = sdl_scancode_nonushash
-  let semicolon = sdl_scancode_semicolon
-  let apostrophe = sdl_scancode_apostrophe
-  let grave = sdl_scancode_grave
-  let comma = sdl_scancode_comma
-  let period = sdl_scancode_period
-  let slash = sdl_scancode_slash
-  let capslock = sdl_scancode_capslock
-  let f1 = sdl_scancode_f1
-  let f2 = sdl_scancode_f2
-  let f3 = sdl_scancode_f3
-  let f4 = sdl_scancode_f4
-  let f5 = sdl_scancode_f5
-  let f6 = sdl_scancode_f6
-  let f7 = sdl_scancode_f7
-  let f8 = sdl_scancode_f8
-  let f9 = sdl_scancode_f9
-  let f10 = sdl_scancode_f10
-  let f11 = sdl_scancode_f11
-  let f12 = sdl_scancode_f12
-  let printscreen = sdl_scancode_printscreen
-  let scrolllock = sdl_scancode_scrolllock
-  let pause = sdl_scancode_pause
-  let insert = sdl_scancode_insert
-  let home = sdl_scancode_home
-  let pageup = sdl_scancode_pageup
-  let delete = sdl_scancode_delete
-  let kend = sdl_scancode_end
-  let pagedown = sdl_scancode_pagedown
-  let right = sdl_scancode_right
-  let left = sdl_scancode_left
-  let down = sdl_scancode_down
-  let up = sdl_scancode_up
-  let numlockclear = sdl_scancode_numlockclear
-  let kp_divide = sdl_scancode_kp_divide
-  let kp_multiply = sdl_scancode_kp_multiply
-  let kp_minus = sdl_scancode_kp_minus
-  let kp_plus = sdl_scancode_kp_plus
-  let kp_enter = sdl_scancode_kp_enter
-  let kp_1 = sdl_scancode_kp_1
-  let kp_2 = sdl_scancode_kp_2
-  let kp_3 = sdl_scancode_kp_3
-  let kp_4 = sdl_scancode_kp_4
-  let kp_5 = sdl_scancode_kp_5
-  let kp_6 = sdl_scancode_kp_6
-  let kp_7 = sdl_scancode_kp_7
-  let kp_8 = sdl_scancode_kp_8
-  let kp_9 = sdl_scancode_kp_9
-  let kp_0 = sdl_scancode_kp_0
-  let kp_period = sdl_scancode_kp_period
-  let nonusbackslash = sdl_scancode_nonusbackslash
-  let application = sdl_scancode_application
-  let kp_equals = sdl_scancode_kp_equals
-  let f13 = sdl_scancode_f13
-  let f14 = sdl_scancode_f14
-  let f15 = sdl_scancode_f15
-  let f16 = sdl_scancode_f16
-  let f17 = sdl_scancode_f17
-  let f18 = sdl_scancode_f18
-  let f19 = sdl_scancode_f19
-  let f20 = sdl_scancode_f20
-  let f21 = sdl_scancode_f21
-  let f22 = sdl_scancode_f22
-  let f23 = sdl_scancode_f23
-  let f24 = sdl_scancode_f24
-  let execute = sdl_scancode_execute
-  let help = sdl_scancode_help
-  let menu = sdl_scancode_menu
-  let select = sdl_scancode_select
-  let stop = sdl_scancode_stop
-  let again = sdl_scancode_again
-  let undo = sdl_scancode_undo
-  let cut = sdl_scancode_cut
-  let copy = sdl_scancode_copy
-  let paste = sdl_scancode_paste
-  let find = sdl_scancode_find
-  let mute = sdl_scancode_mute
-  let volumeup = sdl_scancode_volumeup
-  let volumedown = sdl_scancode_volumedown
-  let kp_comma = sdl_scancode_kp_comma
-  let kp_equalsas400 = sdl_scancode_kp_equalsas400
-  let international1 = sdl_scancode_international1
-  let international2 = sdl_scancode_international2
-  let international3 = sdl_scancode_international3
-  let international4 = sdl_scancode_international4
-  let international5 = sdl_scancode_international5
-  let international6 = sdl_scancode_international6
-  let international7 = sdl_scancode_international7
-  let international8 = sdl_scancode_international8
-  let international9 = sdl_scancode_international9
-  let lang1 = sdl_scancode_lang1
-  let lang2 = sdl_scancode_lang2
-  let lang3 = sdl_scancode_lang3
-  let lang4 = sdl_scancode_lang4
-  let lang5 = sdl_scancode_lang5
-  let lang6 = sdl_scancode_lang6
-  let lang7 = sdl_scancode_lang7
-  let lang8 = sdl_scancode_lang8
-  let lang9 = sdl_scancode_lang9
-  let alterase = sdl_scancode_alterase
-  let sysreq = sdl_scancode_sysreq
-  let cancel = sdl_scancode_cancel
-  let clear = sdl_scancode_clear
-  let prior = sdl_scancode_prior
-  let return2 = sdl_scancode_return2
-  let separator = sdl_scancode_separator
-  let out = sdl_scancode_out
-  let oper = sdl_scancode_oper
-  let clearagain = sdl_scancode_clearagain
-  let crsel = sdl_scancode_crsel
-  let exsel = sdl_scancode_exsel
-  let kp_00 = sdl_scancode_kp_00
-  let kp_000 = sdl_scancode_kp_000
-  let thousandsseparator = sdl_scancode_thousandsseparator
-  let decimalseparator = sdl_scancode_decimalseparator
-  let currencyunit = sdl_scancode_currencyunit
-  let currencysubunit = sdl_scancode_currencysubunit
-  let kp_leftparen = sdl_scancode_kp_leftparen
-  let kp_rightparen = sdl_scancode_kp_rightparen
-  let kp_leftbrace = sdl_scancode_kp_leftbrace
-  let kp_rightbrace = sdl_scancode_kp_rightbrace
-  let kp_tab = sdl_scancode_kp_tab
-  let kp_backspace = sdl_scancode_kp_backspace
-  let kp_a = sdl_scancode_kp_a
-  let kp_b = sdl_scancode_kp_b
-  let kp_c = sdl_scancode_kp_c
-  let kp_d = sdl_scancode_kp_d
-  let kp_e = sdl_scancode_kp_e
-  let kp_f = sdl_scancode_kp_f
-  let kp_xor = sdl_scancode_kp_xor
-  let kp_power = sdl_scancode_kp_power
-  let kp_percent = sdl_scancode_kp_percent
-  let kp_less = sdl_scancode_kp_less
-  let kp_greater = sdl_scancode_kp_greater
-  let kp_ampersand = sdl_scancode_kp_ampersand
-  let kp_dblampersand = sdl_scancode_kp_dblampersand
-  let kp_verticalbar = sdl_scancode_kp_verticalbar
-  let kp_dblverticalbar = sdl_scancode_kp_dblverticalbar
-  let kp_colon = sdl_scancode_kp_colon
-  let kp_hash = sdl_scancode_kp_hash
-  let kp_space = sdl_scancode_kp_space
-  let kp_at = sdl_scancode_kp_at
-  let kp_exclam = sdl_scancode_kp_exclam
-  let kp_memstore = sdl_scancode_kp_memstore
-  let kp_memrecall = sdl_scancode_kp_memrecall
-  let kp_memclear = sdl_scancode_kp_memclear
-  let kp_memadd = sdl_scancode_kp_memadd
-  let kp_memsubtract = sdl_scancode_kp_memsubtract
-  let kp_memmultiply = sdl_scancode_kp_memmultiply
-  let kp_memdivide = sdl_scancode_kp_memdivide
-  let kp_plusminus = sdl_scancode_kp_plusminus
-  let kp_clear = sdl_scancode_kp_clear
-  let kp_clearentry = sdl_scancode_kp_clearentry
-  let kp_binary = sdl_scancode_kp_binary
-  let kp_octal = sdl_scancode_kp_octal
-  let kp_decimal = sdl_scancode_kp_decimal
-  let kp_hexadecimal = sdl_scancode_kp_hexadecimal
-  let lctrl = sdl_scancode_lctrl
-  let lshift = sdl_scancode_lshift
-  let lalt = sdl_scancode_lalt
-  let lgui = sdl_scancode_lgui
-  let rctrl = sdl_scancode_rctrl
-  let rshift = sdl_scancode_rshift
-  let ralt = sdl_scancode_ralt
-  let rgui = sdl_scancode_rgui
-  let mode = sdl_scancode_mode
-  let audionext = sdl_scancode_audionext
-  let audioprev = sdl_scancode_audioprev
-  let audiostop = sdl_scancode_audiostop
-  let audioplay = sdl_scancode_audioplay
-  let audiomute = sdl_scancode_audiomute
-  let mediaselect = sdl_scancode_mediaselect
-  let www = sdl_scancode_www
-  let mail = sdl_scancode_mail
-  let calculator = sdl_scancode_calculator
-  let computer = sdl_scancode_computer
-  let ac_search = sdl_scancode_ac_search
-  let ac_home = sdl_scancode_ac_home
-  let ac_back = sdl_scancode_ac_back
-  let ac_forward = sdl_scancode_ac_forward
-  let ac_stop = sdl_scancode_ac_stop
-  let ac_refresh = sdl_scancode_ac_refresh
-  let ac_bookmarks = sdl_scancode_ac_bookmarks
-  let brightnessdown = sdl_scancode_brightnessdown
-  let brightnessup = sdl_scancode_brightnessup
-  let displayswitch = sdl_scancode_displayswitch
-  let kbdillumtoggle = sdl_scancode_kbdillumtoggle
-  let kbdillumdown = sdl_scancode_kbdillumdown
-  let kbdillumup = sdl_scancode_kbdillumup
-  let eject = sdl_scancode_eject
-  let sleep = sdl_scancode_sleep
-  let app1 = sdl_scancode_app1
-  let app2 = sdl_scancode_app2
-
+  include C.Types.Scancode
   let enum_of_scancode = [|
     `Unknown; `Unknown; `Unknown; `Unknown; `A; `B; `C; `D; `E; `F;
     `G; `H; `I; `J; `K; `L; `M; `N; `O; `P; `Q; `R; `S; `T; `U; `V;
@@ -2927,268 +2528,12 @@ end
 type keycode = int
 let keycode = int
 
-module K = struct
-  let scancode_mask = sdlk_scancode_mask
-  let unknown = sdlk_unknown
-  let return = sdlk_return
-  let escape = sdlk_escape
-  let backspace = sdlk_backspace
-  let tab = sdlk_tab
-  let space = sdlk_space
-  let exclaim = sdlk_exclaim
-  let quotedbl = sdlk_quotedbl
-  let hash = sdlk_hash
-  let percent = sdlk_percent
-  let dollar = sdlk_dollar
-  let ampersand = sdlk_ampersand
-  let quote = sdlk_quote
-  let leftparen = sdlk_leftparen
-  let rightparen = sdlk_rightparen
-  let asterisk = sdlk_asterisk
-  let plus = sdlk_plus
-  let comma = sdlk_comma
-  let minus = sdlk_minus
-  let period = sdlk_period
-  let slash = sdlk_slash
-  let k0 = sdlk_0
-  let k1 = sdlk_1
-  let k2 = sdlk_2
-  let k3 = sdlk_3
-  let k4 = sdlk_4
-  let k5 = sdlk_5
-  let k6 = sdlk_6
-  let k7 = sdlk_7
-  let k8 = sdlk_8
-  let k9 = sdlk_9
-  let colon = sdlk_colon
-  let semicolon = sdlk_semicolon
-  let less = sdlk_less
-  let equals = sdlk_equals
-  let greater = sdlk_greater
-  let question = sdlk_question
-  let at = sdlk_at
-  let leftbracket = sdlk_leftbracket
-  let backslash = sdlk_backslash
-  let rightbracket = sdlk_rightbracket
-  let caret = sdlk_caret
-  let underscore = sdlk_underscore
-  let backquote = sdlk_backquote
-  let a = sdlk_a
-  let b = sdlk_b
-  let c = sdlk_c
-  let d = sdlk_d
-  let e = sdlk_e
-  let f = sdlk_f
-  let g = sdlk_g
-  let h = sdlk_h
-  let i = sdlk_i
-  let j = sdlk_j
-  let k = sdlk_k
-  let l = sdlk_l
-  let m = sdlk_m
-  let n = sdlk_n
-  let o = sdlk_o
-  let p = sdlk_p
-  let q = sdlk_q
-  let r = sdlk_r
-  let s = sdlk_s
-  let t = sdlk_t
-  let u = sdlk_u
-  let v = sdlk_v
-  let w = sdlk_w
-  let x = sdlk_x
-  let y = sdlk_y
-  let z = sdlk_z
-  let capslock = sdlk_capslock
-  let f1 = sdlk_f1
-  let f2 = sdlk_f2
-  let f3 = sdlk_f3
-  let f4 = sdlk_f4
-  let f5 = sdlk_f5
-  let f6 = sdlk_f6
-  let f7 = sdlk_f7
-  let f8 = sdlk_f8
-  let f9 = sdlk_f9
-  let f10 = sdlk_f10
-  let f11 = sdlk_f11
-  let f12 = sdlk_f12
-  let printscreen = sdlk_printscreen
-  let scrolllock = sdlk_scrolllock
-  let pause = sdlk_pause
-  let insert = sdlk_insert
-  let home = sdlk_home
-  let pageup = sdlk_pageup
-  let delete = sdlk_delete
-  let kend = sdlk_end
-  let pagedown = sdlk_pagedown
-  let right = sdlk_right
-  let left = sdlk_left
-  let down = sdlk_down
-  let up = sdlk_up
-  let numlockclear = sdlk_numlockclear
-  let kp_divide = sdlk_kp_divide
-  let kp_multiply = sdlk_kp_multiply
-  let kp_minus = sdlk_kp_minus
-  let kp_plus = sdlk_kp_plus
-  let kp_enter = sdlk_kp_enter
-  let kp_1 = sdlk_kp_1
-  let kp_2 = sdlk_kp_2
-  let kp_3 = sdlk_kp_3
-  let kp_4 = sdlk_kp_4
-  let kp_5 = sdlk_kp_5
-  let kp_6 = sdlk_kp_6
-  let kp_7 = sdlk_kp_7
-  let kp_8 = sdlk_kp_8
-  let kp_9 = sdlk_kp_9
-  let kp_0 = sdlk_kp_0
-  let kp_period = sdlk_kp_period
-  let application = sdlk_application
-  let power = sdlk_power
-  let kp_equals = sdlk_kp_equals
-  let f13 = sdlk_f13
-  let f14 = sdlk_f14
-  let f15 = sdlk_f15
-  let f16 = sdlk_f16
-  let f17 = sdlk_f17
-  let f18 = sdlk_f18
-  let f19 = sdlk_f19
-  let f20 = sdlk_f20
-  let f21 = sdlk_f21
-  let f22 = sdlk_f22
-  let f23 = sdlk_f23
-  let f24 = sdlk_f24
-  let execute = sdlk_execute
-  let help = sdlk_help
-  let menu = sdlk_menu
-  let select = sdlk_select
-  let stop = sdlk_stop
-  let again = sdlk_again
-  let undo = sdlk_undo
-  let cut = sdlk_cut
-  let copy = sdlk_copy
-  let paste = sdlk_paste
-  let find = sdlk_find
-  let mute = sdlk_mute
-  let volumeup = sdlk_volumeup
-  let volumedown = sdlk_volumedown
-  let kp_comma = sdlk_kp_comma
-  let kp_equalsas400 = sdlk_kp_equalsas400
-  let alterase = sdlk_alterase
-  let sysreq = sdlk_sysreq
-  let cancel = sdlk_cancel
-  let clear = sdlk_clear
-  let prior = sdlk_prior
-  let return2 = sdlk_return2
-  let separator = sdlk_separator
-  let out = sdlk_out
-  let oper = sdlk_oper
-  let clearagain = sdlk_clearagain
-  let crsel = sdlk_crsel
-  let exsel = sdlk_exsel
-  let kp_00 = sdlk_kp_00
-  let kp_000 = sdlk_kp_000
-  let thousandsseparator = sdlk_thousandsseparator
-  let decimalseparator = sdlk_decimalseparator
-  let currencyunit = sdlk_currencyunit
-  let currencysubunit = sdlk_currencysubunit
-  let kp_leftparen = sdlk_kp_leftparen
-  let kp_rightparen = sdlk_kp_rightparen
-  let kp_leftbrace = sdlk_kp_leftbrace
-  let kp_rightbrace = sdlk_kp_rightbrace
-  let kp_tab = sdlk_kp_tab
-  let kp_backspace = sdlk_kp_backspace
-  let kp_a = sdlk_kp_a
-  let kp_b = sdlk_kp_b
-  let kp_c = sdlk_kp_c
-  let kp_d = sdlk_kp_d
-  let kp_e = sdlk_kp_e
-  let kp_f = sdlk_kp_f
-  let kp_xor = sdlk_kp_xor
-  let kp_power = sdlk_kp_power
-  let kp_percent = sdlk_kp_percent
-  let kp_less = sdlk_kp_less
-  let kp_greater = sdlk_kp_greater
-  let kp_ampersand = sdlk_kp_ampersand
-  let kp_dblampersand = sdlk_kp_dblampersand
-  let kp_verticalbar = sdlk_kp_verticalbar
-  let kp_dblverticalbar = sdlk_kp_dblverticalbar
-  let kp_colon = sdlk_kp_colon
-  let kp_hash = sdlk_kp_hash
-  let kp_space = sdlk_kp_space
-  let kp_at = sdlk_kp_at
-  let kp_exclam = sdlk_kp_exclam
-  let kp_memstore = sdlk_kp_memstore
-  let kp_memrecall = sdlk_kp_memrecall
-  let kp_memclear = sdlk_kp_memclear
-  let kp_memadd = sdlk_kp_memadd
-  let kp_memsubtract = sdlk_kp_memsubtract
-  let kp_memmultiply = sdlk_kp_memmultiply
-  let kp_memdivide = sdlk_kp_memdivide
-  let kp_plusminus = sdlk_kp_plusminus
-  let kp_clear = sdlk_kp_clear
-  let kp_clearentry = sdlk_kp_clearentry
-  let kp_binary = sdlk_kp_binary
-  let kp_octal = sdlk_kp_octal
-  let kp_decimal = sdlk_kp_decimal
-  let kp_hexadecimal = sdlk_kp_hexadecimal
-  let lctrl = sdlk_lctrl
-  let lshift = sdlk_lshift
-  let lalt = sdlk_lalt
-  let lgui = sdlk_lgui
-  let rctrl = sdlk_rctrl
-  let rshift = sdlk_rshift
-  let ralt = sdlk_ralt
-  let rgui = sdlk_rgui
-  let mode = sdlk_mode
-  let audionext = sdlk_audionext
-  let audioprev = sdlk_audioprev
-  let audiostop = sdlk_audiostop
-  let audioplay = sdlk_audioplay
-  let audiomute = sdlk_audiomute
-  let mediaselect = sdlk_mediaselect
-  let www = sdlk_www
-  let mail = sdlk_mail
-  let calculator = sdlk_calculator
-  let computer = sdlk_computer
-  let ac_search = sdlk_ac_search
-  let ac_home = sdlk_ac_home
-  let ac_back = sdlk_ac_back
-  let ac_forward = sdlk_ac_forward
-  let ac_stop = sdlk_ac_stop
-  let ac_refresh = sdlk_ac_refresh
-  let ac_bookmarks = sdlk_ac_bookmarks
-  let brightnessdown = sdlk_brightnessdown
-  let brightnessup = sdlk_brightnessup
-  let displayswitch = sdlk_displayswitch
-  let kbdillumtoggle = sdlk_kbdillumtoggle
-  let kbdillumdown = sdlk_kbdillumdown
-  let kbdillumup = sdlk_kbdillumup
-  let eject = sdlk_eject
-  let sleep = sdlk_sleep
-end
+module K = C.Types.K
 
 type keymod = int
 let keymod = int_as_uint16_t
 
-module Kmod = struct
-  let none = kmod_none
-  let lshift = kmod_lshift
-  let rshift = kmod_rshift
-  let lctrl = kmod_lctrl
-  let rctrl = kmod_rctrl
-  let lalt = kmod_lalt
-  let ralt = kmod_ralt
-  let lgui = kmod_lgui
-  let rgui = kmod_rgui
-  let num = kmod_num
-  let caps = kmod_caps
-  let mode = kmod_mode
-  let reserved = kmod_reserved
-  let ctrl = kmod_ctrl
-  let shift = kmod_shift
-  let alt = kmod_alt
-  let gui = kmod_gui
-end
+module Kmod = C.Types.Kmod
 
 let get_keyboard_focus =
   foreign "SDL_GetKeyboardFocus" (void @-> returning window_opt)
@@ -3259,34 +2604,10 @@ let unsafe_ptr_of_cursor cursor =
 
 module System_cursor = struct
   type t = int
-  let arrow = sdl_system_cursor_arrow
-  let ibeam = sdl_system_cursor_ibeam
-  let wait = sdl_system_cursor_wait
-  let crosshair = sdl_system_cursor_crosshair
-  let waitarrow = sdl_system_cursor_waitarrow
-  let size_nw_se = sdl_system_cursor_sizenwse
-  let size_ne_sw = sdl_system_cursor_sizenesw
-  let size_we = sdl_system_cursor_sizewe
-  let size_ns = sdl_system_cursor_sizens
-  let size_all = sdl_system_cursor_sizeall
-  let no = sdl_system_cursor_no
-  let hand = sdl_system_cursor_hand
+    include C.Types.System_cursor
 end
 
-module Button = struct
-  let left = sdl_button_left
-  let right = sdl_button_right
-  let middle = sdl_button_middle
-  let x1 = sdl_button_x1
-  let x2 = sdl_button_x2
-
-  let i = Int32.of_int
-  let lmask = i sdl_button_lmask
-  let mmask = i sdl_button_mmask
-  let rmask = i sdl_button_rmask
-  let x1mask = i sdl_button_x1mask
-  let x2mask = i sdl_button_x2mask
-end
+module Button = C.Types.Button
 
 let capture_mouse =
   foreign "SDL_CaptureMouse" (bool @-> returning int)
@@ -3393,7 +2714,7 @@ let warp_mouse_global ~x ~y =
 
 type touch_id = int64
 let touch_id = int64_t
-let touch_mouse_id = Int64.of_int32 (sdl_touch_mouseid)
+let touch_mouse_id = C.Types.touch_mouseid
 
 type gesture_id = int64
 let gesture_id = int64_t
@@ -3494,42 +2815,11 @@ let unsafe_joystick_of_ptr addr : joystick =
 let unsafe_ptr_of_joystick joystick =
   raw_address_of_ptr (to_voidp joystick)
 
-module Hat = struct
-  type t = int
-  let centered = sdl_hat_centered
-  let up = sdl_hat_up
-  let right = sdl_hat_right
-  let down = sdl_hat_down
-  let left = sdl_hat_left
-  let rightup = sdl_hat_rightup
-  let rightdown = sdl_hat_rightdown
-  let leftup = sdl_hat_leftup
-  let leftdown = sdl_hat_leftdown
-end
+module Hat = C.Types.Hat
 
-module Joystick_power_level = struct
-  type t = int
-  let unknown = sdl_joystick_power_unknown
-  let low = sdl_joystick_power_low
-  let medium = sdl_joystick_power_medium
-  let full = sdl_joystick_power_full
-  let wired = sdl_joystick_power_wired
-  let max = sdl_joystick_power_max
-end
+module Joystick_power_level = C.Types.Joystick_power_level
 
-module Joystick_type = struct
-  type t = int
-  let unknown        = sdl_joystick_type_unknown
-  let gamecontroller = sdl_joystick_type_gamecontroller
-  let wheel          = sdl_joystick_type_wheel
-  let arcade_stick   = sdl_joystick_type_arcade_stick
-  let flight_stick   = sdl_joystick_type_flight_stick
-  let dance_pad      = sdl_joystick_type_dance_pad
-  let guitar         = sdl_joystick_type_guitar
-  let drum_kit       = sdl_joystick_type_drum_kit
-  let arcade_pad     = sdl_joystick_type_arcade_pad
-  let throttle      = sdl_joystick_type_throttle
-end
+module Joystick_type = C.Types.Joystick_type
 
 let joystick_close =
   foreign "SDL_JoystickClose" (joystick @-> returning void)
@@ -3540,16 +2830,17 @@ let joystick_current_power_level =
 
 let joystick_event_state =
   foreign "SDL_JoystickEventState" (int @-> returning int)
-let joystick_event_state i = joystick_event_state i |> nat_to_ok
+let joystick_event_state i =
+  joystick_event_state i |> nat_to_ok |> Result.map Unsigned.UInt8.of_int
 
 let joystick_from_instance_id =
   foreign "SDL_JoystickFromInstanceID" (joystick_id @-> returning joystick)
 
 let joystick_get_event_state () =
-  joystick_event_state sdl_query
+  joystick_event_state C.Types.sdl_query
 
 let joystick_set_event_state s =
-  joystick_event_state s
+  joystick_event_state (Unsigned.UInt8.to_int s)
 
 let joystick_get_attached =
   foreign "SDL_JoystickGetAttached" (joystick @-> returning bool)
@@ -3688,40 +2979,7 @@ let button_bind_value2 = field button_bind "value2" int
 let () = seal button_bind
 
 module Controller = struct
-  type bind_type = int
-  let bind_type_none = sdl_controller_bindtype_none
-  let bind_type_button = sdl_controller_bindtype_button
-  let bind_type_axis = sdl_controller_bindtype_axis
-  let bind_type_hat = sdl_controller_bindtype_hat
-
-  type axis = int
-  let axis_invalid = sdl_controller_axis_invalid
-  let axis_left_x = sdl_controller_axis_leftx
-  let axis_left_y = sdl_controller_axis_lefty
-  let axis_right_x = sdl_controller_axis_rightx
-  let axis_right_y = sdl_controller_axis_righty
-  let axis_trigger_left = sdl_controller_axis_triggerleft
-  let axis_trigger_right = sdl_controller_axis_triggerright
-  let axis_max = sdl_controller_axis_max
-
-  type button = int
-  let button_invalid = sdl_controller_button_invalid
-  let button_a = sdl_controller_button_a
-  let button_b = sdl_controller_button_b
-  let button_x = sdl_controller_button_x
-  let button_y = sdl_controller_button_y
-  let button_back = sdl_controller_button_back
-  let button_guide = sdl_controller_button_guide
-  let button_start = sdl_controller_button_start
-  let button_left_stick = sdl_controller_button_leftstick
-  let button_right_stick = sdl_controller_button_rightstick
-  let button_left_shoulder = sdl_controller_button_leftshoulder
-  let button_right_shoulder = sdl_controller_button_rightshoulder
-  let button_dpad_up = sdl_controller_button_dpad_up
-  let button_dpad_down = sdl_controller_button_dpad_down
-  let button_dpad_left = sdl_controller_button_dpad_left
-  let button_dpad_right = sdl_controller_button_dpad_right
-  let button_max = sdl_controller_button_max
+  include C.Types.Controller
 
   type button_bind = _button_bind structure
   let bind_type v = getf v button_bind_bind_type
@@ -3744,17 +3002,18 @@ let game_controller_close =
 
 let game_controller_event_state =
   foreign "SDL_GameControllerEventState" (int @-> returning int)
-let game_controller_event_state i = game_controller_event_state i |> nat_to_ok
+let game_controller_event_state i =
+  game_controller_event_state i |> nat_to_ok |> Result.map Unsigned.UInt8.of_int
 
 let game_controller_from_instance_id =
   foreign "SDL_GameControllerFromInstanceID"
     (joystick_id @-> returning game_controller)
 
 let game_controller_get_event_state () =
-  game_controller_event_state sdl_query
+  game_controller_event_state C.Types.sdl_query
 
 let game_controller_set_event_state t =
-  game_controller_event_state t
+  game_controller_event_state (Unsigned.UInt8.to_int t)
 
 let game_controller_get_attached =
   foreign "SDL_GameControllerGetAttached" (game_controller @-> returning bool)
@@ -3850,7 +3109,7 @@ type event_type = int
 let event_type : event_type typ = int_as_uint32_t
 
 module Event = struct
-
+  include C.Types.Event
   (* Event structures *)
 
   module Common = struct
@@ -3883,7 +3142,7 @@ module Event = struct
     let _ = field t "timestamp" int32_as_uint32_t
     let which = field t "which" joystick_id
     let button = field t "button" int_as_uint8_t
-    let state = field t "state" int_as_uint8_t
+    let state = field t "state" uint8_t
     let _ = field t "padding1" uint8_t
     let _ = field t "padding2" uint8_t
     let () = seal t
@@ -3928,7 +3187,7 @@ module Event = struct
     let _ = field t "type" int_as_uint32_t
     let _ = field t "timestamp" int32_as_uint32_t
     let window_id = field t "windowID" int_as_uint32_t
-    let state = field t "state" int_as_uint8_t
+    let state = field t "state" uint8_t
     let repeat = field t "repeat" int_as_uint8_t
     let _padding2 = field t "padding2" uint8_t
     let _padding3 = field t "padding3" uint8_t
@@ -3977,7 +3236,7 @@ module Event = struct
     let _ = field t "timestamp" int32_as_uint32_t
     let which = field t "which" joystick_id
     let button = field t "button" int_as_uint8_t
-    let state = field t "state" int_as_uint8_t
+    let state = field t "state" uint8_t
     let _ = field t "padding1" uint8_t
     let _ = field t "padding2" uint8_t
     let () = seal t
@@ -4013,7 +3272,7 @@ module Event = struct
     let window_id = field t "windowID" int_as_uint32_t
     let which = field t "which" int32_as_uint32_t
     let button = field t "button" int_as_uint8_t
-    let state = field t "state" int_as_uint8_t
+    let state = field t "state" uint8_t
     let clicks = field t "clicks" int_as_uint8_t
     let _ = field t "padding1" int_as_uint8_t
     let x = field t "x" int_as_int32_t
@@ -4035,10 +3294,6 @@ module Event = struct
     let yrel = field t "yrel" int_as_int32_t
     let () = seal t
   end
-
-    type mouse_wheel_direction = int
-    let mouse_wheel_normal = sdl_mousewheel_normal
-    let mouse_wheel_flipped = sdl_mousewheel_flipped
 
   module Mouse_wheel_event = struct
     type t
@@ -4109,7 +3364,7 @@ module Event = struct
     let _ = field t "timestamp" int32_as_uint32_t
     let window_id = field t "windowID" int_as_uint32_t
     let text = field t "text" (string_as_char_array
-                                 sdl_texteditingevent_text_size)
+                                 C.Types.Event.texteditingevent_text_size)
     let start = field t "start" int_as_int32_t
     let length = field t "end" int_as_int32_t
     let () = seal t
@@ -4122,7 +3377,7 @@ module Event = struct
     let _ = field t "timestamp" int32_as_uint32_t
     let window_id = field t "windowID" int_as_uint32_t
     let text = field t "text" (string_as_char_array
-                                 sdl_textinputevent_text_size)
+                                 C.Types.Event.textinputevent_text_size)
     let () = seal t
   end
 
@@ -4217,12 +3472,12 @@ module Event = struct
   let text_editing_event = field t "edit" Text_editing_event.t
   let text_input_event = field t "text" Text_input_event.t
   let touch_finger_event = field t "tfinger" Touch_finger_event.t
-  let user_event = field t "user" User_event.t
-  let window_event = field t "window" Window_event.t
-  let display_event = field t "display" Display_event.t
+  let _user_event = field t "user" User_event.t
+  let _window_event = field t "window" Window_event.t
+  let _display_event = field t "display" Display_event.t
   let sensor_event = field t "sensor" Sensor_event.t
-  let _padding = field t "padding"
-      (abstract ~name:"padding" ~size:tsdl_sdl_event_size ~alignment:1)
+  (*let _padding = field t "padding"
+      (abstract ~name:"padding" ~size: ~alignment:1)*)
   let () = seal t
 
   let create () = make t
@@ -4238,37 +3493,12 @@ module Event = struct
   let get e (F (s, f)) = getf (getf e s) f
   let set e (F (s, f)) v = setf (getf e s) f v
 
-  (* Aliases *)
-
-  let first_event = sdl_firstevent
-  let last_event = sdl_lastevent
-
   (* Common *)
 
   let typ  = F (common, Common.typ)
   let timestamp = F (common, Common.timestamp)
 
-  (* Application events. *)
-
-  let app_terminating = sdl_app_terminating
-  let app_low_memory = sdl_app_lowmemory
-  let app_will_enter_background = sdl_app_willenterbackground
-  let app_did_enter_background = sdl_app_didenterbackground
-  let app_will_enter_foreground = sdl_app_willenterforeground
-  let app_did_enter_foreground = sdl_app_didenterforeground
-
-  (* Clipboard events *)
-
-  let clipboard_update = sdl_clipboardupdate
-
   (* Controller events *)
-
-  let controller_axis_motion = sdl_controlleraxismotion
-  let controller_button_down = sdl_controllerbuttondown
-  let controller_button_up = sdl_controllerbuttonup
-  let controller_device_added = sdl_controllerdeviceadded
-  let controller_device_remapped = sdl_controllerdeviceremapped
-  let controller_device_removed = sdl_controllerdeviceremoved
 
   let controller_axis_which =
     F (controller_axis_event, Controller_axis_event.which)
@@ -4287,11 +3517,6 @@ module Event = struct
   let controller_device_which =
     F (controller_device_event, Controller_device_event.which)
 
-  (* Dollar gesture events *)
-
-  let dollar_gesture = sdl_dollargesture
-  let dollar_record = sdl_dollarrecord
-
   let dollar_gesture_touch_id =
     F (dollar_gesture_event, Dollar_gesture_event.touch_id)
   let dollar_gesture_gesture_id =
@@ -4302,13 +3527,6 @@ module Event = struct
     F (dollar_gesture_event, Dollar_gesture_event.error)
   let dollar_gesture_x = F (dollar_gesture_event, Dollar_gesture_event.x)
   let dollar_gesture_y = F (dollar_gesture_event, Dollar_gesture_event.y)
-
-  (* Drop file event *)
-
-  let drop_file = sdl_dropfile
-  let drop_text = sdl_droptext
-  let drop_begin = sdl_dropbegin
-  let drop_complete = sdl_dropcomplete
 
   let drop_file_file = F (drop_event, Drop_event.file)
   let drop_window_id = F (drop_event, Drop_event.window_id)
@@ -4323,10 +3541,6 @@ module Event = struct
 
   (* Touch events *)
 
-  let finger_down = sdl_fingerdown
-  let finger_motion = sdl_fingermotion
-  let finger_up = sdl_fingerup
-
   let touch_finger_touch_id = F (touch_finger_event,Touch_finger_event.touch_id)
   let touch_finger_finger_id =
     F (touch_finger_event, Touch_finger_event.finger_id)
@@ -4338,14 +3552,6 @@ module Event = struct
     F (touch_finger_event, Touch_finger_event.pressure)
 
   (* Joystick events. *)
-
-  let joy_axis_motion = sdl_joyaxismotion
-  let joy_ball_motion = sdl_joyballmotion
-  let joy_button_down = sdl_joybuttondown
-  let joy_button_up = sdl_joybuttonup
-  let joy_device_added = sdl_joydeviceadded
-  let joy_device_removed = sdl_joydeviceremoved
-  let joy_hat_motion = sdl_joyhatmotion
 
   let joy_axis_which = F (joy_axis_event, Joy_axis_event.which)
   let joy_axis_axis = F (joy_axis_event, Joy_axis_event.axis)
@@ -4368,10 +3574,6 @@ module Event = struct
 
   (* Keyboard events *)
 
-  let key_down = sdl_keydown
-  let key_up = sdl_keyup
-  let keymap_changed = sdl_keymapchanged
-
   let keyboard_window_id = F (keyboard_event, Keyboard_event.window_id)
   let keyboard_repeat = F (keyboard_event, Keyboard_event.repeat)
   let keyboard_state = F (keyboard_event, Keyboard_event.state)
@@ -4380,11 +3582,6 @@ module Event = struct
   let keyboard_keymod = F (keyboard_event, Keyboard_event.keymod)
 
   (* Mouse events *)
-
-  let mouse_button_down = sdl_mousebuttondown
-  let mouse_button_up = sdl_mousebuttonup
-  let mouse_motion = sdl_mousemotion
-  let mouse_wheel = sdl_mousewheel
 
   let mouse_button_window_id =
     F (mouse_button_event, Mouse_button_event.window_id)
@@ -4412,8 +3609,6 @@ module Event = struct
 
   (* Multi gesture events *)
 
-  let multi_gesture = sdl_multigesture
-
   let multi_gesture_touch_id =
     F (multi_gesture_event, Multi_gesture_event.touch_id)
   let multi_gesture_dtheta = F (multi_gesture_event, Multi_gesture_event.dtheta)
@@ -4422,19 +3617,6 @@ module Event = struct
   let multi_gesture_y = F (multi_gesture_event, Multi_gesture_event.y)
   let multi_gesture_num_fingers =
     F (multi_gesture_event, Multi_gesture_event.num_fingers)
-
-  (* Quit events *)
-
-  let quit = sdl_quit
-
-  (* System window manager events *)
-
-  let sys_wm_event = sdl_syswmevent
-
-  (* Text events *)
-
-  let text_editing = sdl_textediting
-  let text_input = sdl_textinput
 
   let text_editing_window_id =
     F (text_editing_event, Text_editing_event.window_id)
@@ -4447,36 +3629,13 @@ module Event = struct
 
   (* User events *)
 
-  let user_window_id = F (user_event, User_event.window_id)
-  let user_code = F (user_event, User_event.code)
-  let user_event = sdl_userevent
+  let user_window_id = F (_user_event, User_event.window_id)
+  let user_code = F (_user_event, User_event.code)
 
-  (* Window events *)
-
-  type window_event_id = int
-  let window_event_shown = sdl_windowevent_shown
-  let window_event_hidden = sdl_windowevent_hidden
-  let window_event_exposed = sdl_windowevent_exposed
-  let window_event_moved = sdl_windowevent_moved
-  let window_event_resized = sdl_windowevent_resized
-  let window_event_size_changed = sdl_windowevent_size_changed
-  let window_event_minimized = sdl_windowevent_minimized
-  let window_event_maximized = sdl_windowevent_maximized
-  let window_event_restored = sdl_windowevent_restored
-  let window_event_enter = sdl_windowevent_enter
-  let window_event_leave = sdl_windowevent_leave
-  let window_event_focus_gained = sdl_windowevent_focus_gained
-  let window_event_focus_lost = sdl_windowevent_focus_lost
-  let window_event_close = sdl_windowevent_close
-  let window_event_take_focus = sdl_windowevent_take_focus
-  let window_event_hit_test = sdl_windowevent_hit_test
-
-  let window_window_id = F (window_event, Window_event.window_id)
-  let window_event_id = F (window_event, Window_event.event)
-  let window_data1 = F (window_event, Window_event.data1)
-  let window_data2 = F (window_event, Window_event.data2)
-
-  let window_event = sdl_windowevent
+  let window_window_id = F (_window_event, Window_event.window_id)
+  let window_event_id = F (_window_event, Window_event.event)
+  let window_data1 = F (_window_event, Window_event.data1)
+  let window_data2 = F (_window_event, Window_event.data2)
 
   (* Window event id enum *)
 
@@ -4514,15 +3673,13 @@ module Event = struct
   (* Display event *)
 
   let display_display =
-    F (display_event, Display_event.display)
+    F (_display_event, Display_event.display)
 
   let display_event_id =
-    F (display_event, Display_event.event)
+    F (_display_event, Display_event.event)
 
   let display_data1 =
-    F (display_event, Display_event.data1)
-
-  let display_event = sdl_displayevent
+    F (_display_event, Display_event.data1)
 
   (* Sensor event *)
 
@@ -4547,17 +3704,7 @@ module Event = struct
   let sensor_data5 =
     F (sensor_event, Sensor_event.data5)
 
-  let sensor_update = sdl_sensorupdate
-
-  (* Render events *)
-
-  let render_targets_reset = sdl_render_targets_reset
-  let render_device_reset = sdl_render_device_reset
-
   (* Audio device event *)
-
-  let audio_device_added = sdl_audiodeviceadded
-  let audio_device_removed = sdl_audiodeviceremoved
 
   let audio_device_timestamp =
     F (audio_device_event, Audio_device_event.timestamp)
@@ -4638,10 +3785,10 @@ module Event = struct
                   sys_wm_event, `Sys_wm_event;
                   text_editing, `Text_editing;
                   text_input, `Text_input;
-                  user_event, `User_event;
+                  C.Types.Event.user_event, `User_event;
                   quit, `Quit;
-                  window_event, `Window_event;
-                  display_event, `Display_event;
+                  C.Types.Event.window_event, `Window_event;
+                  C.Types.Event.display_event, `Display_event;
                   sensor_update, `Sensor_update; ]
     in
     List.fold_left add Imap.empty enums
@@ -4653,13 +3800,13 @@ end
 type event = Event.t union
 
 let event_state =
-  foreign "SDL_EventState" (event_type @-> int @-> returning int_as_uint8_t)
+  foreign "SDL_EventState" (event_type @-> int @-> returning uint8_t)
 
 let get_event_state e =
-  event_state e sdl_query
+  event_state e C.Types.sdl_query
 
 let set_event_state e s =
-  ignore (event_state e s)
+  ignore (event_state e (Unsigned.UInt8.to_int s))
 
 let flush_event =
   foreign "SDL_FlushEvent" (event_type @-> returning void)
@@ -4715,22 +3862,7 @@ let haptic : haptic typ = ptr void
 let haptic_opt : haptic option typ = ptr_opt void
 
 module Haptic = struct
-  let infinity = -1l
-
-  (* Features *)
-
-  type feature = int
-  let gain = sdl_haptic_gain
-  let autocenter = sdl_haptic_autocenter
-  let status = sdl_haptic_status
-  let pause = sdl_haptic_pause
-
-  (* Directions *)
-
-  type direction_type = int
-  let polar = sdl_haptic_polar
-  let cartesian = sdl_haptic_cartesian
-  let spherical = sdl_haptic_spherical
+  include C.Types.Haptic
 
   module Direction = struct
     type _t
@@ -4916,7 +4048,6 @@ module Haptic = struct
   let typ = F (Effect.constant, Constant.typ) (* same in each enum *)
 
   (* Constant *)
-  let constant = sdl_haptic_constant
 
   let constant_type = F (Effect.constant, Constant.typ)
   let constant_direction = F (Effect.constant, Constant.direction)
@@ -4931,12 +4062,6 @@ module Haptic = struct
   let constant_fade_level = F (Effect.constant, Constant.fade_level)
 
   (* Periodic *)
-
-  let sine = sdl_haptic_sine
-  let left_right = sdl_haptic_leftright
-  let triangle = sdl_haptic_triangle
-  let sawtooth_up = sdl_haptic_sawtoothup
-  let sawtooth_down = sdl_haptic_sawtoothdown
 
   let periodic_type = F (Effect.periodic, Periodic.typ)
   let periodic_direction = F (Effect.periodic, Periodic.direction)
@@ -4954,11 +4079,6 @@ module Haptic = struct
   let periodic_fade_level = F (Effect.periodic, Periodic.fade_level)
 
   (* Condition *)
-
-  let spring = sdl_haptic_spring
-  let damper = sdl_haptic_damper
-  let inertia = sdl_haptic_inertia
-  let friction = sdl_haptic_friction
 
   let condition_type = F (Effect.condition, Condition.typ)
   let condition_direction = F (Effect.condition, Condition.direction)
@@ -4987,8 +4107,6 @@ module Haptic = struct
 
   (* Ramp *)
 
-  let ramp = sdl_haptic_ramp
-
   let ramp_type = F (Effect.ramp, Ramp.typ)
   let ramp_direction = F (Effect.ramp, Ramp.direction)
   let ramp_length = F (Effect.ramp, Ramp.length)
@@ -5013,8 +4131,6 @@ module Haptic = struct
     F (Effect.left_right, Left_right.small_magnitude)
 
   (* Custom *)
-
-  let custom = sdl_haptic_custom
 
   let custom_type = F (Effect.custom, Custom.typ)
   let custom_direction = F (Effect.custom, Custom.direction)
@@ -5199,40 +4315,7 @@ let get_num_audio_drivers () = get_num_audio_drivers () |> nat_to_ok
 
 (* Audio devices *)
 
-module Audio = struct
-  type status = int
-  let stopped = sdl_audio_stopped
-  let playing = sdl_audio_playing
-  let paused = sdl_audio_paused
-
-  type format = int
-  let format = int_as_uint16_t
-  let s8 = audio_s8
-  let u8 = audio_u8
-  let s16_lsb = audio_s16lsb
-  let s16_msb = audio_s16msb
-  let s16_sys = audio_s16sys
-  let s16 = audio_s16
-  let u16_lsb = audio_u16lsb
-  let u16_msb = audio_u16msb
-  let u16_sys = audio_u16sys
-  let u16 = audio_u16
-  let s32_lsb = audio_s32lsb
-  let s32_msb = audio_s32msb
-  let s32_sys = audio_s32sys
-  let s32 = audio_s32
-  let f32_lsb = audio_f32lsb
-  let f32_msb = audio_f32msb
-  let f32_sys = audio_f32sys
-  let f32 = audio_f32
-
-  type allow = int
-  let allow = int
-  let allow_frequency_change = sdl_audio_allow_frequency_change
-  let allow_format_change = sdl_audio_allow_format_change
-  let allow_channels_change = sdl_audio_allow_channels_change
-  let allow_any_change = sdl_audio_allow_any_change
-end
+module Audio = C.Types.Audio
 
 type audio_device_id = int32
 let audio_device_id = int32_as_uint32_t
@@ -5245,7 +4328,7 @@ type audio_spec =
     as_format : Audio.format;
     as_channels : uint8;
     as_silence : uint8;
-    as_samples : uint8;
+    as_samples : uint16;
     as_size : uint32;
     as_callback : audio_callback option; }
 
@@ -5263,7 +4346,7 @@ let as_callback =
 type _audio_spec
 let audio_spec : _audio_spec structure typ = structure "SDL_AudioSpec"
 let as_freq = field audio_spec "freq" int
-let as_format = field audio_spec "format" Audio.format
+let as_format = field audio_spec "format" int_as_uint16_t
 let as_channels = field audio_spec "channels" int_as_uint8_t
 let as_silence = field audio_spec "silence" int_as_uint8_t
 let as_samples = field audio_spec "samples" int_as_uint16_t
@@ -5348,7 +4431,7 @@ let lock_audio_device =
 let open_audio_device =
   foreign "SDL_OpenAudioDevice"
     (string_opt @-> bool @-> ptr audio_spec @-> ptr audio_spec @->
-     Audio.allow @-> returning int32_as_uint32_t)
+     int @-> returning int32_as_uint32_t)
 
 let open_audio_device dev capture desired allow =
   let desiredc = audio_spec_to_c desired in
@@ -5463,11 +4546,11 @@ type power_state =
   [ `Unknown | `On_battery | `No_battery | `Charging | `Charged ]
 
 let power_state =
-  [ sdl_powerstate_unknown, `Unknown;
-    sdl_powerstate_on_battery, `On_battery;
-    sdl_powerstate_no_battery, `No_battery;
-    sdl_powerstate_charging, `Charging;
-    sdl_powerstate_charged, `Charged; ]
+  C.Types.Powerstate.[ unknown, `Unknown;
+                       on_battery, `On_battery;
+                       no_battery, `No_battery;
+                       charging, `Charging;
+                       charged, `Charged; ]
 
 type power_info =
   { pi_state : power_state;

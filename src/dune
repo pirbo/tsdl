@@ -1,15 +1,31 @@
 (library
  (name tsdl)
  (public_name tsdl)
- (modules Tsdl)
- (foreign_stubs
-  (language c)
-  (names tsdl_stubs)
-  (flags (:include ../support/c_library_flags.sexp)))
+ (modules
+  (:standard \ Tsdl_top_init))
  (c_library_flags
   -Wl,-no-as-needed
   (:include ../support/c_library_flags.sexp))
- (libraries tsdl_consts ctypes-foreign))
+ (libraries tsdl_consts ctypes-foreign)
+ (flags
+  (:standard -w -9-27))
+ (foreign_stubs
+  (language c)
+  (names tsdl_stubs)
+  (flags
+   (:include ../support/c_flags.sexp)))
+ (ctypes
+  (external_library_name sdl2)
+  (headers
+   (include "SDL.h"))
+  (build_flags_resolver pkg_config)
+  (type_description
+   (instance Types)
+   (functor Type_description))
+  (function_description
+   (instance Functions)
+   (functor Function_description))
+  (generated_entry_point C)))
 
 (install
  (section lib)
