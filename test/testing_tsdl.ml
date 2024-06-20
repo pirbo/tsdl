@@ -13,7 +13,6 @@ let button_state_str = function
 | _ -> assert false
 
 let pp = Format.fprintf
-let pp = Format.fprintf
 let pp_int = Format.pp_print_int
 let pp_str = Format.pp_print_string
 let pp_ipair ppf (x, y) = pp ppf "(%d %d)" x y
@@ -231,7 +230,7 @@ let pp_window_event ppf e =
     Sdl.Event.(get e window_data1)
     Sdl.Event.(get e window_data2)
 
-let cst s ppf e = pp ppf "%s" s
+let cst s ppf _e = pp ppf "%s" s
 let event_pp e =
   try List.assoc (Sdl.Event.(get e typ)) [
       Sdl.Event.app_did_enter_background, cst "app_did_enter_background";
