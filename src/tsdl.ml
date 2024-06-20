@@ -17,13 +17,12 @@ open Tsdl_consts
 (* Formatting with continuation. *)
 
 let kpp k fmt =
-  let k fmt = k (Format.flush_str_formatter ()) in
+  let k _fmt = k (Format.flush_str_formatter ()) in
   Format.kfprintf k Format.str_formatter fmt
 
 (* Invalid_argument strings *)
 
 let str = Printf.sprintf
-let err_index i = str "invalid index: %d" i
 let err_length_mul l mul = str "invalid length: %d not a multiple of %d" l mul
 let err_read_field = "cannot read field"
 let err_bigarray_pitch pitch ba_el_size =
@@ -90,11 +89,11 @@ type nonrec 'a result = ( 'a, [ `Msg of string ] ) result
 let error () = Error (`Msg (get_error ()))
 
 let zero_to_ok =
-  let read = function 0 -> Ok () | err -> error () in
+  let read = function 0 -> Ok () | _err -> error () in
   view ~read ~write:write_never int
 
 let one_to_ok =
-  let read = function 1 -> Ok () | err -> error () in
+  let read = function 1 -> Ok () | _err -> error () in
   view ~read ~write:write_never int
 
 let bool_to_ok =
@@ -147,7 +146,7 @@ let ba_kind_byte_size :  ('a, 'b) Bigarray.kind -> int = fun k ->
   | k when k = float64 || k = int64 || k = complex32 -> 8
   | k when k = complex64 -> 16
   | k when k = int || k = nativeint -> Sys.word_size / 8
-  | k -> assert false
+  | _ -> assert false
 
 let access_ptr_typ_of_ba_kind : ('a, 'b) Bigarray.kind -> 'a ptr typ = fun k ->
   let open Bigarray in
@@ -167,10 +166,6 @@ let access_ptr_typ_of_ba_kind : ('a, 'b) Bigarray.kind -> 'a ptr typ = fun k ->
   | k when k = nativeint -> Obj.magic (ptr Ctypes.nativeint)
   | k when k = char -> Obj.magic (ptr Ctypes.char)
   | _ -> assert false
-
-let ba_byte_size ba =
-  let el_size = ba_kind_byte_size (Bigarray.Array1.kind ba) in
-  el_size * Bigarray.Array1.dim ba
 
 (* Basics *)
 
@@ -346,13 +341,13 @@ let rw_ops_struct : _rw_ops structure typ = structure "SDL_RWops"
 let rw_ops : _rw_ops structure ptr typ = ptr rw_ops_struct
 let rw_ops_opt : _rw_ops structure ptr option typ = ptr_opt rw_ops_struct
 
-let rw_ops_size = field rw_ops_struct "size"
+let _rw_ops_size = field rw_ops_struct "size"
     (funptr (rw_ops @-> returning int64_t))
-let rw_ops_seek = field rw_ops_struct "seek"
+let _rw_ops_seek = field rw_ops_struct "seek"
     (funptr (rw_ops @-> int64_t @-> int @-> returning int64_t))
-let rw_ops_read = field rw_ops_struct "read"
+let _rw_ops_read = field rw_ops_struct "read"
     (funptr (rw_ops @-> ptr void @-> size_t @-> size_t @-> returning size_t))
-let rw_ops_write = field rw_ops_struct "write"
+let _rw_ops_write = field rw_ops_struct "write"
     (funptr (rw_ops @-> ptr void @-> size_t @-> size_t @-> returning size_t))
 let rw_ops_close = field rw_ops_struct "close"
     (funptr (rw_ops @-> returning int))
@@ -510,10 +505,6 @@ module Fpoint = struct
 
   let set_x p x = setf p fpoint_x x
   let set_y p y = setf p fpoint_y y
-
-  let opt_addr = function
-  | None -> coerce (ptr void) (ptr fpoint) null
-  | Some v -> addr v
 end
 
 (* Vertices *)
@@ -611,10 +602,6 @@ module Frect = struct
   let set_y r y = setf r frect_y y
   let set_w r w = setf r frect_w w
   let set_h r h = setf r frect_h h
-
-  let opt_addr = function
-  | None -> coerce (ptr void) (ptr rect) null
-  | Some v -> addr v
 end
 
 let enclose_points =
@@ -853,7 +840,7 @@ type _pixel_format
 type pixel_format_struct = _pixel_format structure
 let pixel_format_struct : pixel_format_struct typ = structure "SDL_PixelFormat"
 let pf_format = field pixel_format_struct "format" uint32_t
-let pf_palette = field pixel_format_struct "palette" palette
+let _pf_palette = field pixel_format_struct "palette" palette
 let pf_bits_per_pixel = field pixel_format_struct "BitsPerPixel" uint8_t
 let pf_bytes_per_pixel = field pixel_format_struct "BytesPerPixel" uint8_t
 let _ = field pixel_format_struct "padding" uint16_t
@@ -1279,7 +1266,6 @@ module Renderer = struct
   let ( - ) f f' = Unsigned.UInt32.(logand f (lognot f'))
   let test f m = Unsigned.UInt32.(compare (logand f m) zero <> 0)
   let eq f f' = Unsigned.UInt32.(compare f f' = 0)
-  let none = Unsigned.UInt32.zero
   let software = i sdl_renderer_software
   let accelerated = i sdl_renderer_accelerated
   let presentvsync = i sdl_renderer_presentvsync
@@ -2049,7 +2035,7 @@ let get_window_display_mode =
 let get_window_display_mode w =
   let mode = make display_mode in
   match get_window_display_mode w (addr mode) with
-  | 0 -> Ok (display_mode_of_c mode) | err -> error ()
+  | 0 -> Ok (display_mode_of_c mode) | _err -> error ()
 
 let get_window_flags =
   foreign "SDL_GetWindowFlags" (window @-> returning uint32_t)
@@ -2329,7 +2315,7 @@ let gl_get_attribute =
 let gl_get_attribute att =
   let value = allocate int 0 in
   match gl_get_attribute att value with
-  | 0 -> Ok (!@ value) | err -> error ()
+  | 0 -> Ok (!@ value) | _err -> error ()
 
 let gl_get_current_context =
   foreign "SDL_GL_GetCurrentContext"
@@ -2472,7 +2458,7 @@ module Message_box = struct
   let color_b = field color "b" uint8_t
   let () = seal color
 
-  type color_type = int
+  type _color_type = int
   let color_background = sdl_messagebox_color_background
   let color_text = sdl_messagebox_color_text
   let color_button_border = sdl_messagebox_color_button_border
@@ -2525,8 +2511,8 @@ module Message_box = struct
     let set i (rv, gv, bv) =
       let ct = CArray.get colors i in
       setf ct color_r (Unsigned.UInt8.of_int rv);
-      setf ct color_g (Unsigned.UInt8.of_int rv);
-      setf ct color_b (Unsigned.UInt8.of_int rv);
+      setf ct color_g (Unsigned.UInt8.of_int gv);
+      setf ct color_b (Unsigned.UInt8.of_int bv);
     in
     set color_background s.color_background;
     set color_text s.color_text;
@@ -3881,13 +3867,13 @@ module Event = struct
     let window_id = field t "windowID" int_as_uint32_t
     let state = field t "state" int_as_uint8_t
     let repeat = field t "repeat" int_as_uint8_t
-    let padding2 = field t "padding2" uint8_t
-    let padding3 = field t "padding3" uint8_t
+    let _padding2 = field t "padding2" uint8_t
+    let _padding3 = field t "padding3" uint8_t
     (* We inline the definition of SDL_Keysym *)
     let scancode = field t "scancode" scancode
     let keycode = field t "sym" keycode
     let keymod = field t "mod" keymod
-    let unused = field t "unused" uint32_t
+    let _unused = field t "unused" uint32_t
     let () = seal t
   end
 
@@ -4111,9 +4097,9 @@ module Event = struct
     let _ = field t "timestamp" int32_as_uint32_t
     let window_id = field t "windowID" int_as_uint32_t
     let event = field t "event" int_as_uint8_t
-    let padding1 = field t "padding1" uint8_t
-    let padding2 = field t "padding2" uint8_t
-    let padding3 = field t "padding3" uint8_t
+    let _padding1 = field t "padding1" uint8_t
+    let _padding2 = field t "padding2" uint8_t
+    let _padding3 = field t "padding3" uint8_t
     let data1 = field t "data1" int32_t
     let data2 = field t "data2" int32_t
     let () = seal t
@@ -4126,9 +4112,9 @@ module Event = struct
     let _ = field t "timestamp" int32_as_uint32_t
     let display = field t "display" int32_as_uint32_t
     let event = field t "event" int_as_uint8_t
-    let padding1 = field t "padding1" uint8_t
-    let padding2 = field t "padding2" uint8_t
-    let padding3 = field t "padding3" uint8_t
+    let _padding1 = field t "padding1" uint8_t
+    let _padding2 = field t "padding2" uint8_t
+    let _padding3 = field t "padding3" uint8_t
     let data1 = field t "data1" int32_t
     let () = seal t
   end
@@ -4145,7 +4131,7 @@ module Event = struct
 
   type t
   let t : t union typ = union "SDL_Event"
-  let typ = field t "type" int_as_uint32_t
+  let _typ = field t "type" int_as_uint32_t
   let audio_device_event = field t "adevice" Audio_device_event.t
   let common = field t "common" Common.t
   let controller_axis_event = field t "caxis" Controller_axis_event.t
@@ -4163,8 +4149,8 @@ module Event = struct
   let mouse_motion_event = field t "motion" Mouse_motion_event.t
   let mouse_wheel_event = field t "wheel" Mouse_wheel_event.t
   let multi_gesture_event = field t "mgesture" Multi_gesture_event.t
-  let quit_event = field t "quit" Quit_event.t
-  let sys_wm_event = field t "syswm" Sys_wm_event.t
+  let _quit_event = field t "quit" Quit_event.t
+  let _sys_wm_event = field t "syswm" Sys_wm_event.t
   let text_editing_event = field t "edit" Text_editing_event.t
   let text_input_event = field t "text" Text_input_event.t
   let touch_finger_event = field t "tfinger" Touch_finger_event.t
@@ -4172,7 +4158,7 @@ module Event = struct
   let window_event = field t "window" Window_event.t
   let display_event = field t "display" Display_event.t
   let sensor_event = field t "sensor" Sensor_event.t
-  let padding = field t "padding"
+  let _padding = field t "padding"
       (abstract ~name:"padding" ~size:tsdl_sdl_event_size ~alignment:1)
   let () = seal t
 
@@ -4665,11 +4651,6 @@ type haptic = unit ptr
 let haptic : haptic typ = ptr void
 let haptic_opt : haptic option typ = ptr_opt void
 
-let unsafe_haptic_of_ptr addr : haptic =
-  ptr_of_raw_address addr
-let unsafe_ptr_of_haptic haptic =
-  raw_address_of_ptr (to_voidp haptic)
-
 module Haptic = struct
   let infinity = -1l
 
@@ -4848,7 +4829,7 @@ module Haptic = struct
   module Effect = struct
     type t
     let t : t union typ = union "SDL_HapticEffect"
-    let typ = field t "type" int_as_uint16_t
+    let _typ = field t "type" int_as_uint16_t
     let constant = field t "constant" Constant.t
     let periodic = field t "periodic" Periodic.t
     let condition = field t "condition" Condition.t
@@ -4861,9 +4842,6 @@ module Haptic = struct
   type effect_type = int
 
   let create_effect () = make Effect.t
-  let opt_addr = function
-  | None -> coerce (ptr void) (ptr Effect.t) null
-  | Some v -> addr v
 
   type _ field =
       F : (* existential to hide the 'a structure *)
@@ -4964,6 +4942,7 @@ module Haptic = struct
   (* Left right *)
 
   let left_right_type = F (Effect.left_right, Left_right.typ)
+  let left_right_direction = F (Effect.left_right, Left_right.direction)
   let left_right_length = F (Effect.left_right, Left_right.length)
   let left_right_large_magnitude =
     F (Effect.left_right, Left_right.large_magnitude)
@@ -5145,17 +5124,14 @@ module Audio = struct
   let s16_msb = audio_s16msb
   let s16_sys = audio_s16sys
   let s16 = audio_s16
-  let s16_lsb = audio_s16lsb
   let u16_lsb = audio_u16lsb
   let u16_msb = audio_u16msb
   let u16_sys = audio_u16sys
   let u16 = audio_u16
-  let u16_lsb = audio_u16lsb
   let s32_lsb = audio_s32lsb
   let s32_msb = audio_s32msb
   let s32_sys = audio_s32sys
   let s32 = audio_s32
-  let s32_lsb = audio_s32lsb
   let f32_lsb = audio_f32lsb
   let f32_msb = audio_f32msb
   let f32_sys = audio_f32sys
@@ -5174,14 +5150,6 @@ let audio_device_id = int32_as_uint32_t
 
 type audio_callback =
   unit Ctypes_static.ptr -> Unsigned.uint8 Ctypes_static.ptr -> int -> unit
-
-let audio_callback kind f =
-  let kind_bytes = ba_kind_byte_size kind in
-  let ba_ptr_typ = access_ptr_typ_of_ba_kind kind in
-  fun _ p len ->
-    let p = coerce (ptr uint8_t) ba_ptr_typ p in
-    let len = len / kind_bytes in
-    f (bigarray_of_ptr array1 len kind p)
 
 type audio_spec =
   { as_freq : int;
