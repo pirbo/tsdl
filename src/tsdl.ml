@@ -85,14 +85,13 @@ let nat_to_ok = function n when n < 0 -> error () | n -> Ok n
 
 let some_to_ok = function Some v -> Ok v | None -> error ()
 
-let sdl_free = foreign "SDL_free" (ptr void @-> returning void)
+let sdl_free = C.Functions.sdl_free
 
 (* Since we never let SDL redefine our main make sure this is always
    called. *)
 
 let () =
-  let set_main_ready = foreign "SDL_SetMainReady" (void @-> returning void) in
-  set_main_ready ()
+  C.Functions.set_main_ready ()
 
 let stub = true
 
@@ -158,13 +157,9 @@ module Init = struct
   include C.Types.Init
 end
 
-let init =
-  foreign "SDL_Init" (uint32_t @-> returning int)
-let init n = init n |> zero_to_ok
+let init n = C.Functions.init n |> zero_to_ok
 
-let init_sub_system =
-  foreign "SDL_InitSubSystem" (uint32_t @-> returning int)
-let init_sub_system n = init_sub_system n |> zero_to_ok
+let init_sub_system n = C.Functions.init_sub_system n |> zero_to_ok
 
 let quit =
   foreign "SDL_Quit" (void @-> returning void)
@@ -172,12 +167,9 @@ let quit =
 let quit_sub_system =
   foreign "SDL_QuitSubSystem" (uint32_t @-> returning void)
 
-let was_init =
-  foreign "SDL_WasInit" (uint32_t @-> returning uint32_t)
-
 let was_init = function
-| None -> was_init (Unsigned.UInt32.of_int 0)
-| Some m -> was_init m
+| None -> C.Functions.was_init (Unsigned.UInt32.of_int 0)
+| Some m -> C.Functions.was_init m
 
 (* Hints *)
 
