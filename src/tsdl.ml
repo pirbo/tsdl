@@ -67,12 +67,11 @@ let string_as_char_array n = (* FIXME: drop this if ctypes proposes better *)
   in
   view ~read:char_array_as_string ~write n_array
 
-let get_error =
-  foreign "SDL_GetError" (void @-> returning string)
-
 (* SDL results *)
 
 type nonrec 'a result = ( 'a, [ `Msg of string ] ) result
+
+let get_error = C.Functions.get_error
 
 let error () = Error (`Msg (get_error ()))
 
