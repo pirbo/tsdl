@@ -1,6 +1,9 @@
 module Types = Types_generated
 
 module Functions (F : Ctypes.FOREIGN) = struct
+  let get_error =
+    F.(foreign "SDL_GetError" (Ctypes.void @-> returning Ctypes.string))
+
   module Hint = struct
     let framebuffer_acceleration =
       F.foreign_value
