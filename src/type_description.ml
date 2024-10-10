@@ -123,6 +123,10 @@ module Types (F : Ctypes.TYPE) = struct
   end
 
   module Window = struct
+    type t = unit Ctypes_static.ptr
+    let t : t F.typ = F.ptr F.void
+    let opt : t option F.typ = F.ptr_opt F.void
+
     let fullscreen = F.constant "SDL_WINDOW_FULLSCREEN" F.uint32_t
     let fullscreen_desktop = F.constant "SDL_WINDOW_FULLSCREEN_DESKTOP" F.uint32_t
     let opengl = F.constant "SDL_WINDOW_OPENGL" F.uint32_t

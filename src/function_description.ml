@@ -14,6 +14,11 @@ module Functions (F : FOREIGN) = struct
   let was_init =
     F.(foreign "SDL_WasInit" (uint32_t @-> returning uint32_t))
 
+  let create_window =
+    F.(foreign "SDL_CreateWindow"
+         (string @-> int @-> int @-> int @-> int @-> uint32_t @->
+          returning Types.Window.opt))
+
   module Hint = struct
     let framebuffer_acceleration =
       F.foreign_value "SDL_HINT_FRAMEBUFFER_ACCELERATION" (array 29 char)

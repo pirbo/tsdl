@@ -381,17 +381,6 @@ let get_pref_path ~org ~app =
   sdl_free (coerce (ptr char) (ptr void) p);
   path |> some_to_ok
 
-(* Video *)
-
-type window = unit ptr
-let window : window typ = ptr void
-let window_opt : window option typ = ptr_opt void
-
-let unsafe_window_of_ptr addr : window =
-  ptr_of_raw_address addr
-let unsafe_ptr_of_window window =
-  raw_address_of_ptr (to_voidp window)
-
 (* Colors *)
 
 type _color
@@ -1215,7 +1204,7 @@ let renderer_info_of_c c =
 
 let create_renderer =
   foreign "SDL_CreateRenderer"
-    (window @-> int @-> uint32_t @-> returning renderer_opt)
+    (C.Types.Window.t @-> int @-> uint32_t @-> returning renderer_opt)
 
 let create_renderer ?(index = -1) ?(flags = Unsigned.UInt32.zero) w =
   create_renderer w index flags |> some_to_ok
@@ -1267,7 +1256,7 @@ let get_render_target =
 
 let get_renderer =
   foreign "SDL_GetRenderer"
-    (window @-> returning renderer_opt)
+    (C.Types.Window.t @-> returning renderer_opt)
 let get_renderer w = get_renderer w |> some_to_ok
 
 let get_renderer_info =
@@ -1889,34 +1878,38 @@ module Window = struct
   include C.Types.Window
 end
 
-let create_window =
-  foreign "SDL_CreateWindow"
-    (string @-> int @-> int @-> int @-> int @-> uint32_t @->
-     returning window_opt)
+(* Video *)
+
+type window = Window.t
+
+let unsafe_window_of_ptr addr : Window.t =
+  ptr_of_raw_address addr
+let unsafe_ptr_of_window window =
+  raw_address_of_ptr (to_voidp window)
 
 let create_window t ?(x = Window.pos_undefined) ?(y = Window.pos_undefined)
-    ~w ~h flags = create_window t x y w h flags |> some_to_ok
+    ~w ~h flags = C.Functions.create_window t x y w h flags |> some_to_ok
 
 let create_window_and_renderer =
   foreign "SDL_CreateWindowAndRenderer"
-    (int @-> int @-> uint32_t @-> ptr window @-> ptr renderer @->
+    (int @-> int @-> uint32_t @-> ptr Window.t @-> ptr renderer @->
      (returning int))
 
 let create_window_and_renderer ~w ~h flags =
-  let win = allocate window null in
+  let win = allocate Window.t null in
   let r = allocate renderer null in
   match create_window_and_renderer w h flags win r with
   | 0 -> Ok (!@ win, !@ r) | _ -> error ()
 
 let destroy_window =
-  foreign "SDL_DestroyWindow" (window @-> returning void)
+  foreign "SDL_DestroyWindow" (Window.t @-> returning void)
 
 let get_window_brightness =
-  foreign "SDL_GetWindowBrightness" (window @-> returning float)
+  foreign "SDL_GetWindowBrightness" (Window.t @-> returning float)
 
 let get_window_borders_size =
   foreign "SDL_GetWindowBordersSize"
-    (window @-> ptr int @-> ptr int @-> ptr int @-> ptr int @->
+    (Window.t @-> ptr int @-> ptr int @-> ptr int @-> ptr int @->
      returning int)
 
 let get_window_borders_size w =
@@ -1929,12 +1922,12 @@ let get_window_borders_size w =
   | _ -> error ()
 
 let get_window_display_index =
-  foreign "SDL_GetWindowDisplayIndex" (window @-> returning int)
+  foreign "SDL_GetWindowDisplayIndex" (Window.t @-> returning int)
 let get_window_display_index w = get_window_display_index w |> nat_to_ok
 
 let get_window_display_mode =
   foreign "SDL_GetWindowDisplayMode"
-    (window @-> (ptr display_mode) @-> returning int)
+    (Window.t @-> (ptr display_mode) @-> returning int)
 
 let get_window_display_mode w =
   let mode = make display_mode in
@@ -1942,16 +1935,16 @@ let get_window_display_mode w =
   | 0 -> Ok (display_mode_of_c mode) | _err -> error ()
 
 let get_window_flags =
-  foreign "SDL_GetWindowFlags" (window @-> returning uint32_t)
+  foreign "SDL_GetWindowFlags" (Window.t @-> returning uint32_t)
 
 let get_window_from_id =
   foreign "SDL_GetWindowFromID"
-    (int_as_uint32_t @-> returning window_opt)
+    (int_as_uint32_t @-> returning Window.opt)
 let get_window_from_id x = get_window_from_id x |> some_to_ok
 
 let get_window_gamma_ramp =
   foreign "SDL_GetWindowGammaRamp"
-    (window @-> ptr void @-> ptr void @-> ptr void @-> returning int)
+    (Window.t @-> ptr void @-> ptr void @-> ptr void @-> returning int)
 
 let get_window_gamma_ramp w =
   let create_ramp () = ba_create Bigarray.int16_unsigned 256 in
@@ -1961,17 +1954,17 @@ let get_window_gamma_ramp w =
   | 0 -> Ok (r, g, b) | _ -> error ()
 
 let get_window_grab =
-  foreign "SDL_GetWindowGrab" (window @-> returning bool)
+  foreign "SDL_GetWindowGrab" (Window.t @-> returning bool)
 
 let get_grabbed_window =
-  foreign "SDL_GetGrabbedWindow" (void @-> returning window)
+  foreign "SDL_GetGrabbedWindow" (void @-> returning Window.t)
 
 let get_window_id =
-  foreign "SDL_GetWindowID" (window @-> returning int_as_uint32_t)
+  foreign "SDL_GetWindowID" (Window.t @-> returning int_as_uint32_t)
 
 let get_window_maximum_size =
   foreign "SDL_GetWindowMaximumSize"
-    (window @-> (ptr int) @-> (ptr int) @-> returning void)
+    (Window.t @-> (ptr int) @-> (ptr int) @-> returning void)
 
 let get_window_maximum_size win =
   let w = allocate int 0 in
@@ -1981,7 +1974,7 @@ let get_window_maximum_size win =
 
 let get_window_minimum_size =
   foreign "SDL_GetWindowMinimumSize"
-    (window @-> (ptr int) @-> (ptr int) @-> returning void)
+    (Window.t @-> (ptr int) @-> (ptr int) @-> returning void)
 
 let get_window_minimum_size win =
   let w = allocate int 0 in
@@ -1991,7 +1984,7 @@ let get_window_minimum_size win =
 
 let get_window_opacity =
   foreign "SDL_GetWindowOpacity"
-    (window @-> (ptr float) @-> returning int)
+    (Window.t @-> (ptr float) @-> returning int)
 
 let get_window_opacity win =
   let x = allocate float 0. in
@@ -2000,11 +1993,11 @@ let get_window_opacity win =
   | _ -> error ()
 
 let get_window_pixel_format =
-  foreign "SDL_GetWindowPixelFormat" (window @-> returning uint32_t)
+  foreign "SDL_GetWindowPixelFormat" (Window.t @-> returning uint32_t)
 
 let get_window_position =
   foreign "SDL_GetWindowPosition"
-    (window @-> (ptr int) @-> (ptr int) @-> returning void)
+    (Window.t @-> (ptr int) @-> (ptr int) @-> returning void)
 
 let get_window_position win =
   let x = allocate int 0 in
@@ -2014,7 +2007,7 @@ let get_window_position win =
 
 let get_window_size =
   foreign "SDL_GetWindowSize"
-    (window @-> (ptr int) @-> (ptr int) @-> returning void)
+    (Window.t @-> (ptr int) @-> (ptr int) @-> returning void)
 
 let get_window_size win =
   let w = allocate int 0 in
@@ -2024,38 +2017,38 @@ let get_window_size win =
 
 let get_window_surface =
   foreign "SDL_GetWindowSurface"
-    (window @-> returning surface_opt)
+    (Window.t @-> returning surface_opt)
 let get_window_surface w = get_window_surface w |> some_to_ok
 
 let get_window_title =
-  foreign "SDL_GetWindowTitle" (window @-> returning string)
+  foreign "SDL_GetWindowTitle" (Window.t @-> returning string)
 
 let hide_window =
-  foreign "SDL_HideWindow" (window @-> returning void)
+  foreign "SDL_HideWindow" (Window.t @-> returning void)
 
 let maximize_window =
-  foreign "SDL_MaximizeWindow" (window @-> returning void)
+  foreign "SDL_MaximizeWindow" (Window.t @-> returning void)
 
 let minimize_window =
-  foreign "SDL_MinimizeWindow" (window @-> returning void)
+  foreign "SDL_MinimizeWindow" (Window.t @-> returning void)
 
 let raise_window =
-  foreign "SDL_RaiseWindow" (window @-> returning void)
+  foreign "SDL_RaiseWindow" (Window.t @-> returning void)
 
 let restore_window =
-  foreign "SDL_RestoreWindow" (window @-> returning void)
+  foreign "SDL_RestoreWindow" (Window.t @-> returning void)
 
 let set_window_bordered =
-  foreign "SDL_SetWindowBordered" (window @-> bool @-> returning void)
+  foreign "SDL_SetWindowBordered" (Window.t @-> bool @-> returning void)
 
 let set_window_brightness =
   foreign "SDL_SetWindowBrightness"
-    (window @-> float @-> returning int)
+    (Window.t @-> float @-> returning int)
 let set_window_brightness w x = set_window_brightness w x |> zero_to_ok
 
 let set_window_display_mode =
   foreign "SDL_SetWindowDisplayMode"
-    (window @-> (ptr display_mode) @-> returning int)
+    (Window.t @-> (ptr display_mode) @-> returning int)
 
 let set_window_display_mode w m =
   let mode = display_mode_to_c m in
@@ -2063,12 +2056,12 @@ let set_window_display_mode w m =
 
 let set_window_fullscreen =
   foreign "SDL_SetWindowFullscreen"
-    (window @-> uint32_t @-> returning int)
+    (Window.t @-> uint32_t @-> returning int)
 let set_window_fullscreen w x = set_window_fullscreen w x |> zero_to_ok
 
 let set_window_gamma_ramp =
   foreign "SDL_SetWindowGammaRamp"
-    (window @-> ptr void @-> ptr void @-> ptr void @->
+    (Window.t @-> ptr void @-> ptr void @-> ptr void @->
      returning int)
 
 let set_window_gamma_ramp w r g b =
@@ -2076,67 +2069,67 @@ let set_window_gamma_ramp w r g b =
   set_window_gamma_ramp w (ramp_ptr r) (ramp_ptr g) (ramp_ptr b) |> zero_to_ok
 
 let set_window_grab =
-  foreign "SDL_SetWindowGrab" (window @-> bool @-> returning void)
+  foreign "SDL_SetWindowGrab" (Window.t @-> bool @-> returning void)
 
 let set_window_icon =
-  foreign "SDL_SetWindowIcon" (window @-> surface @-> returning void)
+  foreign "SDL_SetWindowIcon" (Window.t @-> surface @-> returning void)
 
 let set_window_input_focus =
-  foreign "SDL_SetWindowInputFocus" (window @-> returning int)
+  foreign "SDL_SetWindowInputFocus" (Window.t @-> returning int)
 let set_window_input_focus w = set_window_input_focus w |> zero_to_ok
 
 let set_window_maximum_size =
   foreign "SDL_SetWindowMaximumSize"
-    (window @-> int @-> int @-> returning void)
+    (Window.t @-> int @-> int @-> returning void)
 
 let set_window_maximum_size win ~w ~h =
   set_window_maximum_size win w h
 
 let set_window_minimum_size =
   foreign "SDL_SetWindowMinimumSize"
-    (window @-> int @-> int @-> returning void)
+    (Window.t @-> int @-> int @-> returning void)
 
 let set_window_minimum_size win ~w ~h =
   set_window_minimum_size win w h
 
 let set_window_modal_for =
-  foreign "SDL_SetWindowModalFor" ( window @-> window @-> returning int)
+  foreign "SDL_SetWindowModalFor" ( Window.t @-> Window.t @-> returning int)
 
 let set_window_modal_for ~modal ~parent = set_window_modal_for modal parent |> zero_to_ok
 
 let set_window_opacity =
-  foreign "SDL_SetWindowOpacity" ( window @-> float @-> returning int)
+  foreign "SDL_SetWindowOpacity" ( Window.t @-> float @-> returning int)
 let set_window_opacity w x = set_window_opacity w x |> zero_to_ok
 
 let set_window_position =
   foreign "SDL_SetWindowPosition"
-    (window @-> int @-> int @-> returning void)
+    (Window.t @-> int @-> int @-> returning void)
 
 let set_window_position win ~x ~y =
   set_window_position win x y
 
 let set_window_resizable =
-  foreign "SDL_SetWindowResizable" (window @-> bool @-> returning void)
+  foreign "SDL_SetWindowResizable" (Window.t @-> bool @-> returning void)
 
 let set_window_size =
-  foreign "SDL_SetWindowSize" (window @-> int @-> int @-> returning void)
+  foreign "SDL_SetWindowSize" (Window.t @-> int @-> int @-> returning void)
 
 let set_window_size win ~w ~h =
   set_window_size win w h
 
 let set_window_title =
-  foreign "SDL_SetWindowTitle" (window @-> string @-> returning void)
+  foreign "SDL_SetWindowTitle" (Window.t @-> string @-> returning void)
 
 let show_window =
-  foreign "SDL_ShowWindow" (window @-> returning void)
+  foreign "SDL_ShowWindow" (Window.t @-> returning void)
 
 let update_window_surface =
-  foreign "SDL_UpdateWindowSurface" (window @-> returning int)
+  foreign "SDL_UpdateWindowSurface" (Window.t @-> returning int)
 let update_window_surface w = update_window_surface w |> zero_to_ok
 
 let update_window_surface_rects =
   foreign "SDL_UpdateWindowSurfaceRects"
-    (window @-> ptr void @-> int @-> returning int)
+    (Window.t @-> ptr void @-> int @-> returning int)
 
 let update_window_surface_rects_ba w rs =
   let len = Bigarray.Array1.dim rs in
@@ -2181,7 +2174,7 @@ let gl_bind_texture t =
 
 let gl_create_context =
   foreign "SDL_GL_CreateContext"
-    (window @-> returning  gl_context_opt)
+    (Window.t @-> returning  gl_context_opt)
 let gl_create_context w = gl_create_context w |> some_to_ok
 
 let gl_delete_context =
@@ -2205,7 +2198,7 @@ let gl_get_current_context () = gl_get_current_context () |> some_to_ok
 
 let gl_get_drawable_size =
   foreign "SDL_GL_GetDrawableSize"
-    (window @-> ptr int @-> ptr int @-> returning void)
+    (Window.t @-> ptr int @-> ptr int @-> returning void)
 
 let gl_get_drawable_size win =
   let w = allocate int 0 in
@@ -2219,7 +2212,7 @@ let gl_get_swap_interval () = Ok (gl_get_swap_interval ())
 
 let gl_make_current =
   foreign "SDL_GL_MakeCurrent"
-    (window @-> gl_context @-> returning int)
+    (Window.t @-> gl_context @-> returning int)
 let gl_make_current w g = gl_make_current w g |> zero_to_ok
 
 let gl_reset_attributes =
@@ -2234,7 +2227,7 @@ let gl_set_swap_interval =
 let gl_set_swap_interval x = gl_set_swap_interval x |> zero_to_ok
 
 let gl_swap_window =
-  foreign "SDL_GL_SwapWindow" (window @-> returning void)
+  foreign "SDL_GL_SwapWindow" (Window.t @-> returning void)
 
 let gl_unbind_texture =
   foreign "SDL_GL_UnbindTexture" (texture @-> returning int)
@@ -2263,7 +2256,7 @@ module Vulkan = struct
 
   let get_instance_extensions =
     foreign "SDL_Vulkan_GetInstanceExtensions"
-      (window @-> ptr int @-> ptr string @-> returning bool)
+      (Window.t @-> ptr int @-> ptr string @-> returning bool)
 
   let get_instance_extensions window =
     let n = allocate int 0 in
@@ -2278,7 +2271,7 @@ module Vulkan = struct
 
   let create_surface =
     foreign "SDL_Vulkan_CreateSurface"
-      (window @-> instance @-> ptr surface @-> returning bool)
+      (Window.t @-> instance @-> ptr surface @-> returning bool)
 
   let create_surface window instance =
     let s = allocate_n surface ~count:1 in
@@ -2289,7 +2282,7 @@ module Vulkan = struct
 
   let get_drawable_size =
     foreign "SDL_Vulkan_GetDrawableSize"
-      (window @-> ptr int @-> ptr int @-> returning void)
+      (Window.t @-> ptr int @-> ptr int @-> returning void)
 
   let get_drawable_size window =
     let w = allocate int 0 in
@@ -2352,7 +2345,7 @@ module Message_box = struct
 
   type data =
     { flags : flags;
-      window : window option;
+      window : Window.t option;
       title : string;
       message : string;
       buttons : button_data list;
@@ -2360,7 +2353,7 @@ module Message_box = struct
 
   let data = structure "SDL_MessageBoxData"
   let d_flags = field data "flags" uint32_t
-  let d_window = field data "window" window
+  let d_window = field data "window" Window.t
   let d_title = field data "title" string
   let d_message = field data "message" string
   let d_numbuttons = field data "numbuttons" int
@@ -2422,7 +2415,7 @@ let show_message_box d =
 
 let show_simple_message_box =
   foreign "SDL_ShowSimpleMessageBox"
-    (uint32_t @-> string @-> string @-> window_opt @-> returning int)
+    (uint32_t @-> string @-> string @-> Window.opt @-> returning int)
 
 let show_simple_message_box t ~title msg w =
   show_simple_message_box t title msg w |> zero_to_ok
@@ -2531,7 +2524,7 @@ let keymod = int_as_uint16_t
 module Kmod = C.Types.Kmod
 
 let get_keyboard_focus =
-  foreign "SDL_GetKeyboardFocus" (void @-> returning window_opt)
+  foreign "SDL_GetKeyboardFocus" (void @-> returning Window.opt)
 
 let get_keyboard_state =
   foreign "SDL_GetKeyboardState" (ptr int @-> returning (ptr int))
@@ -2566,7 +2559,7 @@ let has_screen_keyboard_support =
   foreign "SDL_HasScreenKeyboardSupport" (void @-> returning bool)
 
 let is_screen_keyboard_shown =
-  foreign "SDL_IsScreenKeyboardShown" (window @-> returning bool)
+  foreign "SDL_IsScreenKeyboardShown" (Window.t @-> returning bool)
 
 let is_text_input_active =
   foreign "SDL_IsTextInputActive" (void @-> returning bool)
@@ -2651,7 +2644,7 @@ let get_global_mouse_state () =
   s, (!@ x, !@ y)
 
 let get_mouse_focus =
-  foreign "SDL_GetMouseFocus" (void @-> returning window_opt)
+  foreign "SDL_GetMouseFocus" (void @-> returning Window.opt)
 
 let get_mouse_state =
   foreign "SDL_GetMouseState"
@@ -2694,7 +2687,7 @@ let show_cursor b =
 
 let warp_mouse_in_window =
   foreign "SDL_WarpMouseInWindow"
-    (window_opt @-> int @-> int @-> returning void)
+    (Window.opt @-> int @-> int @-> returning void)
 
 let warp_mouse_in_window w ~x ~y =
   warp_mouse_in_window w x y
