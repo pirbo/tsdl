@@ -13,11 +13,20 @@ module Functions (F : FOREIGN) = struct
     F.(foreign "SDL_InitSubSystem" (uint32_t @-> returning int))
   let was_init =
     F.(foreign "SDL_WasInit" (uint32_t @-> returning uint32_t))
+  let quit =
+    F.(foreign "SDL_Quit" (void @-> returning void))
+  let quit_sub_system =
+    F.(foreign "SDL_QuitSubSystem" (uint32_t @-> returning void))
 
   let create_window =
     F.(foreign "SDL_CreateWindow"
          (string @-> int @-> int @-> int @-> int @-> uint32_t @->
           returning Types.Window.opt))
+  let destroy_window =
+    F.(foreign "SDL_DestroyWindow" (Types.Window.t @-> returning void))
+
+  let pump_events =
+    F.(foreign "SDL_PumpEvents" (void @-> returning void))
 
   module Hint = struct
     let framebuffer_acceleration =
