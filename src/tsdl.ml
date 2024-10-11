@@ -161,11 +161,9 @@ let init n = C.Functions.init n |> zero_to_ok
 
 let init_sub_system n = C.Functions.init_sub_system n |> zero_to_ok
 
-let quit =
-  foreign "SDL_Quit" (void @-> returning void)
+let quit = C.Functions.quit
 
-let quit_sub_system =
-  foreign "SDL_QuitSubSystem" (uint32_t @-> returning void)
+let quit_sub_system = C.Functions.quit_sub_system
 
 let was_init = function
 | None -> C.Functions.was_init (Unsigned.UInt32.of_int 0)
@@ -1901,8 +1899,7 @@ let create_window_and_renderer ~w ~h flags =
   match create_window_and_renderer w h flags win r with
   | 0 -> Ok (!@ win, !@ r) | _ -> error ()
 
-let destroy_window =
-  foreign "SDL_DestroyWindow" (Window.t @-> returning void)
+let destroy_window = C.Functions.destroy_window
 
 let get_window_brightness =
   foreign "SDL_GetWindowBrightness" (Window.t @-> returning float)
@@ -3814,8 +3811,7 @@ let poll_event =
 let poll_event e =
   poll_event (Event.opt_addr e)
 
-let pump_events =
-  foreign "SDL_PumpEvents" (void @-> returning void)
+let pump_events = C.Functions.pump_events
 
 let push_event =
   foreign "SDL_PushEvent" (ptr Event.t @-> returning int)
@@ -4462,8 +4458,7 @@ let clear_queued_audio =
 
 (* Timer *)
 
-let delay =
-  foreign ~release_runtime_lock:true "SDL_Delay" (int32_t @-> returning void)
+let delay = C.Async_functions.delay
 
 let get_ticks =
   foreign "SDL_GetTicks" (void @-> returning int32_t)

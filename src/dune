@@ -9,7 +9,6 @@
  (modules
   (:standard \ Tsdl_top_init))
  (c_library_flags
-  -Wl,-no-as-needed
   (:include c_library_flags.sexp))
  (libraries ctypes-foreign)
  (flags
@@ -30,6 +29,10 @@
   (function_description
    (instance Functions)
    (functor Function_description))
+  (function_description
+   (instance Async_functions)
+   (concurrency unlocked)
+   (functor Async_function_description))
   (generated_entry_point C)))
 
 (install
