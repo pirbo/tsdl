@@ -36,6 +36,13 @@ module Types (F : Ctypes.TYPE) = struct
     let priority_critical = F.constant "SDL_LOG_PRIORITY_CRITICAL" F.int
   end
 
+  type version
+  let version : version Ctypes_static.structure F.typ = F.structure "SDL_version"
+  let version_major = F.field version "major" F.uint8_t
+  let version_minor = F.field version "minor" F.uint8_t
+  let version_patch = F.field version "patch" F.uint8_t
+  let () = F.seal version
+
   module Blend = struct
     let mode_none = F.constant "SDL_BLENDMODE_NONE" F.uint
     let mode_blend = F.constant "SDL_BLENDMODE_BLEND" F.uint
