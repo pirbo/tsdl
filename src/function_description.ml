@@ -2,6 +2,9 @@ open Ctypes
 
 module Types = Types_generated
 
+let const_string_opt =
+  Ctypes_std_views.nullable_view string Ctypes_static.(const char)
+
 module Functions (F : FOREIGN) = struct
   let get_error =
     F.(foreign "SDL_GetError" (void @-> returning string))
@@ -17,16 +20,6 @@ module Functions (F : FOREIGN) = struct
     F.(foreign "SDL_Quit" (void @-> returning void))
   let quit_sub_system =
     F.(foreign "SDL_QuitSubSystem" (uint32_t @-> returning void))
-
-  let create_window =
-    F.(foreign "SDL_CreateWindow"
-         (string @-> int @-> int @-> int @-> int @-> uint32_t @->
-          returning Types.Window.opt))
-  let destroy_window =
-    F.(foreign "SDL_DestroyWindow" (Types.Window.t @-> returning void))
-
-  let pump_events =
-    F.(foreign "SDL_PumpEvents" (void @-> returning void))
 
   module Hint = struct
     let framebuffer_acceleration =
@@ -67,4 +60,64 @@ module Functions (F : FOREIGN) = struct
     let mouse_touch_events =
       F.foreign_value "SDL_HINT_MOUSE_TOUCH_EVENTS" (array 23 char)
   end
+
+  let clear_hints =
+    F.(foreign "SDL_ClearHints" (void @-> returning void))
+
+  let get_hint =
+    F.(foreign "SDL_GetHint" (string @-> returning const_string_opt))
+
+  let get_hint_boolean =
+    F.(foreign "SDL_GetHintBoolean" (string @-> bool @-> returning bool))
+
+  let set_hint =
+    F.(foreign "SDL_SetHint" (string @-> string @-> returning bool))
+
+  let set_hint_with_priority =
+    F.(foreign "SDL_SetHintWithPriority"
+         (string @-> string @-> int @-> returning bool))
+
+  (* Errors *)
+
+  let clear_error =
+    F.(foreign "SDL_ClearError" (void @-> returning void))
+
+  let set_error =
+    F.(foreign "SDL_SetError" (string @-> returning int))
+
+  (* Log *)
+
+  let log_get_priority =
+    F.(foreign "SDL_LogGetPriority" (int @-> returning int))
+
+  let log_reset_priorities =
+    F.(foreign "SDL_LogResetPriorities" (void @-> returning void))
+
+  let log_set_all_priority =
+    F.(foreign "SDL_LogSetAllPriority" (int @-> returning void))
+
+  let log_set_priority =
+    F.(foreign "SDL_LogSetPriority" (int @-> int @-> returning void))
+
+  (* Version *)
+
+  let get_version =
+    F.(foreign "SDL_GetVersion" (ptr Types.version @-> returning void))
+
+  let get_revision =
+    F.(foreign "SDL_GetRevision" (void @-> returning string))
+
+  let get_revision_number =
+    F.(foreign "SDL_GetRevisionNumber" (void @-> returning int))
+
+  let create_window =
+    F.(foreign "SDL_CreateWindow"
+         (string @-> int @-> int @-> int @-> int @-> uint32_t @->
+          returning Types.Window.opt))
+  let destroy_window =
+    F.(foreign "SDL_DestroyWindow" (Types.Window.t @-> returning void))
+
+  let pump_events =
+    F.(foreign "SDL_PumpEvents" (void @-> returning void))
+
 end

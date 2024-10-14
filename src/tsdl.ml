@@ -210,32 +210,22 @@ module Hint = struct
   include C.Types.Hint
 end
 
-let clear_hints =
-  foreign "SDL_ClearHints" (void @-> returning void)
+let clear_hints = C.Functions.clear_hints
 
-let get_hint =
-  foreign "SDL_GetHint" (string @-> returning string_opt)
+let get_hint x = C.Functions.get_hint x
 
-let get_hint_boolean =
-  foreign "SDL_GetHintBoolean" (string @-> bool @-> returning bool)
+let get_hint_boolean = C.Functions.get_hint_boolean
 
-let set_hint =
-  foreign "SDL_SetHint" (string @-> string @-> returning bool)
+let set_hint = C.Functions.set_hint
 
-let set_hint_with_priority =
-  foreign "SDL_SetHintWithPriority"
-    (string @-> string @-> int @-> returning bool)
+let set_hint_with_priority = C.Functions.set_hint_with_priority
 
 (* Errors *)
 
-let clear_error =
-  foreign "SDL_ClearError" (void @-> returning void)
-
-let set_error =
-  foreign "SDL_SetError" (string @-> returning int)
+let clear_error = C.Functions.clear_error
 
 let set_error fmt =
-  kpp (fun s -> ignore (set_error s)) fmt
+  kpp (fun s -> ignore (C.Functions.set_error s)) fmt
 
 (* Log *)
 
@@ -259,40 +249,24 @@ let log_error c fmt = log_message c Log.priority_error fmt
 let log_verbose c fmt = log_message c Log.priority_verbose fmt
 let log_warn c fmt = log_message c Log.priority_warn fmt
 
-let log_get_priority =
-  foreign "SDL_LogGetPriority" (int @-> returning int)
+let log_get_priority = C.Functions.log_get_priority
 
-let log_reset_priorities =
-  foreign "SDL_LogResetPriorities" (void @-> returning void)
+let log_reset_priorities = C.Functions.log_reset_priorities
 
-let log_set_all_priority =
-  foreign "SDL_LogSetAllPriority" (int @-> returning void)
+let log_set_all_priority = C.Functions.log_set_all_priority
 
-let log_set_priority =
-  foreign "SDL_LogSetPriority" (int @-> int @-> returning void)
+let log_set_priority = C.Functions.log_set_priority
 
 (* Version *)
-
-let version = structure "SDL_version"
-let version_major = field version "major" uint8_t
-let version_minor = field version "minor" uint8_t
-let version_patch = field version "patch" uint8_t
-let () = seal version
-
-let get_version =
-  foreign "SDL_GetVersion" (ptr version @-> returning void)
-
 let get_version () =
   let get v f = Unsigned.UInt8.to_int (getf v f) in
-  let v = make version in
-  get_version (addr v);
-  (get v version_major), (get v version_minor), (get v version_patch)
+  let v = make C.Types.version in
+  C.Functions.get_version (addr v);
+  (get v C.Types.version_major), (get v C.Types.version_minor), (get v C.Types.version_patch)
 
-let get_revision =
-  foreign "SDL_GetRevision" (void @-> returning string)
+let get_revision = C.Functions.get_revision
 
-let get_revision_number =
-  foreign "SDL_GetRevisionNumber" (void @-> returning int)
+let get_revision_number = C.Functions.get_revision_number
 
 (* IO absraction *)
 
