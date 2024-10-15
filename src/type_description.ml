@@ -43,6 +43,88 @@ module Types (F : Ctypes.TYPE) = struct
   let version_patch = F.field version "patch" F.uint8_t
   let () = F.seal version
 
+  (* IO absraction *)
+
+  type _rw_ops
+  type rw_ops = _rw_ops Ctypes_static.structure Ctypes_static.ptr
+  let rw_ops_struct : _rw_ops Ctypes_static.structure F.typ = F.structure "SDL_RWops"
+  let rw_ops : rw_ops F.typ = F.ptr rw_ops_struct
+  let rw_ops_opt : rw_ops option F.typ = F.ptr_opt rw_ops_struct
+
+  let _rw_ops_size = F.field rw_ops_struct "size"
+      F.(static_funptr (rw_ops @-> returning int64_t))
+  let _rw_ops_seek = F.field rw_ops_struct "seek"
+      F.(static_funptr (rw_ops @-> int64_t @-> int @-> returning int64_t))
+  let _rw_ops_read = F.field rw_ops_struct "read"
+      F.(static_funptr (rw_ops @-> ptr void @-> size_t @-> size_t @-> returning size_t))
+  let _rw_ops_write = F.field rw_ops_struct "write"
+      F.(static_funptr (rw_ops @-> ptr void @-> size_t @-> size_t @-> returning size_t))
+  let _rw_ops_close = F.field rw_ops_struct "close"
+      F.(static_funptr (rw_ops @-> returning int))
+  let _ = F.field rw_ops_struct "type" F.uint32_t
+  (* ... #ifdef'd union follows, we don't care we don't use Ctypes.make *)
+  let () = F.seal rw_ops_struct
+
+  module Color = struct
+    type _t
+    type t = _t Ctypes_static.structure
+    let t : t F.typ = F.structure "SDL_Color"
+    let r = F.field t "r" F.uint8_t
+    let g = F.field t "g" F.uint8_t
+    let b = F.field t "b" F.uint8_t
+    let a = F.field t "a" F.uint8_t
+    let () = F.seal t
+  end
+
+  module Point = struct
+    type _t
+    type t = _t Ctypes_static.structure
+    let t : t F.typ = F.structure "SDL_Point"
+    let x = F.field t "x" F.int
+    let y = F.field t "y" F.int
+    let () = F.seal t
+  end
+
+  module Fpoint = struct
+    type _t
+    type t = _t Ctypes_static.structure
+    let t : t F.typ = F.structure "SDL_FPoint"
+    let x = F.field t "x" F.float
+    let y = F.field t "y" F.float
+    let () = F.seal t
+  end
+
+  module Rect = struct
+    type _t
+    type t = _t Ctypes_static.structure
+    let t : t F.typ = F.structure "SDL_Rect"
+    let x = F.field t "x" F.int
+    let y = F.field t "y" F.int
+    let w = F.field t "w" F.int
+    let h = F.field t "h" F.int
+    let () = F.seal t
+  end
+
+  module Frect = struct
+    type _t
+    type t = _t Ctypes_static.structure
+    let t : t F.typ = F.structure "SDL_FRect"
+    let x = F.field t "x" F.float
+    let y = F.field t "y" F.float
+    let w = F.field t "w" F.float
+    let h = F.field t "h" F.float
+    let () = F.seal t
+  end
+
+  type _palette
+  type palette = _palette Ctypes_static.structure
+  let palette : palette F.typ = F.structure "SDL_Palette"
+  let palette_ncolors = F.field palette "ncolors" F.int
+  let palette_colors = F.field palette "colors" (F.ptr Color.t)
+  let _ = F.field palette "version" F.uint32_t
+  let _ = F.field palette "refcount" F.int
+  let () = F.seal palette
+
   module Blend = struct
     let mode_none = F.constant "SDL_BLENDMODE_NONE" F.uint
     let mode_blend = F.constant "SDL_BLENDMODE_BLEND" F.uint

@@ -120,4 +120,87 @@ module Functions (F : FOREIGN) = struct
   let pump_events =
     F.(foreign "SDL_PumpEvents" (void @-> returning void))
 
+  (* IO absraction *)
+
+  let load_file_rw =
+    F.(foreign "SDL_LoadFile_RW"
+         (Types.rw_ops @-> ptr size_t @-> bool @-> returning string_opt))
+
+  let rw_close =
+    F.(foreign "SDL_RWclose" (Types.rw_ops @-> returning int))
+
+  let rw_from_file =
+    F.(foreign "SDL_RWFromFile"
+         (string @-> string @-> returning Types.rw_ops_opt))
+
+  let rw_from_const_mem =
+    F.(foreign "SDL_RWFromConstMem"
+         (ocaml_string @-> int @-> returning Types.rw_ops_opt))
+
+  let rw_from_mem =
+    F.(foreign "SDL_RWFromMem"
+         (ocaml_bytes @-> int @-> returning Types.rw_ops_opt))
+
+  (* File system paths *)
+
+  let get_base_path =
+    F.(foreign "SDL_GetBasePath" (void @-> returning (ptr char)))
+
+  let get_pref_path =
+    F.(foreign "SDL_GetPrefPath" (string @-> string @-> returning (ptr char)))
+
+  (* Rectangles *)
+
+  let enclose_points =
+    F.(foreign "SDL_EnclosePoints"
+         (ptr void @-> int @-> ptr Types.Rect.t @-> ptr Types.Rect.t @->
+          returning bool))
+
+  let has_intersection =
+    F.(foreign "SDL_HasIntersection"
+         (ptr Types.Rect.t @-> ptr Types.Rect.t @-> returning bool))
+
+  let intersect_rect =
+    F.(foreign "SDL_IntersectRect"
+         (ptr Types.Rect.t @-> ptr Types.Rect.t @-> ptr Types.Rect.t @->
+          returning bool))
+
+  let intersect_rect_and_line =
+    F.(foreign "SDL_IntersectRectAndLine"
+         (ptr Types.Rect.t @-> ptr int @-> ptr int @-> ptr int @-> ptr int @->
+          returning bool))
+
+  let point_in_rect =
+    F.(foreign "SDL_PointInRect"
+         (ptr Types.Point.t @-> ptr Types.Rect.t @-> returning bool))
+
+  let rect_empty =
+    F.(foreign "SDL_RectEmpty" (ptr Types.Rect.t @-> returning bool))
+
+  let rect_equals =
+    F.(foreign "SDL_RectEquals"
+         (ptr Types.Rect.t @-> ptr Types.Rect.t @-> returning bool))
+
+  let union_rect =
+    F.(foreign "SDL_UnionRect"
+         (ptr Types.Rect.t @-> ptr Types.Rect.t @-> ptr Types.Rect.t @->
+          returning void))
+
+  let alloc_palette =
+    F.(foreign "SDL_AllocPalette" (int @-> returning (ptr_opt Types.palette)))
+
+  let free_palette =
+    F.(foreign "SDL_FreePalette" (ptr Types.palette @-> returning void))
+
+  let set_palette_colors =
+    F.(foreign "SDL_SetPaletteColors"
+         (ptr Types.palette @-> ptr void @-> int @-> int @-> returning int))
+
+
+  let calculate_gamma_ramp =
+    F.(foreign "SDL_CalculateGammaRamp" (float @-> ptr void @-> returning void))
+
+  let compose_custom_blend_mode =
+    F.(foreign "SDL_ComposeCustomBlendMode"
+         (int @-> int @-> int @-> int @-> int @-> int @-> returning uint))
 end

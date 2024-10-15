@@ -268,170 +268,107 @@ let get_revision = C.Functions.get_revision
 
 let get_revision_number = C.Functions.get_revision_number
 
-(* IO absraction *)
-
-type _rw_ops
-let rw_ops_struct : _rw_ops structure typ = structure "SDL_RWops"
-let rw_ops : _rw_ops structure ptr typ = ptr rw_ops_struct
-let rw_ops_opt : _rw_ops structure ptr option typ = ptr_opt rw_ops_struct
-
-let _rw_ops_size = field rw_ops_struct "size"
-    (static_funptr (rw_ops @-> returning int64_t))
-let _rw_ops_seek = field rw_ops_struct "seek"
-    (static_funptr (rw_ops @-> int64_t @-> int @-> returning int64_t))
-let _rw_ops_read = field rw_ops_struct "read"
-    (static_funptr (rw_ops @-> ptr void @-> size_t @-> size_t @-> returning size_t))
-let _rw_ops_write = field rw_ops_struct "write"
-    (static_funptr (rw_ops @-> ptr void @-> size_t @-> size_t @-> returning size_t))
-let _rw_ops_close = field rw_ops_struct "close"
-    (static_funptr (rw_ops @-> returning int))
-let _ = field rw_ops_struct "type" uint32_t
-(* ... #ifdef'd union follows, we don't care we don't use Ctypes.make *)
-let () = seal rw_ops_struct
-
-type rw_ops = _rw_ops structure ptr
-
-let load_file_rw =
-  foreign "SDL_LoadFile_RW"
-    (rw_ops @-> ptr int @-> bool @-> returning string_opt)
+type rw_ops = C.Types.rw_ops
 
 let load_file_rw rw_ops close =
-  load_file_rw rw_ops (coerce (ptr void) (ptr int) null) close |> some_to_ok
+  C.Functions.load_file_rw rw_ops (coerce (ptr void) (ptr size_t) null) close |> some_to_ok
 
-let rw_from_file =
-  foreign "SDL_RWFromFile"
-    (string @-> string @-> returning rw_ops_opt)
-  let rw_from_file x y = rw_from_file x y |> some_to_ok
+let rw_from_file x y = C.Functions.rw_from_file x y |> some_to_ok
 
-let rw_from_const_mem =
-  foreign "SDL_RWFromConstMem"
-    (ocaml_string @-> int @-> returning rw_ops_opt)
-
-let rw_from_const_mem str = rw_from_const_mem
+let rw_from_const_mem str = C.Functions.rw_from_const_mem
   (ocaml_string_start str) (String.length str) |> some_to_ok
 
-let rw_from_mem =
-  foreign "SDL_RWFromMem"
-    (ocaml_bytes @-> int @-> returning rw_ops_opt)
-
 let rw_from_mem b =
-  rw_from_mem (ocaml_bytes_start b) (Bytes.length b) |> some_to_ok
+  C.Functions.rw_from_mem (ocaml_bytes_start b) (Bytes.length b) |> some_to_ok
 
 let load_file filename = (* defined as a macro in SDL_rwops.h *)
   match rw_from_file filename "rb" with
   | Error _ as e -> e
   | Ok rw -> load_file_rw rw true
 
-let rw_close =
-  foreign "SDL_RWclose" (rw_ops @-> returning int)
-
 let rw_close ops =
-  if rw_close ops = 0 then Ok () else (error ())
+  if C.Functions.rw_close ops = 0 then Ok () else (error ())
 
-let unsafe_rw_ops_of_ptr addr : rw_ops =
-  from_voidp rw_ops_struct (ptr_of_raw_address addr)
+let unsafe_rw_ops_of_ptr addr : C.Types.rw_ops =
+  from_voidp C.Types.rw_ops_struct (ptr_of_raw_address addr)
 let unsafe_ptr_of_rw_ops rw_ops =
   raw_address_of_ptr (to_voidp rw_ops)
 
 (* File system paths *)
 
-let get_base_path =
-  foreign "SDL_GetBasePath" (void @-> returning (ptr char))
-
 let get_base_path () =
-  let p = get_base_path () in
+  let p = C.Functions.get_base_path () in
   let path = coerce (ptr char) string_opt p in
   sdl_free (coerce (ptr char) (ptr void) p);
   path |> some_to_ok
 
-let get_pref_path =
-  foreign "SDL_GetPrefPath" (string @-> string @-> returning (ptr char))
-
 let get_pref_path ~org ~app =
-  let p = get_pref_path org app in
+  let p = C.Functions.get_pref_path org app in
   let path = coerce (ptr char) string_opt p in
   sdl_free (coerce (ptr char) (ptr void) p);
   path |> some_to_ok
 
 (* Colors *)
 
-type _color
-type color = _color structure
-let color : color typ = structure "SDL_Color"
-let color_r = field color "r" uint8_t
-let color_g = field color "g" uint8_t
-let color_b = field color "b" uint8_t
-let color_a = field color "a" uint8_t
-let () = seal color
-
 module Color = struct
   let create ~r ~g ~b ~a =
-    let c = make color in
-    setf c color_r (Unsigned.UInt8.of_int r);
-    setf c color_g (Unsigned.UInt8.of_int g);
-    setf c color_b (Unsigned.UInt8.of_int b);
-    setf c color_a (Unsigned.UInt8.of_int a);
+    let c = make C.Types.Color.t in
+    setf c C.Types.Color.r (Unsigned.UInt8.of_int r);
+    setf c C.Types.Color.g (Unsigned.UInt8.of_int g);
+    setf c C.Types.Color.b (Unsigned.UInt8.of_int b);
+    setf c C.Types.Color.a (Unsigned.UInt8.of_int a);
     c
 
-  let r c = Unsigned.UInt8.to_int (getf c color_r)
-  let g c = Unsigned.UInt8.to_int (getf c color_g)
-  let b c = Unsigned.UInt8.to_int (getf c color_b)
-  let a c = Unsigned.UInt8.to_int (getf c color_a)
+  let r c = Unsigned.UInt8.to_int (getf c C.Types.Color.r)
+  let g c = Unsigned.UInt8.to_int (getf c C.Types.Color.g)
+  let b c = Unsigned.UInt8.to_int (getf c C.Types.Color.b)
+  let a c = Unsigned.UInt8.to_int (getf c C.Types.Color.a)
 
-  let set_r c r = setf c color_r (Unsigned.UInt8.of_int r)
-  let set_g c g = setf c color_g (Unsigned.UInt8.of_int g)
-  let set_b c b = setf c color_b (Unsigned.UInt8.of_int b)
-  let set_a c a = setf c color_a (Unsigned.UInt8.of_int a)
+  let set_r c r = setf c C.Types.Color.r (Unsigned.UInt8.of_int r)
+  let set_g c g = setf c C.Types.Color.g (Unsigned.UInt8.of_int g)
+  let set_b c b = setf c C.Types.Color.b (Unsigned.UInt8.of_int b)
+  let set_a c a = setf c C.Types.Color.a (Unsigned.UInt8.of_int a)
 end
 
-(* Points *)
+type color = C.Types.Color.t
+let color = C.Types.Color.t
 
-type _point
-type point = _point structure
-let point : point typ = structure "SDL_Point"
-let point_x = field point "x" int
-let point_y = field point "y" int
-let () = seal point
+(* Points *)
+type point = C.Types.Point.t
 
 module Point = struct
   let create ~x ~y =
-    let p = make point in
-    setf p point_x x;
-    setf p point_y y;
+    let p = make C.Types.Point.t in
+    setf p C.Types.Point.x x;
+    setf p C.Types.Point.y y;
     p
 
-  let x p = getf p point_x
-  let y p = getf p point_y
+  let x p = getf p C.Types.Point.x
+  let y p = getf p C.Types.Point.y
 
-  let set_x p x = setf p point_x x
-  let set_y p y = setf p point_y y
+  let set_x p x = setf p C.Types.Point.x x
+  let set_y p y = setf p C.Types.Point.y y
 
   let opt_addr = function
-  | None -> coerce (ptr void) (ptr point) null
+  | None -> coerce (ptr void) (ptr C.Types.Point.t) null
   | Some v -> addr v
 end
 
 (* Float Points *)
-
-type _fpoint
-type fpoint = _fpoint structure
-let fpoint : fpoint typ = structure "SDL_FPoint"
-let fpoint_x = field fpoint "x" float
-let fpoint_y = field fpoint "y" float
-let () = seal fpoint
+type fpoint = C.Types.Fpoint.t
 
 module Fpoint = struct
   let create ~x ~y =
-    let p = make fpoint in
-    setf p fpoint_x x;
-    setf p fpoint_y y;
+    let p = make C.Types.Fpoint.t in
+    setf p C.Types.Fpoint.x x;
+    setf p C.Types.Fpoint.y y;
     p
 
-  let x p = getf p fpoint_x
-  let y p = getf p fpoint_y
+  let x p = getf p C.Types.Fpoint.x
+  let y p = getf p C.Types.Fpoint.y
 
-  let set_x p x = setf p fpoint_x x
-  let set_y p y = setf p fpoint_y y
+  let set_x p x = setf p C.Types.Fpoint.x x
+  let set_y p y = setf p C.Types.Fpoint.y y
 end
 
 (* Vertices *)
@@ -439,9 +376,9 @@ end
 type _vertex
 type vertex = _vertex structure
 let vertex : vertex typ = structure "SDL_Vertex"
-let vertex_position = field vertex "position" fpoint
+let vertex_position = field vertex "position" C.Types.Fpoint.t
 let vertex_color = field vertex "color" color
-let vertex_tex_coord = field vertex "tex_coord" fpoint
+let vertex_tex_coord = field vertex "tex_coord" C.Types.Fpoint.t
 let () = seal vertex
 
 module Vertex = struct
@@ -463,200 +400,139 @@ end
 
 (* Rectangle *)
 
-type _rect
-type rect = _rect structure
-let rect : rect typ = structure "SDL_Rect"
-let rect_x = field rect "x" int
-let rect_y = field rect "y" int
-let rect_w = field rect "w" int
-let rect_h = field rect "h" int
-let () = seal rect
+type rect = C.Types.Rect.t
 
 module Rect = struct
   let create ~x ~y ~w ~h =
-    let r = make rect in
-    setf r rect_x x;
-    setf r rect_y y;
-    setf r rect_w w;
-    setf r rect_h h;
+    let r = make C.Types.Rect.t in
+    setf r C.Types.Rect.x x;
+    setf r C.Types.Rect.y y;
+    setf r C.Types.Rect.w w;
+    setf r C.Types.Rect.h h;
     r
 
-  let x r = getf r rect_x
-  let y r = getf r rect_y
-  let w r = getf r rect_w
-  let h r = getf r rect_h
+  let x r = getf r C.Types.Rect.x
+  let y r = getf r C.Types.Rect.y
+  let w r = getf r C.Types.Rect.w
+  let h r = getf r C.Types.Rect.h
 
-  let set_x r x = setf r rect_x x
-  let set_y r y = setf r rect_y y
-  let set_w r w = setf r rect_w w
-  let set_h r h = setf r rect_h h
+  let set_x r x = setf r C.Types.Rect.x x
+  let set_y r y = setf r C.Types.Rect.y y
+  let set_w r w = setf r C.Types.Rect.w w
+  let set_h r h = setf r C.Types.Rect.h h
 
   let opt_addr = function
-  | None -> coerce (ptr void) (ptr rect) null
+  | None -> coerce (ptr void) (ptr C.Types.Rect.t) null
   | Some v -> addr v
 end
 
 (* Float Rectangle *)
 
-type _frect
-type frect = _frect structure
-let frect : frect typ = structure "SDL_FRect"
-let frect_x = field frect "x" float
-let frect_y = field frect "y" float
-let frect_w = field frect "w" float
-let frect_h = field frect "h" float
-let () = seal frect
+type frect = C.Types.Frect.t
 
 module Frect = struct
   let create ~x ~y ~w ~h =
-    let r = make frect in
-    setf r frect_x x;
-    setf r frect_y y;
-    setf r frect_w w;
-    setf r frect_h h;
+    let r = make C.Types.Frect.t in
+    setf r C.Types.Frect.x x;
+    setf r C.Types.Frect.y y;
+    setf r C.Types.Frect.w w;
+    setf r C.Types.Frect.h h;
     r
 
-  let x r = getf r frect_x
-  let y r = getf r frect_y
-  let w r = getf r frect_w
-  let h r = getf r frect_h
+  let x r = getf r C.Types.Frect.x
+  let y r = getf r C.Types.Frect.y
+  let w r = getf r C.Types.Frect.w
+  let h r = getf r C.Types.Frect.h
 
-  let set_x r x = setf r frect_x x
-  let set_y r y = setf r frect_y y
-  let set_w r w = setf r frect_w w
-  let set_h r h = setf r frect_h h
+  let set_x r x = setf r C.Types.Frect.x x
+  let set_y r y = setf r C.Types.Frect.y y
+  let set_w r w = setf r C.Types.Frect.w w
+  let set_h r h = setf r C.Types.Frect.h h
 end
-
-let enclose_points =
-  foreign "SDL_EnclosePoints"
-    (ptr void @-> int @-> ptr rect @-> ptr rect @-> returning bool)
 
 let enclose_points_ba ?clip ps =
   let len = Bigarray.Array1.dim ps in
   if len mod 2 <> 0 then invalid_arg (err_length_mul len 2) else
   let count = len / 2 in
   let ps = to_voidp (bigarray_start array1 ps) in
-  let res = make rect in
-  if enclose_points ps count (Rect.opt_addr clip) (addr res)
+  let res = make C.Types.Rect.t in
+  if C.Functions.enclose_points ps count (Rect.opt_addr clip) (addr res)
   then Some res
   else None
 
 let enclose_points ?clip ps =
-  let a = CArray.of_list point ps in
+  let a = CArray.of_list C.Types.Point.t ps in
   let ps = to_voidp (CArray.start a) in
-  let res = make rect in
-  if enclose_points ps (CArray.length a) (Rect.opt_addr clip) (addr res)
+  let res = make C.Types.Rect.t in
+  if C.Functions.enclose_points ps (CArray.length a) (Rect.opt_addr clip) (addr res)
   then Some res
   else None
 
-let has_intersection =
-  foreign "SDL_HasIntersection"
-    (ptr rect @-> ptr rect @-> returning bool)
-
 let has_intersection a b =
-  has_intersection (addr a) (addr b)
-
-let intersect_rect =
-  foreign "SDL_IntersectRect"
-    (ptr rect @-> ptr rect @-> ptr rect @-> returning bool)
+  C.Functions.has_intersection (addr a) (addr b)
 
 let intersect_rect a b =
-  let res = make rect in
-  if intersect_rect (addr a) (addr b) (addr res) then Some res else None
-
-let intersect_rect_and_line =
-  foreign "SDL_IntersectRectAndLine"
-    (ptr rect @-> ptr int @-> ptr int @-> ptr int @-> ptr int @->
-     returning bool)
+  let res = make C.Types.Rect.t in
+  if C.Functions.intersect_rect (addr a) (addr b) (addr res)
+  then Some res
+  else None
 
 let intersect_rect_and_line r x1 y1 x2 y2 =
   let alloc v = allocate int v in
   let x1, y1 = alloc x1, alloc y1 in
   let x2, y2 = alloc x2, alloc y2 in
-  if intersect_rect_and_line (addr r) x1 y1 x2 y2
+  if C.Functions.intersect_rect_and_line (addr r) x1 y1 x2 y2
   then Some ((!@x1, !@y1), (!@x2, !@y2))
   else None
 
-let point_in_rect p r =
-  (* SDL_FORCE_INLINE *)
-  let px = Point.x p in
-  let py = Point.y p in
-  let rx = Rect.x r in
-  let ry = Rect.y r in
-  px >= rx && px < rx + Rect.w r && py >= ry && py < ry + Rect.h r
+let point_in_rect p r = C.Functions.point_in_rect (addr p) (addr r)
 
-let rect_empty r =
-  (* symbol doesn't exist: SDL_FORCE_INLINE directive
-     foreign "SDL_RectEmpty" (ptr rect @-> returning bool) *)
-  Rect.w r <= 0 || Rect.h r <= 0
+let rect_empty r = C.Functions.rect_empty (addr r)
 
-let rect_equals a b =
-  (* symbol doesn't exist: SDL_FORCE_INLINE directive
-    foreign "SDL_RectEquals" (ptr rect @-> ptr rect @-> returning bool) *)
-  (Rect.x a = Rect.x b) && (Rect.y a = Rect.y b) &&
-  (Rect.w a = Rect.w b) && (Rect.h a = Rect.h b)
-
-let union_rect =
-  foreign "SDL_UnionRect"
-    (ptr rect @-> ptr rect @-> ptr rect @-> returning void)
+let rect_equals a b = C.Functions.rect_equals (addr a) (addr b)
 
 let union_rect a b =
-  let res = make rect in
-  union_rect (addr a) (addr b) (addr res);
+  let res = make C.Types.Rect.t in
+  C.Functions.union_rect (addr a) (addr b) (addr res);
   res
 
 (* Palettes *)
 
-type _palette
-type palette_struct = _palette structure
-let palette_struct : palette_struct typ = structure "SDL_Palette"
-let palette_ncolors = field palette_struct "ncolors" int
-let palette_colors = field palette_struct "colors" (ptr color)
-let _ = field palette_struct "version" uint32_t
-let _ = field palette_struct "refcount" int
-let () = seal palette_struct
-
-type palette = palette_struct ptr
-let palette : palette typ = ptr palette_struct
-let palette_opt : palette option typ = ptr_opt palette_struct
+type palette = C.Types.palette ptr
 
 let unsafe_palette_of_ptr addr : palette =
-  from_voidp palette_struct (ptr_of_raw_address addr)
+  from_voidp C.Types.palette (ptr_of_raw_address addr)
 let unsafe_ptr_of_palette palette =
   raw_address_of_ptr (to_voidp palette)
 
-let alloc_palette =
-  foreign "SDL_AllocPalette"
-    (int @-> returning palette_opt)
-let alloc_palette x = alloc_palette x |> some_to_ok
+let alloc_palette x = C.Functions.alloc_palette x |> some_to_ok
 
-let free_palette =
-  foreign "SDL_FreePalette" (palette @-> returning void)
+let free_palette = C.Functions.free_palette
 
 let get_palette_ncolors p =
-  getf (!@ p) palette_ncolors
+  getf (!@ p) C.Types.palette_ncolors
 
 let get_palette_colors p =
   let ps = !@ p in
   CArray.to_list
-    (CArray.from_ptr (getf ps palette_colors) (getf ps palette_ncolors))
+    (CArray.from_ptr
+       (getf ps C.Types.palette_colors)
+       (getf ps C.Types.palette_ncolors))
 
 let get_palette_colors_ba p =
   let ps = !@ p in
   (* FIXME: ctypes should have a CArray.copy function *)
-  let n = getf ps palette_ncolors in
+  let n = getf ps C.Types.palette_ncolors in
   let ba = Bigarray.(Array1.create int8_unsigned c_layout (n * 4)) in
   let ba_ptr =
     CArray.from_ptr (coerce (ptr int) (ptr color) (bigarray_start array1 ba)) n
   in
-  let ca = CArray.from_ptr (getf ps palette_colors) n in
+  let ca = CArray.from_ptr (getf ps C.Types.palette_colors) n in
   for i = 0 to n - 1 do CArray.set ba_ptr i (CArray.get ca i) done;
   ba
 
-let set_palette_colors =
-  foreign "SDL_SetPaletteColors"
-    (palette @-> ptr void @-> int @-> int @-> returning int)
-  let set_palette_colors x y z t = set_palette_colors x y z t |> zero_to_ok
+let set_palette_colors x y z t =
+  C.Functions.set_palette_colors x y z t |> zero_to_ok
 
 let set_palette_colors_ba p cs ~fst =
   let len = Bigarray.Array1.dim cs in
@@ -673,13 +549,9 @@ let set_palette_colors p cs ~fst =
 
 type gamma_ramp = (int, Bigarray.int16_unsigned_elt) bigarray
 
-let calculate_gamma_ramp =
-  foreign "SDL_CalculateGammaRamp"
-    (float @-> ptr void @-> returning void)
-
 let calculate_gamma_ramp g =
   let ba = Bigarray.(Array1.create int16_unsigned c_layout 256) in
-  calculate_gamma_ramp g (to_voidp (bigarray_start array1 ba));
+  C.Functions.calculate_gamma_ramp g (to_voidp (bigarray_start array1 ba));
   ba
 
 module Blend = struct
@@ -689,9 +561,7 @@ module Blend = struct
   include C.Types.Blend
 end
 
-let compose_custom_blend_mode =
-  foreign "SDL_ComposeCustomBlendMode"
-    (int @-> int @-> int @-> int @-> int @-> int @-> returning uint)
+let compose_custom_blend_mode = C.Functions.compose_custom_blend_mode
 
 module Pixel = struct
   type format_enum = Unsigned.UInt32.t
@@ -708,7 +578,7 @@ type _pixel_format
 type pixel_format_struct = _pixel_format structure
 let pixel_format_struct : pixel_format_struct typ = structure "SDL_PixelFormat"
 let pf_format = field pixel_format_struct "format" uint32_t
-let _pf_palette = field pixel_format_struct "palette" palette
+let _pf_palette = field pixel_format_struct "palette" (ptr C.Types.palette)
 let pf_bits_per_pixel = field pixel_format_struct "BitsPerPixel" uint8_t
 let pf_bytes_per_pixel = field pixel_format_struct "BytesPerPixel" uint8_t
 let _ = field pixel_format_struct "padding" uint16_t
@@ -812,7 +682,7 @@ let pixel_format_enum_to_masks pf =
 
 let set_pixel_format_palette =
   foreign "SDL_SetPixelFormatPalette"
-    (pixel_format @-> palette @-> returning int)
+    (pixel_format @-> ptr C.Types.palette @-> returning int)
 let set_pixel_format_palette x y = set_pixel_format_palette x y |> zero_to_ok
 
 (* Surface *)
@@ -829,7 +699,7 @@ let surface_pixels = field surface_struct "pixels" (ptr void)
 let _ = field surface_struct "userdata" (ptr void)
 let _ = field surface_struct "locked" int
 let _ = field surface_struct "list_blitmap" (ptr void)
-let _ = field surface_struct "clip_rect" rect
+let _ = field surface_struct "clip_rect" C.Types.Rect.t
 let _ = field surface_struct "map" (ptr void)
 let _ = field surface_struct "refcount" int
 let () = seal surface_struct
@@ -846,7 +716,8 @@ let unsafe_ptr_of_surface surface =
 let blit_scaled =
   (* SDL_BlitScaled is #ifdef'd to SDL_UpperBlitScaled *)
   foreign "SDL_UpperBlitScaled"
-    (surface @-> ptr rect @-> surface @-> ptr rect @-> returning int)
+    (surface @-> ptr C.Types.Rect.t@-> surface @-> ptr C.Types.Rect.t@->
+     returning int)
 
 let blit_scaled ~src sr ~dst dr =
   blit_scaled src (Rect.opt_addr sr) dst (Rect.opt_addr dr) |> zero_to_ok
@@ -854,7 +725,7 @@ let blit_scaled ~src sr ~dst dr =
 let blit_surface =
   (* SDL_BlitSurface is #ifdef'd to SDL_UpperBlit *)
   foreign "SDL_UpperBlit"
-    (surface @-> ptr rect @-> surface @-> ptr rect @-> returning int)
+    (surface @-> ptr C.Types.Rect.t@-> surface @-> ptr C.Types.Rect.t@-> returning int)
 
 let blit_surface ~src sr ~dst dr =
   blit_surface src (Rect.opt_addr sr) dst (Rect.opt_addr dr) |> zero_to_ok
@@ -932,7 +803,7 @@ let duplicate_surface =
 
 let fill_rect =
   foreign "SDL_FillRect"
-    (surface @-> ptr rect @-> int32_as_uint32_t @-> returning int)
+    (surface @-> ptr C.Types.Rect.t@-> int32_as_uint32_t @-> returning int)
 
 let fill_rect s r c =
   fill_rect s (Rect.opt_addr r) c |> zero_to_ok
@@ -950,17 +821,17 @@ let fill_rects_ba s rs col =
   fill_rects s rs count col |> zero_to_ok
 
 let fill_rects s rs col =
-  let a = CArray.of_list rect rs in
+  let a = CArray.of_list C.Types.Rect.t rs in
   fill_rects s (to_voidp (CArray.start a)) (CArray.length a) col |> zero_to_ok
 
 let free_surface =
   foreign "SDL_FreeSurface" (surface @-> returning void)
 
 let get_clip_rect =
-  foreign "SDL_GetClipRect" (surface @-> ptr rect @-> returning void)
+  foreign "SDL_GetClipRect" (surface @-> ptr C.Types.Rect.t @-> returning void)
 
 let get_clip_rect s =
-  let r = make rect in
+  let r = make C.Types.Rect.t in
   (get_clip_rect s (addr r); r)
 
 let get_color_key =
@@ -1027,7 +898,7 @@ let get_surface_size s =
 
 let load_bmp_rw =
   foreign "SDL_LoadBMP_RW"
-    (rw_ops @-> bool @-> returning surface_opt)
+    (C.Types.rw_ops @-> bool @-> returning surface_opt)
 
 let load_bmp_rw rw ~close =
   load_bmp_rw rw close |> some_to_ok
@@ -1044,21 +915,21 @@ let lock_surface x = lock_surface x |> zero_to_ok
 
 let lower_blit =
   foreign "SDL_LowerBlit"
-    (surface @-> ptr rect @-> surface @-> ptr rect @-> returning int)
+    (surface @-> ptr C.Types.Rect.t @-> surface @-> ptr C.Types.Rect.t @-> returning int)
 
 let lower_blit ~src sr ~dst dr =
   lower_blit src (addr sr) dst (addr dr) |> zero_to_ok
 
 let lower_blit_scaled =
   foreign "SDL_LowerBlitScaled"
-    (surface @-> ptr rect @-> surface @-> ptr rect @-> returning int)
+    (surface @-> ptr C.Types.Rect.t @-> surface @-> ptr C.Types.Rect.t @-> returning int)
 
 let lower_blit_scaled ~src sr ~dst dr =
   lower_blit_scaled src (addr sr) dst (addr dr) |> zero_to_ok
 
 let save_bmp_rw =
   foreign "SDL_SaveBMP_RW"
-    (surface @-> rw_ops @-> bool @-> returning int)
+    (surface @-> C.Types.rw_ops @-> bool @-> returning int)
 
 let save_bmp_rw s rw ~close =
   save_bmp_rw s rw close |> zero_to_ok
@@ -1070,7 +941,7 @@ let save_bmp s file =
   | Ok rw -> save_bmp_rw s rw ~close:true
 
 let set_clip_rect =
-  foreign "SDL_SetClipRect" (surface @-> ptr rect @-> returning bool)
+  foreign "SDL_SetClipRect" (surface @-> ptr C.Types.Rect.t @-> returning bool)
 
 let set_clip_rect s r =
   set_clip_rect s (addr r)
@@ -1098,7 +969,7 @@ let set_surface_color_mod s x y z = set_surface_color_mod s x y z |> zero_to_ok
 
 let set_surface_palette =
   foreign "SDL_SetSurfacePalette"
-    (surface @-> palette @-> returning int)
+    (surface @-> ptr C.Types.palette @-> returning int)
 let set_surface_palette s p = set_surface_palette s p |> zero_to_ok
 
 let set_surface_rle =
@@ -1256,7 +1127,7 @@ let render_clear r = render_clear r |> zero_to_ok
 
 let render_copy =
   foreign "SDL_RenderCopy"
-    (renderer @-> texture @-> ptr rect @-> ptr rect @->
+    (renderer @-> texture @-> ptr C.Types.Rect.t @-> ptr C.Types.Rect.t @->
      returning int)
 
 let render_copy ?src ?dst r t =
@@ -1264,8 +1135,8 @@ let render_copy ?src ?dst r t =
 
 let render_copy_ex =
   foreign "SDL_RenderCopyEx"
-    (renderer @-> texture @-> ptr rect @-> ptr rect @-> double @->
-     ptr point @-> int @-> returning int)
+    (renderer @-> texture @-> ptr C.Types.Rect.t @-> ptr C.Types.Rect.t @->
+     double @-> ptr C.Types.Point.t @-> int @-> returning int)
 
 let render_copy_ex ?src ?dst r t angle c flip =
   render_copy_ex r t (Rect.opt_addr src) (Rect.opt_addr dst) angle
@@ -1293,7 +1164,7 @@ let render_draw_lines_ba r ps =
   render_draw_lines r ps count |> zero_to_ok
 
 let render_draw_lines r ps =
-  let a = CArray.of_list point ps in
+  let a = CArray.of_list C.Types.Point.t ps in
   render_draw_lines r (to_voidp (CArray.start a)) (CArray.length a) |> zero_to_ok
 
 let render_draw_point =
@@ -1313,7 +1184,7 @@ let render_draw_points_ba r ps =
   render_draw_points r ps count |> zero_to_ok
 
 let render_draw_points r ps =
-  let a = CArray.of_list point ps in
+  let a = CArray.of_list C.Types.Point.t ps in
   render_draw_points r (to_voidp (CArray.start a)) (CArray.length a) |> zero_to_ok
 
 let render_draw_point_f =
@@ -1333,12 +1204,12 @@ let render_draw_points_f_ba r ps =
   render_draw_points_f r ps count |> zero_to_ok
 
 let render_draw_points_f r ps =
-  let a = CArray.of_list fpoint ps in
+  let a = CArray.of_list C.Types.Fpoint.t ps in
   render_draw_points_f r (to_voidp (CArray.start a)) (CArray.length a) |> zero_to_ok
 
 let render_draw_rect =
   foreign "SDL_RenderDrawRect"
-    (renderer @-> ptr rect @-> returning int)
+    (renderer @-> ptr C.Types.Rect.t @-> returning int)
 
 let render_draw_rect rend r =
   render_draw_rect rend (Rect.opt_addr r) |> zero_to_ok
@@ -1355,12 +1226,12 @@ let render_draw_rects_ba r rs =
   render_draw_rects r rs count |> zero_to_ok
 
 let render_draw_rects r rs =
-  let a = CArray.of_list rect rs in
+  let a = CArray.of_list C.Types.Rect.t rs in
   render_draw_rects r (to_voidp (CArray.start a)) (CArray.length a) |> zero_to_ok
 
 let render_fill_rect =
   foreign "SDL_RenderFillRect"
-    (renderer @-> ptr rect @-> returning int)
+    (renderer @-> ptr C.Types.Rect.t @-> returning int)
 
 let render_fill_rect rend r =
   render_fill_rect rend (Rect.opt_addr r) |> zero_to_ok
@@ -1377,7 +1248,7 @@ let render_fill_rects_ba r rs =
   render_fill_rects r rs count |> zero_to_ok
 
 let render_fill_rects r rs =
-  let a = CArray.of_list rect rs in
+  let a = CArray.of_list C.Types.Rect.t rs in
   render_fill_rects r (to_voidp (CArray.start a)) (CArray.length a) |> zero_to_ok
 
 let render_geometry =
@@ -1450,10 +1321,10 @@ let render_geometry_raw
 
 let render_get_clip_rect =
   foreign "SDL_RenderGetClipRect"
-    (renderer @-> ptr rect @-> returning void)
+    (renderer @-> ptr C.Types.Rect.t @-> returning void)
 
 let render_get_clip_rect rend =
-  let r = make rect in
+  let r = make C.Types.Rect.t in
   render_get_clip_rect rend (addr r);
   r
 
@@ -1486,10 +1357,10 @@ let render_get_scale r =
 
 let render_get_viewport =
   foreign "SDL_RenderGetViewport"
-    (renderer @-> ptr rect @-> returning void)
+    (renderer @-> ptr C.Types.Rect.t @-> returning void)
 
 let render_get_viewport rend =
-  let r = make rect in
+  let r = make C.Types.Rect.t in
   render_get_viewport rend (addr r);
   r
 
@@ -1499,7 +1370,7 @@ let render_present =
 
 let render_read_pixels =
   foreign "SDL_RenderReadPixels"
-    (renderer @-> ptr rect @-> uint32_t @-> ptr void @-> int @->
+    (renderer @-> ptr C.Types.Rect.t @-> uint32_t @-> ptr void @-> int @->
      returning int)
 
 let render_read_pixels r rect format pixels pitch =
@@ -1509,7 +1380,7 @@ let render_read_pixels r rect format pixels pitch =
 
 let render_set_clip_rect =
   foreign "SDL_RenderSetClipRect"
-    (renderer @-> ptr rect @-> returning int)
+    (renderer @-> ptr C.Types.Rect.t @-> returning int)
 
 let render_set_clip_rect rend r =
   render_set_clip_rect rend (Rect.opt_addr r) |> zero_to_ok
@@ -1531,7 +1402,7 @@ let render_set_scale r x y = render_set_scale r x y |> zero_to_ok
 
 let render_set_viewport =
   foreign "SDL_RenderSetViewport"
-    (renderer @-> ptr rect @-> returning int)
+    (renderer @-> ptr C.Types.Rect.t @-> returning int)
 
 let render_set_viewport rend r =
   render_set_viewport rend (Rect.opt_addr r) |> zero_to_ok
@@ -1626,7 +1497,7 @@ let _texture_height t =
 
 let lock_texture =
   foreign "SDL_LockTexture"
-    (texture @-> ptr rect @-> ptr (ptr void) @-> ptr int @->
+    (texture @-> ptr C.Types.Rect.t @-> ptr (ptr void) @-> ptr int @->
      returning int)
 
 let lock_texture t r kind =
@@ -1677,7 +1548,7 @@ let unlock_texture =
 
 let update_texture =
   foreign "SDL_UpdateTexture"
-    (texture @-> ptr rect @-> ptr void @-> int @-> returning int)
+    (texture @-> ptr C.Types.Rect.t @-> ptr void @-> int @-> returning int)
 
 let update_texture t rect pixels pitch =
   let pitch = pitch * (ba_kind_byte_size (Bigarray.Array1.kind pixels)) in
@@ -1686,7 +1557,7 @@ let update_texture t rect pixels pitch =
 
 let update_yuv_texture =
   foreign "SDL_UpdateYUVTexture"
-    (texture @-> ptr rect @->
+    (texture @-> ptr C.Types.Rect.t @->
      ptr void @-> int @-> ptr void @-> int @-> ptr void @-> int @->
      returning int)
 
@@ -1789,10 +1660,10 @@ let get_desktop_display_mode i =
 
 let get_display_bounds =
   foreign "SDL_GetDisplayBounds"
-    (int @-> ptr rect @-> returning int)
+    (int @-> ptr C.Types.Rect.t @-> returning int)
 
 let get_display_bounds i =
-  let r = make rect in
+  let r = make C.Types.Rect.t in
   match get_display_bounds i (addr r) with
   | 0 -> Ok r | _ -> error ()
 
@@ -1819,10 +1690,10 @@ let get_display_mode d i =
 
 let get_display_usable_bounds =
   foreign "SDL_GetDisplayUsableBounds"
-    (int @-> ptr rect @-> returning int)
+    (int @-> ptr C.Types.Rect.t @-> returning int)
 
 let get_display_usable_bounds i =
-  let r = make rect in
+  let r = make C.Types.Rect.t in
   match get_display_usable_bounds i (addr r) with
   | 0 -> Ok r | _ -> error ()
 
@@ -2110,7 +1981,7 @@ let update_window_surface_rects_ba w rs =
   update_window_surface_rects w rs count |> zero_to_ok
 
 let update_window_surface_rects w rs =
-  let a = CArray.of_list rect rs in
+  let a = CArray.of_list C.Types.Rect.t rs in
   let rs = to_voidp (CArray.start a) in
   update_window_surface_rects w rs (CArray.length a) |> zero_to_ok
 
@@ -2539,7 +2410,7 @@ let set_mod_state =
   foreign "SDL_SetModState" (keymod @-> returning void)
 
 let set_text_input_rect =
-  foreign "SDL_SetTextInputRect" (ptr rect @-> returning void)
+  foreign "SDL_SetTextInputRect" (ptr C.Types.Rect.t @-> returning void)
 
 let set_text_input_rect r =
   set_text_input_rect (Rect.opt_addr r)
@@ -2720,7 +2591,7 @@ let get_touch_finger id i =
 
 let load_dollar_templates =
   foreign "SDL_LoadDollarTemplates"
-    (touch_id @-> rw_ops @-> returning int)
+    (touch_id @-> C.Types.rw_ops @-> returning int)
 let load_dollar_templates x y = load_dollar_templates x y |> zero_to_ok
 
 let record_gesture =
@@ -2729,11 +2600,11 @@ let record_gesture i = record_gesture i |> one_to_ok
 
 let save_dollar_template =
   foreign "SDL_SaveDollarTemplate"
-    (gesture_id @-> rw_ops @-> returning int)
+    (gesture_id @-> C.Types.rw_ops @-> returning int)
 let save_dollar_template x y = save_dollar_template x y |> zero_to_ok
 
 let save_all_dollar_templates =
-  foreign "SDL_SaveAllDollarTemplates" (rw_ops @-> returning int)
+  foreign "SDL_SaveAllDollarTemplates" (C.Types.rw_ops @-> returning int)
 let save_all_dollar_templates o = save_all_dollar_templates o |> zero_to_ok
 
 (* Joystick *)
@@ -2953,7 +2824,7 @@ let game_controller_add_mapping s = game_controller_add_mapping s |> bool_to_ok
 
 let game_controller_add_mapping_from_rw =
   foreign "SDL_GameControllerAddMappingsFromRW"
-    ~stub (rw_ops @-> bool @-> returning int)
+    ~stub (C.Types.rw_ops @-> bool @-> returning int)
 let game_controller_add_mapping_from_rw r b = game_controller_add_mapping_from_rw r b |> nat_to_ok
 
 let game_controller_close =
@@ -4363,7 +4234,7 @@ let get_num_audio_devices b = get_num_audio_devices b |> nat_to_ok
 
 let load_wav_rw =
   foreign ~release_runtime_lock:true "SDL_LoadWAV_RW"
-    (rw_ops @-> int @-> ptr audio_spec @-> ptr (ptr void) @-> ptr uint32_t @->
+    (C.Types.rw_ops @-> int @-> ptr audio_spec @-> ptr (ptr void) @-> ptr uint32_t @->
      returning (ptr_opt audio_spec))
 
 let load_wav_rw ops spec kind =
