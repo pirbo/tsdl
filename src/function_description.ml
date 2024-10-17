@@ -202,5 +202,156 @@ module Functions (F : FOREIGN) = struct
 
   let compose_custom_blend_mode =
     F.(foreign "SDL_ComposeCustomBlendMode"
-         (int @-> int @-> int @-> int @-> int @-> int @-> returning uint))
+         (int @-> int @-> int @-> int @-> int @-> int @-> returning Types.Blend.mode))
+
+  let alloc_format =
+    F.(foreign "SDL_AllocFormat"
+         (uint32_t @-> returning (ptr_opt Types.pixel_format)))
+
+  let free_format =
+    F.(foreign "SDL_FreeFormat" (ptr Types.pixel_format @-> returning void))
+
+  let get_pixel_format_name =
+    F.(foreign "SDL_GetPixelFormatName" (uint32_t @-> returning string))
+
+  let get_rgb =
+    F.(foreign "SDL_GetRGB"
+         (uint32_t @-> ptr Types.pixel_format @-> ptr uint8_t @->
+          ptr uint8_t @-> ptr uint8_t @-> returning void))
+
+  let get_rgba =
+    F.(foreign "SDL_GetRGBA"
+         (uint32_t @-> ptr Types.pixel_format @-> ptr uint8_t @->
+          ptr uint8_t @-> ptr uint8_t @-> ptr uint8_t @-> returning void))
+
+  let map_rgb =
+    F.(foreign "SDL_MapRGB"
+         (ptr Types.pixel_format @-> uint8_t @-> uint8_t @-> uint8_t @->
+          returning uint32_t))
+
+  let map_rgba =
+    F.(foreign "SDL_MapRGBA"
+         (ptr Types.pixel_format @-> uint8_t @-> uint8_t @-> uint8_t @->
+          uint8_t @-> returning uint32_t))
+
+  let masks_to_pixel_format_enum =
+    F.(foreign "SDL_MasksToPixelFormatEnum"
+         (int @-> uint32_t @-> uint32_t @-> uint32_t @-> uint32_t @->
+          returning uint32_t))
+
+  let pixel_format_enum_to_masks =
+    F.(foreign "SDL_PixelFormatEnumToMasks"
+      (uint32_t @-> ptr int @->
+       ptr uint32_t @-> ptr uint32_t @-> ptr uint32_t @-> ptr uint32_t @->
+       returning bool))
+
+  let set_pixel_format_palette =
+    F.(foreign "SDL_SetPixelFormatPalette"
+         (ptr Types.pixel_format @-> ptr Types.palette @-> returning int))
+
+  let blit_scaled =
+    (* SDL_BlitScaled is #ifdef'd to SDL_UpperBlitScaled *)
+    F.(foreign "SDL_UpperBlitScaled"
+         (ptr Types.surface @-> ptr Types.Rect.t @-> ptr Types.surface @->
+          ptr Types.Rect.t @-> returning int))
+
+  let blit_surface =
+    (* SDL_BlitSurface is #ifdef'd to SDL_UpperBlit *)
+    F.(foreign "SDL_UpperBlit"
+         (ptr Types.surface @-> ptr Types.Rect.t @-> ptr Types.surface @->
+          ptr Types.Rect.t @-> returning int))
+
+  let convert_pixels =
+    F.(foreign "SDL_ConvertPixels"
+         (int @-> int @-> uint32_t @-> ptr void @-> int @-> uint32_t @->
+          ptr void @-> int @-> returning int))
+
+  let convert_surface =
+    F.(foreign "SDL_ConvertSurface"
+         (ptr Types.surface @-> ptr Types.pixel_format @-> uint32_t @->
+          returning (ptr_opt Types.surface)))
+
+  let convert_surface_format =
+    F.(foreign "SDL_ConvertSurfaceFormat"
+         (ptr Types.surface @-> uint32_t @-> uint32_t @->
+          returning (ptr_opt Types.surface)))
+
+  let create_rgb_surface =
+    F.(foreign "SDL_CreateRGBSurface"
+         (uint32_t @-> int @-> int @-> int @-> uint32_t @-> uint32_t @->
+          uint32_t @-> uint32_t @-> returning (ptr_opt Types.surface)))
+
+  let create_rgb_surface_from =
+    F.(foreign "SDL_CreateRGBSurfaceFrom"
+         (ptr void @-> int @-> int @-> int @-> int @-> uint32_t @->
+          uint32_t @-> uint32_t @-> uint32_t @->
+          returning (ptr_opt Types.surface)))
+
+  let create_rgb_surface_with_format =
+    F.(foreign "SDL_CreateRGBSurfaceWithFormat"
+         (uint32_t @-> int @-> int @-> int @-> uint32_t @->
+          returning (ptr_opt Types.surface)))
+
+  let create_rgb_surface_with_format_from =
+    F.(foreign "SDL_CreateRGBSurfaceWithFormatFrom"
+         (ptr void @-> int @-> int @-> int @-> int @-> uint32_t @->
+          returning (ptr_opt Types.surface)))
+
+  let duplicate_surface =
+    F.(foreign "SDL_DuplicateSurface"
+         (ptr Types.surface @-> returning (ptr Types.surface)))
+
+  let fill_rect =
+    F.(foreign "SDL_FillRect"
+         (ptr Types.surface @-> ptr Types.Rect.t@-> uint32_t @-> returning int))
+
+  let fill_rects =
+    F.(foreign "SDL_FillRects"
+         (ptr Types.surface @-> ptr void @-> int @-> uint32_t @->
+          returning int))
+
+  let free_surface =
+    F.(foreign "SDL_FreeSurface" (ptr Types.surface @-> returning void))
+
+  let get_clip_rect =
+    F.(foreign "SDL_GetClipRect"
+         (ptr Types.surface @-> ptr Types.Rect.t @-> returning void))
+
+  let get_color_key =
+    F.(foreign "SDL_GetColorKey"
+         (ptr Types.surface @-> ptr uint32_t @-> returning int))
+
+  let get_surface_alpha_mod =
+    F.(foreign "SDL_GetSurfaceAlphaMod"
+         (ptr Types.surface @-> ptr uint8_t @-> returning int))
+
+  let get_surface_blend_mode =
+    F.(foreign "SDL_GetSurfaceBlendMode"
+         (ptr Types.surface @-> ptr Types.Blend.mode @-> returning int))
+
+  let get_surface_color_mod =
+    F.(foreign "SDL_GetSurfaceColorMod"
+         (ptr Types.surface @-> ptr uint8_t @-> ptr uint8_t @-> ptr uint8_t @->
+          returning int))
+
+  let load_bmp_rw =
+    F.(foreign "SDL_LoadBMP_RW"
+         (Types.rw_ops @-> bool @-> returning (ptr_opt Types.surface)))
+
+  let lock_surface =
+    F.(foreign "SDL_LockSurface" (ptr Types.surface @-> returning int))
+
+  let lower_blit =
+    F.(foreign "SDL_LowerBlit"
+         (ptr Types.surface @-> ptr Types.Rect.t @-> ptr Types.surface @->
+          ptr Types.Rect.t @-> returning int))
+
+  let lower_blit_scaled =
+    F.(foreign "SDL_LowerBlitScaled"
+         (ptr Types.surface @-> ptr Types.Rect.t @-> ptr Types.surface @->
+          ptr Types.Rect.t @-> returning int))
+
+  let save_bmp_rw =
+    F.(foreign "SDL_SaveBMP_RW"
+         (ptr Types.surface @-> Types.rw_ops @-> bool @-> returning int))
 end

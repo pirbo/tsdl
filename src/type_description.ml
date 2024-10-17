@@ -126,10 +126,14 @@ module Types (F : Ctypes.TYPE) = struct
   let () = F.seal palette
 
   module Blend = struct
+    type mode = Unsigned.UInt.t
     let mode_none = F.constant "SDL_BLENDMODE_NONE" F.uint
     let mode_blend = F.constant "SDL_BLENDMODE_BLEND" F.uint
     let mode_add = F.constant "SDL_BLENDMODE_ADD" F.uint
     let mode_mod = F.constant "SDL_BLENDMODE_MOD" F.uint
+    let mode_mul = F.constant "SDL_BLENDMODE_MUL" F.uint
+    let mode_invalid = F.constant "SDL_BLENDMODE_INVALID" F.uint
+    let mode = F.uint
 
     let add = F.constant "SDL_BLENDOPERATION_ADD" F.int
     let subtract = F.constant "SDL_BLENDOPERATION_SUBTRACT" F.int
@@ -187,6 +191,47 @@ module Types (F : Ctypes.TYPE) = struct
     let format_uyvy = F.constant "SDL_PIXELFORMAT_UYVY" F.uint32_t
     let format_yvyu = F.constant "SDL_PIXELFORMAT_YVYU" F.uint32_t
   end
+
+  type _pixel_format
+  type pixel_format = _pixel_format Ctypes_static.structure
+  let pixel_format : pixel_format F.typ = F.structure "SDL_PixelFormat"
+  let pf_format = F.field pixel_format "format" F.uint32_t
+  let _pf_palette = F.field pixel_format "palette" (F.ptr palette)
+  let pf_bits_per_pixel = F.field pixel_format "BitsPerPixel" F.uint8_t
+  let pf_bytes_per_pixel = F.field pixel_format "BytesPerPixel" F.uint8_t
+  let _ = F.field pixel_format "padding" F.uint16_t
+  let _ = F.field pixel_format "Rmask" F.uint32_t
+  let _ = F.field pixel_format "Gmask" F.uint32_t
+  let _ = F.field pixel_format "Bmask" F.uint32_t
+  let _ = F.field pixel_format "Amask" F.uint32_t
+  let _ = F.field pixel_format "Rloss" F.uint8_t
+  let _ = F.field pixel_format "Gloss" F.uint8_t
+  let _ = F.field pixel_format "Bloss" F.uint8_t
+  let _ = F.field pixel_format "Aloss" F.uint8_t
+  let _ = F.field pixel_format "Rshift" F.uint8_t
+  let _ = F.field pixel_format "Gshift" F.uint8_t
+  let _ = F.field pixel_format "Bshift" F.uint8_t
+  let _ = F.field pixel_format "Ashift" F.uint8_t
+  let _ = F.field pixel_format "refcount" F.int
+  let _ = F.field pixel_format "next" (F.ptr pixel_format)
+  let () = F.seal pixel_format
+
+  type _surface
+  type surface = _surface Ctypes_static.structure
+  let surface : surface F.typ = F.structure "SDL_Surface"
+  let _ = F.field surface "flags" F.uint32_t
+  let surface_format = F.field surface "format" (F.ptr pixel_format)
+  let surface_w = F.field surface "w" F.int
+  let surface_h = F.field surface "h" F.int
+  let surface_pitch = F.field surface "pitch" F.int
+  let surface_pixels = F.field surface "pixels" F.(ptr void)
+  let _ = F.field surface "userdata" F.(ptr void)
+  let _ = F.field surface "locked" F.int
+  let _ = F.field surface "list_blitmap" F.(ptr void)
+  let _ = F.field surface "clip_rect" Rect.t
+  let _ = F.field surface "map" F.(ptr void)
+  let _ = F.field surface "refcount" F.int
+  let () = F.seal surface
 
   module Flip = struct
     let none = F.constant "SDL_FLIP_NONE" F.int
