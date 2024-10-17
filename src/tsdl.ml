@@ -555,7 +555,6 @@ let calculate_gamma_ramp g =
   ba
 
 module Blend = struct
-  type mode = Unsigned.UInt.t
   type operation = int
   type factor = int
   include C.Types.Blend
@@ -574,166 +573,93 @@ end
    is problematic. We can't ensure the pointer won't become invalid at
    a certain point. *)
 
-type _pixel_format
-type pixel_format_struct = _pixel_format structure
-let pixel_format_struct : pixel_format_struct typ = structure "SDL_PixelFormat"
-let pf_format = field pixel_format_struct "format" uint32_t
-let _pf_palette = field pixel_format_struct "palette" (ptr C.Types.palette)
-let pf_bits_per_pixel = field pixel_format_struct "BitsPerPixel" uint8_t
-let pf_bytes_per_pixel = field pixel_format_struct "BytesPerPixel" uint8_t
-let _ = field pixel_format_struct "padding" uint16_t
-let _ = field pixel_format_struct "Rmask" uint32_t
-let _ = field pixel_format_struct "Gmask" uint32_t
-let _ = field pixel_format_struct "Bmask" uint32_t
-let _ = field pixel_format_struct "Amask" uint32_t
-let _ = field pixel_format_struct "Rloss" uint8_t
-let _ = field pixel_format_struct "Gloss" uint8_t
-let _ = field pixel_format_struct "Bloss" uint8_t
-let _ = field pixel_format_struct "Aloss" uint8_t
-let _ = field pixel_format_struct "Rshift" uint8_t
-let _ = field pixel_format_struct "Gshift" uint8_t
-let _ = field pixel_format_struct "Bshift" uint8_t
-let _ = field pixel_format_struct "Ashift" uint8_t
-let _ = field pixel_format_struct "refcount" int
-let _ = field pixel_format_struct "next" (ptr pixel_format_struct)
-let () = seal pixel_format_struct
 
-type pixel_format = pixel_format_struct ptr
-let pixel_format : pixel_format typ = ptr pixel_format_struct
-let pixel_format_opt : pixel_format option typ = ptr_opt pixel_format_struct
-
+type pixel_format = C.Types.pixel_format ptr
 let unsafe_pixel_format_of_ptr addr : pixel_format =
-  from_voidp pixel_format_struct (ptr_of_raw_address addr)
+  from_voidp C.Types.pixel_format (ptr_of_raw_address addr)
 let unsafe_ptr_of_pixel_format pixel_format =
   raw_address_of_ptr (to_voidp pixel_format)
 
-let alloc_format =
-  foreign "SDL_AllocFormat"
-    (uint32_t @-> returning pixel_format_opt)
-  let alloc_format x = alloc_format x |> some_to_ok
+let alloc_format x = C.Functions.alloc_format x |> some_to_ok
 
-let free_format =
-  foreign "SDL_FreeFormat" (pixel_format @-> returning void)
+let free_format = C.Functions.free_format
 
-let get_pixel_format_name =
-  foreign "SDL_GetPixelFormatName" (uint32_t @-> returning string)
+let get_pixel_format_name = C.Functions.get_pixel_format_name
 
 let get_pixel_format_format pf =
-  getf (!@ pf) pf_format
+  getf (!@ pf) C.Types.pf_format
 
 let get_pixel_format_bits_pp pf =
-  Unsigned.UInt8.to_int (getf (!@ pf) pf_bits_per_pixel)
+  Unsigned.UInt8.to_int (getf (!@ pf) C.Types.pf_bits_per_pixel)
 
 let get_pixel_format_bytes_pp pf =
-  Unsigned.UInt8.to_int (getf (!@ pf) pf_bytes_per_pixel)
-
-let get_rgb =
-  foreign "SDL_GetRGB"
-    (int32_as_uint32_t @-> pixel_format @-> ptr uint8_t @->
-     ptr uint8_t @-> ptr uint8_t @-> returning void)
+  Unsigned.UInt8.to_int (getf (!@ pf) C.Types.pf_bytes_per_pixel)
 
 let get_rgb pf p =
   let alloc () = allocate uint8_t Unsigned.UInt8.zero in
   let to_int = Unsigned.UInt8.to_int in
   let r, g, b = alloc (), alloc (), alloc () in
-  get_rgb p pf r g b;
+  C.Functions.get_rgb (Unsigned.UInt32.of_int32 p) pf r g b;
    to_int (!@ r), to_int (!@ g), to_int (!@ b)
-
-let get_rgba =
-  foreign "SDL_GetRGBA"
-    (int32_as_uint32_t @-> pixel_format @-> ptr uint8_t @->
-     ptr uint8_t @-> ptr uint8_t @-> ptr uint8_t @-> returning void)
 
 let get_rgba pf p =
   let alloc () = allocate uint8_t Unsigned.UInt8.zero in
   let to_int = Unsigned.UInt8.to_int in
   let r, g, b, a = alloc (), alloc (), alloc (), alloc () in
-  get_rgba p pf r g b a;
+  C.Functions.get_rgba (Unsigned.UInt32.of_int32 p) pf r g b a;
    to_int (!@ r), to_int (!@ g), to_int (!@ b), to_int (!@ a)
-
-let map_rgb =
-  foreign "SDL_MapRGB"
-    (pixel_format @-> int_as_uint8_t @-> int_as_uint8_t @-> int_as_uint8_t @->
-     returning int32_as_uint32_t)
-
-let map_rgba =
-  foreign "SDL_MapRGBA"
-    (pixel_format @-> int_as_uint8_t @-> int_as_uint8_t @-> int_as_uint8_t @->
-     int_as_uint8_t @-> returning int32_as_uint32_t)
-
-let masks_to_pixel_format_enum =
-  foreign "SDL_MasksToPixelFormatEnum"
-    (int @-> int32_as_uint32_t @-> int32_as_uint32_t @-> int32_as_uint32_t @->
-     int32_as_uint32_t @-> returning uint32_t)
-
-let pixel_format_enum_to_masks =
-  foreign "SDL_PixelFormatEnumToMasks"
-    (uint32_t @-> ptr int @->
-     ptr uint32_t @-> ptr uint32_t @-> ptr uint32_t @-> ptr uint32_t @->
-     returning bool)
 
 let pixel_format_enum_to_masks pf =
   let ui () = allocate uint32_t (Unsigned.UInt32.of_int 0) in
   let get iptr = Unsigned.UInt32.to_int32 (!@ iptr) in
   let bpp = allocate int 0 in
   let rm, gm, bm, am = ui (), ui (), ui (), ui () in
-  if not (pixel_format_enum_to_masks pf bpp rm gm bm am) then error () else
-  Ok (!@ bpp, get rm, get gm, get bm, get am)
+  if not (C.Functions.pixel_format_enum_to_masks pf bpp rm gm bm am)
+  then error ()
+  else Ok (!@ bpp, get rm, get gm, get bm, get am)
 
-let set_pixel_format_palette =
-  foreign "SDL_SetPixelFormatPalette"
-    (pixel_format @-> ptr C.Types.palette @-> returning int)
-let set_pixel_format_palette x y = set_pixel_format_palette x y |> zero_to_ok
+let map_rgb pf r g b =
+  Unsigned.UInt32.to_int32
+    (C.Functions.map_rgb
+       pf
+       (Unsigned.UInt8.of_int r)
+       (Unsigned.UInt8.of_int g)
+       (Unsigned.UInt8.of_int b))
+
+let map_rgba pf r g b a =
+  Unsigned.UInt32.to_int32
+    (C.Functions.map_rgba
+       pf
+       (Unsigned.UInt8.of_int r)
+       (Unsigned.UInt8.of_int g)
+       (Unsigned.UInt8.of_int b)
+       (Unsigned.UInt8.of_int a))
+
+let masks_to_pixel_format_enum bpp rm gm bm am =
+  C.Functions.masks_to_pixel_format_enum
+    bpp
+    (Unsigned.UInt32.of_int32 rm)
+    (Unsigned.UInt32.of_int32 gm)
+    (Unsigned.UInt32.of_int32 bm)
+    (Unsigned.UInt32.of_int32 am)
+
+let set_pixel_format_palette x y =
+  C.Functions.set_pixel_format_palette x y |> zero_to_ok
 
 (* Surface *)
 
-type _surface
-type surface_struct = _surface structure
-let surface_struct : surface_struct typ = structure "SDL_Surface"
-let _ = field surface_struct "flags" uint32_t
-let surface_format = field surface_struct "format" pixel_format
-let surface_w = field surface_struct "w" int
-let surface_h = field surface_struct "h" int
-let surface_pitch = field surface_struct "pitch" int
-let surface_pixels = field surface_struct "pixels" (ptr void)
-let _ = field surface_struct "userdata" (ptr void)
-let _ = field surface_struct "locked" int
-let _ = field surface_struct "list_blitmap" (ptr void)
-let _ = field surface_struct "clip_rect" C.Types.Rect.t
-let _ = field surface_struct "map" (ptr void)
-let _ = field surface_struct "refcount" int
-let () = seal surface_struct
-
-type surface = surface_struct ptr
-let surface : surface typ = ptr surface_struct
-let surface_opt : surface option typ = ptr_opt surface_struct
+type surface = C.Types.surface ptr
 
 let unsafe_surface_of_ptr addr : surface =
-  from_voidp surface_struct (ptr_of_raw_address addr)
+  from_voidp C.Types.surface (ptr_of_raw_address addr)
 let unsafe_ptr_of_surface surface =
   raw_address_of_ptr (to_voidp surface)
 
-let blit_scaled =
-  (* SDL_BlitScaled is #ifdef'd to SDL_UpperBlitScaled *)
-  foreign "SDL_UpperBlitScaled"
-    (surface @-> ptr C.Types.Rect.t@-> surface @-> ptr C.Types.Rect.t@->
-     returning int)
-
 let blit_scaled ~src sr ~dst dr =
-  blit_scaled src (Rect.opt_addr sr) dst (Rect.opt_addr dr) |> zero_to_ok
-
-let blit_surface =
-  (* SDL_BlitSurface is #ifdef'd to SDL_UpperBlit *)
-  foreign "SDL_UpperBlit"
-    (surface @-> ptr C.Types.Rect.t@-> surface @-> ptr C.Types.Rect.t@-> returning int)
+  C.Functions.blit_scaled src (Rect.opt_addr sr) dst (Rect.opt_addr dr) |> zero_to_ok
 
 let blit_surface ~src sr ~dst dr =
-  blit_surface src (Rect.opt_addr sr) dst (Rect.opt_addr dr) |> zero_to_ok
-
-let convert_pixels =
-  foreign "SDL_ConvertPixels"
-    (int @-> int @-> uint32_t @-> ptr void @-> int @-> uint32_t @->
-     ptr void @-> int @-> returning int)
+  C.Functions.blit_surface src (Rect.opt_addr sr) dst (Rect.opt_addr dr) |> zero_to_ok
 
 let convert_pixels ~w ~h ~src sp spitch ~dst dp dpitch =
   (* FIXME: we could try check bounds. *)
@@ -741,145 +667,101 @@ let convert_pixels ~w ~h ~src sp spitch ~dst dp dpitch =
   let dpitch = ba_kind_byte_size (Bigarray.Array1.kind dp) * dpitch in
   let sp = to_voidp (bigarray_start array1 sp) in
   let dp = to_voidp (bigarray_start array1 dp) in
-  convert_pixels w h src sp spitch dst dp dpitch |> zero_to_ok
-
-let convert_surface =
-  foreign "SDL_ConvertSurface"
-    (surface @-> pixel_format @-> uint32_t @->
-     returning surface_opt)
+  C.Functions.convert_pixels w h src sp spitch dst dp dpitch |> zero_to_ok
 
 let convert_surface s pf =
-  convert_surface s pf Unsigned.UInt32.zero |> some_to_ok
-
-let convert_surface_format =
-  foreign "SDL_ConvertSurfaceFormat"
-    (surface @-> uint32_t @-> uint32_t @-> returning surface_opt)
+  C.Functions.convert_surface s pf Unsigned.UInt32.zero |> some_to_ok
 
 let convert_surface_format s pf =
-  convert_surface_format s pf Unsigned.UInt32.zero |> some_to_ok
-
-let create_rgb_surface =
-  foreign "SDL_CreateRGBSurface"
-    (uint32_t @-> int @-> int @-> int @-> int32_as_uint32_t @->
-     int32_as_uint32_t @-> int32_as_uint32_t @-> int32_as_uint32_t @->
-     returning surface_opt)
+  C.Functions.convert_surface_format s pf Unsigned.UInt32.zero |> some_to_ok
 
 let create_rgb_surface ~w ~h ~depth rmask gmask bmask amask =
-  create_rgb_surface Unsigned.UInt32.zero w h depth rmask gmask bmask amask |> some_to_ok
-
-let create_rgb_surface_from =
-  foreign "SDL_CreateRGBSurfaceFrom"
-    (ptr void @-> int @-> int @-> int @-> int @-> int32_as_uint32_t @->
-     int32_as_uint32_t @-> int32_as_uint32_t @-> int32_as_uint32_t @->
-     returning surface_opt)
+  some_to_ok
+    (C.Functions.create_rgb_surface
+       Unsigned.UInt32.zero w h depth
+       (Unsigned.UInt32.of_int32 rmask)
+       (Unsigned.UInt32.of_int32 gmask)
+       (Unsigned.UInt32.of_int32 bmask)
+       (Unsigned.UInt32.of_int32 amask))
 
 let create_rgb_surface_from p ~w ~h ~depth ~pitch rmask gmask bmask amask =
   (* FIXME: we could try check bounds. *)
   let pitch = ba_kind_byte_size (Bigarray.Array1.kind p) * pitch in
   let p = to_voidp (bigarray_start array1 p) in
-  create_rgb_surface_from p w h depth pitch rmask gmask bmask amask |> some_to_ok
-
-let create_rgb_surface_with_format =
-  foreign "SDL_CreateRGBSurfaceWithFormat"
-    (uint32_t @-> int @-> int @-> int @-> uint32_t @->
-     returning surface_opt)
+  some_to_ok
+    (C.Functions.create_rgb_surface_from
+       p w h depth pitch
+       (Unsigned.UInt32.of_int32 rmask)
+       (Unsigned.UInt32.of_int32 gmask)
+       (Unsigned.UInt32.of_int32 bmask)
+       (Unsigned.UInt32.of_int32 amask))
 
 let create_rgb_surface_with_format ~w ~h ~depth format =
-  create_rgb_surface_with_format Unsigned.UInt32.zero w h depth format |> some_to_ok
-
-let create_rgb_surface_with_format_from =
-  foreign "SDL_CreateRGBSurfaceWithFormatFrom"
-    (ptr void @-> int @-> int @-> int @-> int @-> uint32_t @->
-     returning surface_opt)
+  some_to_ok
+    (C.Functions.create_rgb_surface_with_format
+       Unsigned.UInt32.zero w h depth format)
 
 let create_rgb_surface_with_format_from p ~w ~h ~depth ~pitch format =
   (* FIXME: check bounds? *)
   let pitch = ba_kind_byte_size (Bigarray.Array1.kind p) * pitch in
   let p = to_voidp (bigarray_start array1 p) in
-  create_rgb_surface_with_format_from p w h depth pitch format |> some_to_ok
+  some_to_ok
+    (C.Functions.create_rgb_surface_with_format_from p w h depth pitch format)
 
-let duplicate_surface =
-  foreign "SDL_DuplicateSurface" (surface @-> returning surface)
-
-let fill_rect =
-  foreign "SDL_FillRect"
-    (surface @-> ptr C.Types.Rect.t@-> int32_as_uint32_t @-> returning int)
+let duplicate_surface = C.Functions.duplicate_surface
 
 let fill_rect s r c =
-  fill_rect s (Rect.opt_addr r) c |> zero_to_ok
-
-let fill_rects =
-  foreign "SDL_FillRects"
-    (surface @-> ptr void @-> int @-> int32_as_uint32_t @->
-     returning int)
+  zero_to_ok
+    (C.Functions.fill_rect s (Rect.opt_addr r) (Unsigned.UInt32.of_int32 c))
 
 let fill_rects_ba s rs col =
   let len = Bigarray.Array1.dim rs in
   if len mod 4 <> 0 then invalid_arg (err_length_mul len 4) else
   let count = len / 4 in
   let rs = to_voidp (bigarray_start array1 rs) in
-  fill_rects s rs count col |> zero_to_ok
+  C.Functions.fill_rects s rs count (Unsigned.UInt32.of_int32 col) |> zero_to_ok
 
 let fill_rects s rs col =
   let a = CArray.of_list C.Types.Rect.t rs in
-  fill_rects s (to_voidp (CArray.start a)) (CArray.length a) col |> zero_to_ok
+  let col = Unsigned.UInt32.of_int32 col in
+  zero_to_ok
+    (C.Functions.fill_rects s (to_voidp (CArray.start a)) (CArray.length a) col)
 
-let free_surface =
-  foreign "SDL_FreeSurface" (surface @-> returning void)
-
-let get_clip_rect =
-  foreign "SDL_GetClipRect" (surface @-> ptr C.Types.Rect.t @-> returning void)
+let free_surface = C.Functions.free_surface
 
 let get_clip_rect s =
   let r = make C.Types.Rect.t in
-  (get_clip_rect s (addr r); r)
-
-let get_color_key =
-  foreign "SDL_GetColorKey"
-    (surface @-> ptr uint32_t @-> returning int)
+  (C.Functions.get_clip_rect s (addr r); r)
 
 let get_color_key s =
   let key = allocate uint32_t Unsigned.UInt32.zero in
-  match get_color_key s key with
+  match C.Functions.get_color_key s key with
   | 0 -> Ok (Unsigned.UInt32.to_int32 (!@ key)) | _ -> error ()
-
-let get_surface_alpha_mod =
-  foreign "SDL_GetSurfaceAlphaMod"
-    (surface @-> ptr uint8_t @-> returning int)
 
 let get_surface_alpha_mod s =
   let alpha = allocate uint8_t Unsigned.UInt8.zero in
-  match get_surface_alpha_mod s alpha with
+  match C.Functions.get_surface_alpha_mod s alpha with
   | 0 -> Ok (Unsigned.UInt8.to_int (!@ alpha)) | _ -> error ()
 
-let get_surface_blend_mode =
-  foreign "SDL_GetSurfaceBlendMode"
-    (surface @-> ptr uint @-> returning int)
-
 let get_surface_blend_mode s =
-  let mode = allocate uint Unsigned.UInt.zero in
-  match get_surface_blend_mode s mode with
+  let mode = allocate Blend.mode Blend.mode_invalid in
+  match C.Functions.get_surface_blend_mode s mode with
   0 -> Ok (!@ mode) | _ -> error ()
-
-let get_surface_color_mod =
-  foreign "SDL_GetSurfaceColorMod"
-    (surface @-> ptr uint8_t @-> ptr uint8_t @-> ptr uint8_t @->
-     returning int)
 
 let get_surface_color_mod s =
   let alloc () = allocate uint8_t Unsigned.UInt8.zero in
   let get v = Unsigned.UInt8.to_int (!@ v) in
   let r, g, b = alloc (), alloc (), alloc () in
-  match get_surface_color_mod s r g b with
+  match C.Functions.get_surface_color_mod s r g b with
   | 0 -> Ok (get r, get g, get b) | _ -> error ()
 
 let get_surface_format_enum s =
   (* We don't give direct access to the format field. This prevents
      memory ownership problems. *)
-  get_pixel_format_format (getf (!@ s) surface_format)
+  get_pixel_format_format (getf (!@ s) C.Types.surface_format)
 
 let get_surface_pitch s =
-  getf (!@ s) surface_pitch
+  getf (!@ s) C.Types.surface_pitch
 
 let get_surface_pixels s kind =
   let pitch = get_surface_pitch s in
@@ -887,21 +769,17 @@ let get_surface_pixels s kind =
   if pitch mod kind_size <> 0
   then invalid_arg (err_bigarray_pitch pitch kind_size)
   else
-  let h = getf (!@ s) surface_h in
+  let h = getf (!@ s) C.Types.surface_h in
   let ba_size = (pitch * h) / kind_size in
-  let pixels = getf (!@ s) surface_pixels in
+  let pixels = getf (!@ s) C.Types.surface_pixels in
   let pixels = coerce (ptr void) (access_ptr_typ_of_ba_kind kind) pixels in
   bigarray_of_ptr array1 ba_size kind pixels
 
 let get_surface_size s =
-  getf (!@ s) surface_w, getf (!@ s) surface_h
-
-let load_bmp_rw =
-  foreign "SDL_LoadBMP_RW"
-    (C.Types.rw_ops @-> bool @-> returning surface_opt)
+  getf (!@ s) C.Types.surface_w, getf (!@ s) C.Types.surface_h
 
 let load_bmp_rw rw ~close =
-  load_bmp_rw rw close |> some_to_ok
+  C.Functions.load_bmp_rw rw close |> some_to_ok
 
 let load_bmp file =
   (* SDL_LoadBMP is cpp based *)
@@ -909,30 +787,16 @@ let load_bmp file =
   | Error _ as e -> e
   | Ok rw -> load_bmp_rw rw ~close:true
 
-let lock_surface =
-  foreign "SDL_LockSurface" (surface @-> returning int)
-let lock_surface x = lock_surface x |> zero_to_ok
-
-let lower_blit =
-  foreign "SDL_LowerBlit"
-    (surface @-> ptr C.Types.Rect.t @-> surface @-> ptr C.Types.Rect.t @-> returning int)
+let lock_surface x = C.Functions.lock_surface x |> zero_to_ok
 
 let lower_blit ~src sr ~dst dr =
-  lower_blit src (addr sr) dst (addr dr) |> zero_to_ok
-
-let lower_blit_scaled =
-  foreign "SDL_LowerBlitScaled"
-    (surface @-> ptr C.Types.Rect.t @-> surface @-> ptr C.Types.Rect.t @-> returning int)
+  C.Functions.lower_blit src (addr sr) dst (addr dr) |> zero_to_ok
 
 let lower_blit_scaled ~src sr ~dst dr =
-  lower_blit_scaled src (addr sr) dst (addr dr) |> zero_to_ok
-
-let save_bmp_rw =
-  foreign "SDL_SaveBMP_RW"
-    (surface @-> C.Types.rw_ops @-> bool @-> returning int)
+  C.Functions.lower_blit_scaled src (addr sr) dst (addr dr) |> zero_to_ok
 
 let save_bmp_rw s rw ~close =
-  save_bmp_rw s rw close |> zero_to_ok
+  C.Functions.save_bmp_rw s rw close |> zero_to_ok
 
 let save_bmp s file =
   (* SDL_SaveBMP is cpp based *)
@@ -941,43 +805,43 @@ let save_bmp s file =
   | Ok rw -> save_bmp_rw s rw ~close:true
 
 let set_clip_rect =
-  foreign "SDL_SetClipRect" (surface @-> ptr C.Types.Rect.t @-> returning bool)
+  foreign "SDL_SetClipRect" (ptr C.Types.surface @-> ptr C.Types.Rect.t @-> returning bool)
 
 let set_clip_rect s r =
   set_clip_rect s (addr r)
 
 let set_color_key =
   foreign "SDL_SetColorKey"
-    (surface @-> bool @-> int32_as_uint32_t @-> returning int)
+    (ptr C.Types.surface @-> bool @-> int32_as_uint32_t @-> returning int)
 let set_color_key s b x = set_color_key s b x |> zero_to_ok
 
 let set_surface_alpha_mod =
   foreign "SDL_SetSurfaceAlphaMod"
-    (surface @-> int_as_uint8_t @-> returning int)
+    (ptr C.Types.surface @-> int_as_uint8_t @-> returning int)
 let set_surface_alpha_mod s x = set_surface_alpha_mod s x |> zero_to_ok
 
 let set_surface_blend_mode =
   foreign "SDL_SetSurfaceBlendMode"
-    (surface @-> uint @-> returning int)
+    (ptr C.Types.surface @-> C.Types.Blend.mode @-> returning int)
 let set_surface_blend_mode s x = set_surface_blend_mode s x |> zero_to_ok
 
 let set_surface_color_mod =
   foreign "SDL_SetSurfaceColorMod"
-    (surface @-> int_as_uint8_t @-> int_as_uint8_t @-> int_as_uint8_t @->
+    (ptr C.Types.surface @-> int_as_uint8_t @-> int_as_uint8_t @-> int_as_uint8_t @->
      returning int)
 let set_surface_color_mod s x y z = set_surface_color_mod s x y z |> zero_to_ok
 
 let set_surface_palette =
   foreign "SDL_SetSurfacePalette"
-    (surface @-> ptr C.Types.palette @-> returning int)
+    (ptr C.Types.surface @-> ptr C.Types.palette @-> returning int)
 let set_surface_palette s p = set_surface_palette s p |> zero_to_ok
 
 let set_surface_rle =
-  foreign "SDL_SetSurfaceRLE" (surface @-> bool @-> returning int)
+  foreign "SDL_SetSurfaceRLE" (ptr C.Types.surface @-> bool @-> returning int)
 let set_surface_rle s b = set_surface_rle s b |> zero_to_ok
 
 let unlock_surface =
-  foreign "SDL_UnlockSurface" (surface @-> returning void)
+  foreign "SDL_UnlockSurface" (ptr C.Types.surface @-> returning void)
 
 (* Renderers *)
 
@@ -1054,7 +918,7 @@ let create_renderer ?(index = -1) ?(flags = Unsigned.UInt32.zero) w =
 
 let create_software_renderer =
   foreign "SDL_CreateSoftwareRenderer"
-    (surface @-> returning renderer_opt)
+    (ptr C.Types.surface @-> returning renderer_opt)
 let create_software_renderer s = create_software_renderer s |> some_to_ok
 
 let destroy_renderer =
@@ -1066,10 +930,10 @@ let get_num_render_drivers () = get_num_render_drivers () |> nat_to_ok
 
 let get_render_draw_blend_mode =
   foreign "SDL_GetRenderDrawBlendMode"
-    (renderer @-> ptr uint @-> returning int)
+    (renderer @-> ptr C.Types.Blend.mode @-> returning int)
 
 let get_render_draw_blend_mode r =
-  let m = allocate uint Unsigned.UInt.zero in
+  let m = allocate Blend.mode Blend.mode_invalid in
   match get_render_draw_blend_mode r m with
   | 0 -> Ok !@m | _ -> error ()
 
@@ -1412,7 +1276,7 @@ let render_target_supported =
 
 let set_render_draw_blend_mode =
   foreign "SDL_SetRenderDrawBlendMode"
-    (renderer @-> uint @-> returning int)
+    (renderer @-> C.Types.Blend.mode @-> returning int)
 let set_render_draw_blend_mode r x = set_render_draw_blend_mode r x |> zero_to_ok
 
 let set_render_draw_color =
@@ -1447,7 +1311,7 @@ let create_texture r pf access ~w ~h =
 
 let create_texture_from_surface =
   foreign "SDL_CreateTextureFromSurface"
-    (renderer @-> surface @-> returning texture_opt)
+    (renderer @-> ptr C.Types.surface @-> returning texture_opt)
 let create_texture_from_surface r s = create_texture_from_surface r s |> some_to_ok
 
 let destroy_texture =
@@ -1464,10 +1328,10 @@ let get_texture_alpha_mod t =
 
 let get_texture_blend_mode =
   foreign "SDL_GetTextureBlendMode"
-    (texture @-> ptr uint @-> returning int)
+    (texture @-> ptr C.Types.Blend.mode @-> returning int)
 
 let get_texture_blend_mode t =
-  let m = allocate uint Unsigned.UInt.zero in
+  let m = allocate Blend.mode Blend.mode_invalid in
   match get_texture_blend_mode t m with
   | 0 -> Ok (!@ m) | _ -> error ()
 
@@ -1534,7 +1398,7 @@ let set_texture_alpha_mod t a = set_texture_alpha_mod t a |> zero_to_ok
 
 let set_texture_blend_mode =
   foreign "SDL_SetTextureBlendMode"
-    (texture @-> uint @-> returning int)
+    (texture @-> C.Types.Blend.mode @-> returning int)
 let set_texture_blend_mode t b = set_texture_blend_mode t b |> zero_to_ok
 
 let set_texture_color_mod =
@@ -1859,7 +1723,7 @@ let get_window_size win =
 
 let get_window_surface =
   foreign "SDL_GetWindowSurface"
-    (Window.t @-> returning surface_opt)
+    (Window.t @-> returning (ptr_opt C.Types.surface))
 let get_window_surface w = get_window_surface w |> some_to_ok
 
 let get_window_title =
@@ -1914,7 +1778,7 @@ let set_window_grab =
   foreign "SDL_SetWindowGrab" (Window.t @-> bool @-> returning void)
 
 let set_window_icon =
-  foreign "SDL_SetWindowIcon" (Window.t @-> surface @-> returning void)
+  foreign "SDL_SetWindowIcon" (Window.t @-> ptr C.Types.surface @-> returning void)
 
 let set_window_input_focus =
   foreign "SDL_SetWindowInputFocus" (Window.t @-> returning int)
@@ -2445,7 +2309,7 @@ let capture_mouse b = capture_mouse b |> zero_to_ok
 
 let create_color_cursor =
   foreign "SDL_CreateColorCursor"
-    (surface @-> int @-> int @-> returning cursor_opt)
+    (ptr C.Types.surface @-> int @-> int @-> returning cursor_opt)
 
 let create_color_cursor s ~hot_x ~hot_y =
   create_color_cursor s hot_x hot_y |> some_to_ok
