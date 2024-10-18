@@ -157,9 +157,9 @@ module Init = struct
   include C.Types.Init
 end
 
-let init n = C.Functions.init n |> zero_to_ok
+let init n = zero_to_ok (C.Functions.init n)
 
-let init_sub_system n = C.Functions.init_sub_system n |> zero_to_ok
+let init_sub_system n = zero_to_ok (C.Functions.init_sub_system n)
 
 let quit = C.Functions.quit
 
@@ -262,7 +262,7 @@ let get_version () =
   let get v f = Unsigned.UInt8.to_int (getf v f) in
   let v = make C.Types.version in
   C.Functions.get_version (addr v);
-  (get v C.Types.version_major), (get v C.Types.version_minor), (get v C.Types.version_patch)
+  C.Types.((get v version_major), (get v version_minor), (get v version_patch))
 
 let get_revision = C.Functions.get_revision
 
@@ -271,15 +271,17 @@ let get_revision_number = C.Functions.get_revision_number
 type rw_ops = C.Types.rw_ops
 
 let load_file_rw rw_ops close =
-  C.Functions.load_file_rw rw_ops (coerce (ptr void) (ptr size_t) null) close |> some_to_ok
+  some_to_ok (C.Functions.load_file_rw
+                rw_ops (coerce (ptr void) (ptr size_t) null) close)
 
-let rw_from_file x y = C.Functions.rw_from_file x y |> some_to_ok
+let rw_from_file x y = some_to_ok (C.Functions.rw_from_file x y)
 
-let rw_from_const_mem str = C.Functions.rw_from_const_mem
-  (ocaml_string_start str) (String.length str) |> some_to_ok
+let rw_from_const_mem str =
+  some_to_ok (C.Functions.rw_from_const_mem
+                (ocaml_string_start str) (String.length str))
 
 let rw_from_mem b =
-  C.Functions.rw_from_mem (ocaml_bytes_start b) (Bytes.length b) |> some_to_ok
+  some_to_ok (C.Functions.rw_from_mem (ocaml_bytes_start b) (Bytes.length b))
 
 let load_file filename = (* defined as a macro in SDL_rwops.h *)
   match rw_from_file filename "rb" with
@@ -300,13 +302,13 @@ let get_base_path () =
   let p = C.Functions.get_base_path () in
   let path = coerce (ptr char) string_opt p in
   sdl_free (coerce (ptr char) (ptr void) p);
-  path |> some_to_ok
+  some_to_ok path
 
 let get_pref_path ~org ~app =
   let p = C.Functions.get_pref_path org app in
   let path = coerce (ptr char) string_opt p in
   sdl_free (coerce (ptr char) (ptr void) p);
-  path |> some_to_ok
+  some_to_ok path
 
 (* Colors *)
 
@@ -505,7 +507,7 @@ let unsafe_palette_of_ptr addr : palette =
 let unsafe_ptr_of_palette palette =
   raw_address_of_ptr (to_voidp palette)
 
-let alloc_palette x = C.Functions.alloc_palette x |> some_to_ok
+let alloc_palette x = some_to_ok (C.Functions.alloc_palette x)
 
 let free_palette = C.Functions.free_palette
 
@@ -532,7 +534,7 @@ let get_palette_colors_ba p =
   ba
 
 let set_palette_colors x y z t =
-  C.Functions.set_palette_colors x y z t |> zero_to_ok
+  zero_to_ok (C.Functions.set_palette_colors x y z t)
 
 let set_palette_colors_ba p cs ~fst =
   let len = Bigarray.Array1.dim cs in
@@ -580,7 +582,7 @@ let unsafe_pixel_format_of_ptr addr : pixel_format =
 let unsafe_ptr_of_pixel_format pixel_format =
   raw_address_of_ptr (to_voidp pixel_format)
 
-let alloc_format x = C.Functions.alloc_format x |> some_to_ok
+let alloc_format x = some_to_ok (C.Functions.alloc_format x)
 
 let free_format = C.Functions.free_format
 
@@ -644,7 +646,7 @@ let masks_to_pixel_format_enum bpp rm gm bm am =
     (Unsigned.UInt32.of_int32 am)
 
 let set_pixel_format_palette x y =
-  C.Functions.set_pixel_format_palette x y |> zero_to_ok
+  zero_to_ok (C.Functions.set_pixel_format_palette x y)
 
 (* Surface *)
 
@@ -656,10 +658,12 @@ let unsafe_ptr_of_surface surface =
   raw_address_of_ptr (to_voidp surface)
 
 let blit_scaled ~src sr ~dst dr =
-  C.Functions.blit_scaled src (Rect.opt_addr sr) dst (Rect.opt_addr dr) |> zero_to_ok
+  zero_to_ok
+    (C.Functions.blit_scaled src (Rect.opt_addr sr) dst (Rect.opt_addr dr))
 
 let blit_surface ~src sr ~dst dr =
-  C.Functions.blit_surface src (Rect.opt_addr sr) dst (Rect.opt_addr dr) |> zero_to_ok
+  zero_to_ok
+    (C.Functions.blit_surface src (Rect.opt_addr sr) dst (Rect.opt_addr dr))
 
 let convert_pixels ~w ~h ~src sp spitch ~dst dp dpitch =
   (* FIXME: we could try check bounds. *)
@@ -667,13 +671,13 @@ let convert_pixels ~w ~h ~src sp spitch ~dst dp dpitch =
   let dpitch = ba_kind_byte_size (Bigarray.Array1.kind dp) * dpitch in
   let sp = to_voidp (bigarray_start array1 sp) in
   let dp = to_voidp (bigarray_start array1 dp) in
-  C.Functions.convert_pixels w h src sp spitch dst dp dpitch |> zero_to_ok
+  zero_to_ok (C.Functions.convert_pixels w h src sp spitch dst dp dpitch)
 
 let convert_surface s pf =
-  C.Functions.convert_surface s pf Unsigned.UInt32.zero |> some_to_ok
+  some_to_ok (C.Functions.convert_surface s pf Unsigned.UInt32.zero)
 
 let convert_surface_format s pf =
-  C.Functions.convert_surface_format s pf Unsigned.UInt32.zero |> some_to_ok
+  some_to_ok (C.Functions.convert_surface_format s pf Unsigned.UInt32.zero)
 
 let create_rgb_surface ~w ~h ~depth rmask gmask bmask amask =
   some_to_ok
@@ -719,7 +723,7 @@ let fill_rects_ba s rs col =
   if len mod 4 <> 0 then invalid_arg (err_length_mul len 4) else
   let count = len / 4 in
   let rs = to_voidp (bigarray_start array1 rs) in
-  C.Functions.fill_rects s rs count (Unsigned.UInt32.of_int32 col) |> zero_to_ok
+  zero_to_ok (C.Functions.fill_rects s rs count (Unsigned.UInt32.of_int32 col))
 
 let fill_rects s rs col =
   let a = CArray.of_list C.Types.Rect.t rs in
@@ -779,7 +783,7 @@ let get_surface_size s =
   getf (!@ s) C.Types.surface_w, getf (!@ s) C.Types.surface_h
 
 let load_bmp_rw rw ~close =
-  C.Functions.load_bmp_rw rw close |> some_to_ok
+  some_to_ok (C.Functions.load_bmp_rw rw close)
 
 let load_bmp file =
   (* SDL_LoadBMP is cpp based *)
@@ -787,16 +791,17 @@ let load_bmp file =
   | Error _ as e -> e
   | Ok rw -> load_bmp_rw rw ~close:true
 
-let lock_surface x = C.Functions.lock_surface x |> zero_to_ok
+let lock_surface x = zero_to_ok (C.Functions.lock_surface x)
 
 let lower_blit ~src sr ~dst dr =
-  C.Functions.lower_blit src (addr sr) dst (addr dr) |> zero_to_ok
+  zero_to_ok (C.Functions.lower_blit src (addr sr) dst (addr dr))
 
 let lower_blit_scaled ~src sr ~dst dr =
-  C.Functions.lower_blit_scaled src (addr sr) dst (addr dr) |> zero_to_ok
+  zero_to_ok
+    (C.Functions.lower_blit_scaled src (addr sr) dst (addr dr))
 
 let save_bmp_rw s rw ~close =
-  C.Functions.save_bmp_rw s rw close |> zero_to_ok
+  zero_to_ok (C.Functions.save_bmp_rw s rw close)
 
 let save_bmp s file =
   (* SDL_SaveBMP is cpp based *)
@@ -804,44 +809,33 @@ let save_bmp s file =
   | Error _ as e -> e
   | Ok rw -> save_bmp_rw s rw ~close:true
 
-let set_clip_rect =
-  foreign "SDL_SetClipRect" (ptr C.Types.surface @-> ptr C.Types.Rect.t @-> returning bool)
-
 let set_clip_rect s r =
-  set_clip_rect s (addr r)
+  C.Functions.set_clip_rect s (addr r)
 
-let set_color_key =
-  foreign "SDL_SetColorKey"
-    (ptr C.Types.surface @-> bool @-> int32_as_uint32_t @-> returning int)
-let set_color_key s b x = set_color_key s b x |> zero_to_ok
+let set_color_key s b x =
+  zero_to_ok (C.Functions.set_color_key s b (Unsigned.UInt32.of_int32 x))
 
-let set_surface_alpha_mod =
-  foreign "SDL_SetSurfaceAlphaMod"
-    (ptr C.Types.surface @-> int_as_uint8_t @-> returning int)
-let set_surface_alpha_mod s x = set_surface_alpha_mod s x |> zero_to_ok
+let set_surface_alpha_mod s x =
+  zero_to_ok (C.Functions.set_surface_alpha_mod s (Unsigned.UInt8.of_int x))
 
-let set_surface_blend_mode =
-  foreign "SDL_SetSurfaceBlendMode"
-    (ptr C.Types.surface @-> C.Types.Blend.mode @-> returning int)
-let set_surface_blend_mode s x = set_surface_blend_mode s x |> zero_to_ok
+let set_surface_blend_mode s x =
+  zero_to_ok (C.Functions.set_surface_blend_mode s x)
 
-let set_surface_color_mod =
-  foreign "SDL_SetSurfaceColorMod"
-    (ptr C.Types.surface @-> int_as_uint8_t @-> int_as_uint8_t @-> int_as_uint8_t @->
-     returning int)
-let set_surface_color_mod s x y z = set_surface_color_mod s x y z |> zero_to_ok
+let set_surface_color_mod s x y z =
+  zero_to_ok
+    (C.Functions.set_surface_color_mod
+       s
+       (Unsigned.UInt8.of_int x)
+       (Unsigned.UInt8.of_int y)
+       (Unsigned.UInt8.of_int z))
 
-let set_surface_palette =
-  foreign "SDL_SetSurfacePalette"
-    (ptr C.Types.surface @-> ptr C.Types.palette @-> returning int)
-let set_surface_palette s p = set_surface_palette s p |> zero_to_ok
+let set_surface_palette s p =
+  zero_to_ok (C.Functions.set_surface_palette s p)
 
-let set_surface_rle =
-  foreign "SDL_SetSurfaceRLE" (ptr C.Types.surface @-> bool @-> returning int)
-let set_surface_rle s b = set_surface_rle s b |> zero_to_ok
+let set_surface_rle s b =
+  zero_to_ok (C.Functions.set_surface_rle s b)
 
-let unlock_surface =
-  foreign "SDL_UnlockSurface" (ptr C.Types.surface @-> returning void)
+let unlock_surface = C.Functions.unlock_surface
 
 (* Renderers *)
 
@@ -885,240 +879,154 @@ type renderer_info =
     ri_max_texture_width : int;
     ri_max_texture_height : int; }
 
-let renderer_info = structure "SDL_RendererInfo"
-let ri_name = field renderer_info "name" string
-let ri_flags = field renderer_info "flags" uint32_t
-let ri_num_tf = field renderer_info "num_texture_formats" uint32_t
-let ri_tfs = field renderer_info "texture_formats" (array 16 uint32_t)
-let ri_max_texture_width = field renderer_info "max_texture_width" int
-let ri_max_texture_height = field renderer_info "max_texture_height" int
-let () = seal renderer_info
-
 let renderer_info_of_c c =
-  let ri_name = getf c ri_name in
-  let ri_flags = getf c ri_flags in
-  let num_tf = Unsigned.UInt32.to_int (getf c ri_num_tf) in
-  let tfs = getf c ri_tfs in
+  let ri_name = getf c C.Types.ri_name in
+  let ri_flags = getf c C.Types.ri_flags in
+  let num_tf = Unsigned.UInt32.to_int (getf c C.Types.ri_num_tf) in
+  let tfs = getf c C.Types.ri_tfs in
   let ri_texture_formats =
     let acc = ref [] in
     for i = 0 to num_tf - 1 do acc := (CArray.get tfs i) :: !acc done;
     List.rev !acc
   in
-  let ri_max_texture_width = getf c ri_max_texture_width in
-  let ri_max_texture_height = getf c ri_max_texture_height in
+  let ri_max_texture_width = getf c C.Types.ri_max_texture_width in
+  let ri_max_texture_height = getf c C.Types.ri_max_texture_height in
   { ri_name; ri_flags; ri_texture_formats; ri_max_texture_width;
     ri_max_texture_height }
 
-let create_renderer =
-  foreign "SDL_CreateRenderer"
-    (C.Types.Window.t @-> int @-> uint32_t @-> returning renderer_opt)
-
 let create_renderer ?(index = -1) ?(flags = Unsigned.UInt32.zero) w =
-  create_renderer w index flags |> some_to_ok
+  some_to_ok (C.Functions.create_renderer w index flags)
 
-let create_software_renderer =
-  foreign "SDL_CreateSoftwareRenderer"
-    (ptr C.Types.surface @-> returning renderer_opt)
-let create_software_renderer s = create_software_renderer s |> some_to_ok
+let create_software_renderer s =
+  some_to_ok (C.Functions.create_software_renderer s)
 
-let destroy_renderer =
-  foreign "SDL_DestroyRenderer" (renderer @-> returning void)
+let destroy_renderer = C.Functions.destroy_renderer
 
-let get_num_render_drivers =
-  foreign "SDL_GetNumRenderDrivers" (void @-> returning int)
-let get_num_render_drivers () = get_num_render_drivers () |> nat_to_ok
-
-let get_render_draw_blend_mode =
-  foreign "SDL_GetRenderDrawBlendMode"
-    (renderer @-> ptr C.Types.Blend.mode @-> returning int)
+let get_num_render_drivers () =
+  nat_to_ok (C.Functions.get_num_render_drivers ())
 
 let get_render_draw_blend_mode r =
   let m = allocate Blend.mode Blend.mode_invalid in
-  match get_render_draw_blend_mode r m with
+  match C.Functions.get_render_draw_blend_mode r m with
   | 0 -> Ok !@m | _ -> error ()
-
-let get_render_draw_color =
-  foreign "SDL_GetRenderDrawColor"
-    (renderer @-> ptr uint8_t @-> ptr uint8_t @-> ptr uint8_t @->
-     ptr uint8_t @-> returning int)
 
 let get_render_draw_color rend =
   let alloc () = allocate uint8_t Unsigned.UInt8.zero in
   let get v = Unsigned.UInt8.to_int (!@ v) in
   let r, g, b, a = alloc (), alloc (), alloc (), alloc () in
-  match get_render_draw_color rend r g b a with
+  match C.Functions.get_render_draw_color rend r g b a with
   | 0 -> Ok (get r, get g, get b, get a) | _ -> error ()
 
-let get_render_driver_info =
-  foreign "SDL_GetRenderDriverInfo"
-    (int @-> ptr renderer_info @-> returning int)
-
 let get_render_driver_info i =
-  let info = make renderer_info in
-  match get_render_driver_info i (addr info) with
+  let info = make C.Types.renderer_info in
+  match C.Functions.get_render_driver_info i (addr info) with
   | 0 -> Ok (renderer_info_of_c info) | _ -> error ()
 
-let get_render_target =
-  foreign "SDL_GetRenderTarget" (renderer @-> returning texture_opt)
+let get_render_target = C.Functions.get_render_target
 
-let get_renderer =
-  foreign "SDL_GetRenderer"
-    (C.Types.Window.t @-> returning renderer_opt)
-let get_renderer w = get_renderer w |> some_to_ok
-
-let get_renderer_info =
-  foreign "SDL_GetRendererInfo"
-    (renderer @-> ptr renderer_info @-> returning int)
+let get_renderer w =
+  some_to_ok (C.Functions.get_renderer w)
 
 let get_renderer_info r =
-  let info = make renderer_info in
-  match get_renderer_info r (addr info) with
+  let info = make C.Types.renderer_info in
+  match C.Functions.get_renderer_info r (addr info) with
   | 0 -> Ok (renderer_info_of_c info) | _ -> error ()
-
-let get_renderer_output_size =
-  foreign "SDL_GetRendererOutputSize"
-    (renderer @-> ptr int @-> ptr int @-> returning int)
 
 let get_renderer_output_size r =
   let w = allocate int 0 in
   let h = allocate int 0 in
-  match get_renderer_output_size r w h with
+  match C.Functions.get_renderer_output_size r w h with
   | 0 -> Ok (!@ w, !@ h) | _ -> error ()
 
-let render_clear =
-  foreign "SDL_RenderClear" (renderer @-> returning int)
-let render_clear r = render_clear r |> zero_to_ok
-
-let render_copy =
-  foreign "SDL_RenderCopy"
-    (renderer @-> texture @-> ptr C.Types.Rect.t @-> ptr C.Types.Rect.t @->
-     returning int)
+let render_clear r =
+  zero_to_ok (C.Functions.render_clear r)
 
 let render_copy ?src ?dst r t =
-  render_copy r t (Rect.opt_addr src) (Rect.opt_addr dst) |> zero_to_ok
-
-let render_copy_ex =
-  foreign "SDL_RenderCopyEx"
-    (renderer @-> texture @-> ptr C.Types.Rect.t @-> ptr C.Types.Rect.t @->
-     double @-> ptr C.Types.Point.t @-> int @-> returning int)
+  zero_to_ok
+    (C.Functions.render_copy r t (Rect.opt_addr src) (Rect.opt_addr dst))
 
 let render_copy_ex ?src ?dst r t angle c flip =
-  render_copy_ex r t (Rect.opt_addr src) (Rect.opt_addr dst) angle
-    (Point.opt_addr c) flip |> zero_to_ok
+  zero_to_ok
+    (C.Functions.render_copy_ex r t (Rect.opt_addr src) (Rect.opt_addr dst)
+       angle (Point.opt_addr c) flip)
 
-let render_draw_line =
-  foreign "SDL_RenderDrawLine"
-    (renderer @-> int @-> int @-> int @-> int @-> returning int)
-let render_draw_line r a b c d = render_draw_line r a b c d |> zero_to_ok
+let render_draw_line r a b c d =
+  zero_to_ok (C.Functions.render_draw_line r a b c d)
 
-let render_draw_line_f =
-  foreign "SDL_RenderDrawLineF"
-    (renderer @-> float @-> float @-> float @-> float @-> returning int)
-let render_draw_line_f r a b c d = render_draw_line_f r a b c d |> zero_to_ok
-
-let render_draw_lines =
-  foreign "SDL_RenderDrawLines"
-    (renderer @-> ptr void @-> int @-> returning int)
+let render_draw_line_f r a b c d =
+  zero_to_ok (C.Functions.render_draw_line_f r a b c d)
 
 let render_draw_lines_ba r ps =
   let len = Bigarray.Array1.dim ps in
   if len mod 2 <> 0 then invalid_arg (err_length_mul len 2) else
   let count = len / 2 in
   let ps = to_voidp (bigarray_start array1 ps) in
-  render_draw_lines r ps count |> zero_to_ok
+  zero_to_ok (C.Functions.render_draw_lines r ps count)
 
 let render_draw_lines r ps =
   let a = CArray.of_list C.Types.Point.t ps in
-  render_draw_lines r (to_voidp (CArray.start a)) (CArray.length a) |> zero_to_ok
+  zero_to_ok (C.Functions.render_draw_lines
+                r (to_voidp (CArray.start a)) (CArray.length a))
 
-let render_draw_point =
-  foreign "SDL_RenderDrawPoint"
-    (renderer @-> int @-> int @-> returning int)
-let render_draw_point r a b = render_draw_point r a b |> zero_to_ok
-
-let render_draw_points =
-  foreign "SDL_RenderDrawPoints"
-    (renderer @-> ptr void @-> int @-> returning int)
+let render_draw_point r a b =
+  zero_to_ok (C.Functions.render_draw_point r a b)
 
 let render_draw_points_ba r ps =
   let len = Bigarray.Array1.dim ps in
   if len mod 2 <> 0 then invalid_arg (err_length_mul len 2) else
   let count = len / 2 in
   let ps = to_voidp (bigarray_start array1 ps) in
-  render_draw_points r ps count |> zero_to_ok
+  zero_to_ok (C.Functions.render_draw_points r ps count)
 
 let render_draw_points r ps =
   let a = CArray.of_list C.Types.Point.t ps in
-  render_draw_points r (to_voidp (CArray.start a)) (CArray.length a) |> zero_to_ok
+  zero_to_ok (C.Functions.render_draw_points
+                r (to_voidp (CArray.start a)) (CArray.length a))
 
-let render_draw_point_f =
-  foreign "SDL_RenderDrawPointF"
-    (renderer @-> float @-> float @-> returning int)
-let render_draw_point_f r a b = render_draw_point_f r a b |> zero_to_ok
-
-let render_draw_points_f =
-  foreign "SDL_RenderDrawPointsF"
-    (renderer @-> ptr void @-> int @-> returning int)
+let render_draw_point_f r a b =
+  zero_to_ok (C.Functions.render_draw_point_f r a b)
 
 let render_draw_points_f_ba r ps =
   let len = Bigarray.Array1.dim ps in
   if len mod 2 <> 0 then invalid_arg (err_length_mul len 2) else
   let count = len / 2 in
   let ps = to_voidp (bigarray_start array1 ps) in
-  render_draw_points_f r ps count |> zero_to_ok
+  zero_to_ok (C.Functions.render_draw_points_f r ps count)
 
 let render_draw_points_f r ps =
   let a = CArray.of_list C.Types.Fpoint.t ps in
-  render_draw_points_f r (to_voidp (CArray.start a)) (CArray.length a) |> zero_to_ok
-
-let render_draw_rect =
-  foreign "SDL_RenderDrawRect"
-    (renderer @-> ptr C.Types.Rect.t @-> returning int)
+  zero_to_ok (C.Functions.render_draw_points_f
+                r (to_voidp (CArray.start a)) (CArray.length a))
 
 let render_draw_rect rend r =
-  render_draw_rect rend (Rect.opt_addr r) |> zero_to_ok
-
-let render_draw_rects =
-  foreign "SDL_RenderDrawRects"
-    (renderer @-> ptr void @-> int @-> returning int)
+  zero_to_ok (C.Functions.render_draw_rect rend (Rect.opt_addr r))
 
 let render_draw_rects_ba r rs =
   let len = Bigarray.Array1.dim rs in
   if len mod 4 <> 0 then invalid_arg (err_length_mul len 4) else
   let count = len / 4 in
   let rs = to_voidp (bigarray_start array1 rs) in
-  render_draw_rects r rs count |> zero_to_ok
+  zero_to_ok (C.Functions.render_draw_rects r rs count)
 
 let render_draw_rects r rs =
   let a = CArray.of_list C.Types.Rect.t rs in
-  render_draw_rects r (to_voidp (CArray.start a)) (CArray.length a) |> zero_to_ok
-
-let render_fill_rect =
-  foreign "SDL_RenderFillRect"
-    (renderer @-> ptr C.Types.Rect.t @-> returning int)
+  zero_to_ok (C.Functions.render_draw_rects
+                r (to_voidp (CArray.start a)) (CArray.length a))
 
 let render_fill_rect rend r =
-  render_fill_rect rend (Rect.opt_addr r) |> zero_to_ok
-
-let render_fill_rects =
-  foreign "SDL_RenderFillRects"
-    (renderer @-> ptr void @-> int @-> returning int)
+  zero_to_ok (C.Functions.render_fill_rect rend (Rect.opt_addr r))
 
 let render_fill_rects_ba r rs =
   let len = Bigarray.Array1.dim rs in
   if len mod 4 <> 0 then invalid_arg (err_length_mul len 4) else
   let count = len / 4 in
   let rs = to_voidp (bigarray_start array1 rs) in
-  render_fill_rects r rs count |> zero_to_ok
+  zero_to_ok (C.Functions.render_fill_rects r rs count)
 
 let render_fill_rects r rs =
   let a = CArray.of_list C.Types.Rect.t rs in
-  render_fill_rects r (to_voidp (CArray.start a)) (CArray.length a) |> zero_to_ok
-
-let render_geometry =
-  foreign "SDL_RenderGeometry"
-    (renderer @-> texture @-> ptr void @-> int @-> ptr void @-> int @->
-     returning int)
+  zero_to_ok (C.Functions.render_fill_rects
+                r (to_voidp (CArray.start a)) (CArray.length a))
 
 let render_geometry ?indices ?texture r vertices =
   let a1 = CArray.of_list vertex vertices in
@@ -1131,16 +1039,9 @@ let render_geometry ?indices ?texture r vertices =
       let a2 = CArray.of_list int is in
       (to_voidp (CArray.start a2), CArray.length a2)
   in
-  render_geometry
-    r t (to_voidp (CArray.start a1)) (CArray.length a1) a2_ptr a2_len |> zero_to_ok
-
-let render_geometry_raw =
-  foreign "SDL_RenderGeometryRaw"
-    (renderer @-> texture @->
-     ptr void @-> int @->
-     ptr void @-> int @->
-     ptr void @-> int @->
-     int @-> ptr void @-> int @-> int @-> returning int)
+  zero_to_ok
+    (C.Functions.render_geometry
+       r t (to_voidp (CArray.start a1)) (CArray.length a1) a2_ptr a2_len)
 
 let render_geometry_raw
     ?indices ?texture r ~xy ?(xy_stride = 8) ~color ?(color_stride = 4)
@@ -1179,119 +1080,75 @@ let render_geometry_raw
     in
     invalid_arg msg
   end;
-  render_geometry_raw
-    r t xy_ptr xy_stride color_ptr color_stride uv_ptr uv_stride num_vertices
-    i_ptr i_len i_stride |> zero_to_ok
-
-let render_get_clip_rect =
-  foreign "SDL_RenderGetClipRect"
-    (renderer @-> ptr C.Types.Rect.t @-> returning void)
+  zero_to_ok
+    (C.Functions.render_geometry_raw
+       r t xy_ptr xy_stride color_ptr color_stride uv_ptr uv_stride
+       num_vertices i_ptr i_len i_stride)
 
 let render_get_clip_rect rend =
   let r = make C.Types.Rect.t in
-  render_get_clip_rect rend (addr r);
+  C.Functions.render_get_clip_rect rend (addr r);
   r
 
-let render_is_clip_enabled =
-  foreign "SDL_RenderIsClipEnabled" (renderer @-> returning bool)
+let render_is_clip_enabled = C.Functions.render_is_clip_enabled
 
-let render_get_integer_scale =
- foreign "SDL_RenderGetIntegerScale"
-    (renderer @-> returning bool)
-
-let render_get_logical_size =
-  foreign "SDL_RenderGetLogicalSize"
-    (renderer @-> ptr int @-> ptr int @-> returning void)
+let render_get_integer_scale = C.Functions.render_get_integer_scale
 
 let render_get_logical_size r =
   let w = allocate int 0 in
   let h = allocate int 0 in
-  render_get_logical_size r w h;
+  C.Functions.render_get_logical_size r w h;
   !@ w, !@ h
-
-let render_get_scale =
-  foreign "SDL_RenderGetScale"
-    (renderer @-> ptr float @-> ptr float @-> returning void)
 
 let render_get_scale r =
   let x = allocate float 0. in
   let y = allocate float 0. in
-  render_get_scale r x y;
+  C.Functions.render_get_scale r x y;
   !@ x, !@ y
-
-let render_get_viewport =
-  foreign "SDL_RenderGetViewport"
-    (renderer @-> ptr C.Types.Rect.t @-> returning void)
 
 let render_get_viewport rend =
   let r = make C.Types.Rect.t in
-  render_get_viewport rend (addr r);
+  C.Functions.render_get_viewport rend (addr r);
   r
 
-let render_present =
-  foreign ~release_runtime_lock:true "SDL_RenderPresent"
-    (renderer @-> returning void)
-
-let render_read_pixels =
-  foreign "SDL_RenderReadPixels"
-    (renderer @-> ptr C.Types.Rect.t @-> uint32_t @-> ptr void @-> int @->
-     returning int)
+let render_present = C.Async_functions.render_present
 
 let render_read_pixels r rect format pixels pitch =
   let format = match format with None -> Unsigned.UInt32.zero | Some f -> f in
   let pixels = to_voidp (bigarray_start array1 pixels) in
-  render_read_pixels r (Rect.opt_addr rect) format pixels pitch |> zero_to_ok
-
-let render_set_clip_rect =
-  foreign "SDL_RenderSetClipRect"
-    (renderer @-> ptr C.Types.Rect.t @-> returning int)
+  zero_to_ok (C.Functions.render_read_pixels
+                r (Rect.opt_addr rect) format pixels pitch)
 
 let render_set_clip_rect rend r =
-  render_set_clip_rect rend (Rect.opt_addr r) |> zero_to_ok
+  zero_to_ok (C.Functions.render_set_clip_rect rend (Rect.opt_addr r))
 
-let render_set_integer_scale =
-  foreign "SDL_RenderSetIntegerScale"
-    (renderer @-> bool @-> returning int)
-let render_set_integer_scale r b = render_set_integer_scale r b |> zero_to_ok
+let render_set_integer_scale r b =
+  zero_to_ok (C.Functions.render_set_integer_scale r b)
 
-let render_set_logical_size =
-  foreign "SDL_RenderSetLogicalSize"
-    (renderer @-> int @-> int @-> returning int)
-let render_set_logical_size r x y = render_set_logical_size r x y |> zero_to_ok
+let render_set_logical_size r x y =
+  zero_to_ok (C.Functions.render_set_logical_size r x y)
 
-let render_set_scale =
-  foreign "SDL_RenderSetScale"
-    (renderer @-> float @-> float @-> returning int)
-let render_set_scale r x y = render_set_scale r x y |> zero_to_ok
-
-let render_set_viewport =
-  foreign "SDL_RenderSetViewport"
-    (renderer @-> ptr C.Types.Rect.t @-> returning int)
+let render_set_scale r x y =
+  zero_to_ok (C.Functions.render_set_scale r x y)
 
 let render_set_viewport rend r =
-  render_set_viewport rend (Rect.opt_addr r) |> zero_to_ok
+  zero_to_ok (C.Functions.render_set_viewport rend (Rect.opt_addr r))
 
-let render_target_supported =
-  foreign "SDL_RenderTargetSupported" (renderer @-> returning bool)
+let render_target_supported = C.Functions.render_target_supported
 
-let set_render_draw_blend_mode =
-  foreign "SDL_SetRenderDrawBlendMode"
-    (renderer @-> C.Types.Blend.mode @-> returning int)
-let set_render_draw_blend_mode r x = set_render_draw_blend_mode r x |> zero_to_ok
+let set_render_draw_blend_mode r x =
+  zero_to_ok (C.Functions.set_render_draw_blend_mode r x)
 
-let set_render_draw_color =
-  foreign "SDL_SetRenderDrawColor"
-    (renderer @-> int_as_uint8_t @-> int_as_uint8_t @-> int_as_uint8_t @->
-     int_as_uint8_t @-> returning int)
-let set_render_draw_color r a b c d = set_render_draw_color r a b c d  |> zero_to_ok
-
-let set_render_target =
-  foreign "SDL_SetRenderTarget"
-    (renderer @-> texture @-> returning int)
+let set_render_draw_color r a b c d =
+  zero_to_ok (C.Functions.set_render_draw_color r
+                (Unsigned.UInt8.of_int a)
+                (Unsigned.UInt8.of_int b)
+                (Unsigned.UInt8.of_int c)
+                (Unsigned.UInt8.of_int d))
 
 let set_render_target r t =
   let t = match t with None -> null | Some t -> t in
-  set_render_target r t |> zero_to_ok
+  zero_to_ok (C.Functions.set_render_target r t)
 
 (* Textures *)
 

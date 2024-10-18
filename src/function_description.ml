@@ -354,4 +354,210 @@ module Functions (F : FOREIGN) = struct
   let save_bmp_rw =
     F.(foreign "SDL_SaveBMP_RW"
          (ptr Types.surface @-> Types.rw_ops @-> bool @-> returning int))
+
+  let set_clip_rect =
+    F.(foreign "SDL_SetClipRect"
+         (ptr Types.surface @-> ptr Types.Rect.t @-> returning bool))
+
+  let set_color_key =
+    F.(foreign "SDL_SetColorKey"
+         (ptr Types.surface @-> bool @-> uint32_t @-> returning int))
+
+  let set_surface_alpha_mod =
+    F.(foreign "SDL_SetSurfaceAlphaMod"
+         (ptr Types.surface @-> uint8_t @-> returning int))
+
+  let set_surface_blend_mode =
+    F.(foreign "SDL_SetSurfaceBlendMode"
+         (ptr Types.surface @-> Types.Blend.mode @-> returning int))
+
+  let set_surface_color_mod =
+    F.(foreign "SDL_SetSurfaceColorMod"
+         (ptr Types.surface @-> uint8_t @-> uint8_t @-> uint8_t @->
+          returning int))
+
+  let set_surface_palette =
+    F.(foreign "SDL_SetSurfacePalette"
+         (ptr Types.surface @-> ptr Types.palette @-> returning int))
+
+  let set_surface_rle =
+    F.(foreign "SDL_SetSurfaceRLE"
+         (ptr Types.surface @-> bool @-> returning int))
+
+  let unlock_surface =
+    F.(foreign "SDL_UnlockSurface" (ptr Types.surface @-> returning void))
+
+  let create_renderer =
+    F.(foreign "SDL_CreateRenderer"
+         (Types.Window.t @-> int @-> uint32_t @-> returning (ptr_opt void)))
+
+  let create_software_renderer =
+    F.(foreign "SDL_CreateSoftwareRenderer"
+         (ptr Types.surface @-> returning (ptr_opt void)))
+
+  let destroy_renderer =
+    F.(foreign "SDL_DestroyRenderer" (ptr void @-> returning void))
+
+  let get_num_render_drivers =
+    F.(foreign "SDL_GetNumRenderDrivers" (void @-> returning int))
+
+  let get_render_draw_blend_mode =
+    F.(foreign "SDL_GetRenderDrawBlendMode"
+         (ptr void @-> ptr Types.Blend.mode @-> returning int))
+
+  let get_render_draw_color =
+    F.(foreign "SDL_GetRenderDrawColor"
+         (ptr void @-> ptr uint8_t @-> ptr uint8_t @-> ptr uint8_t @->
+          ptr uint8_t @-> returning int))
+
+  let get_render_driver_info =
+    F.(foreign "SDL_GetRenderDriverInfo"
+         (int @-> ptr Types.renderer_info @-> returning int))
+
+  let get_render_target =
+    F.(foreign "SDL_GetRenderTarget" (ptr void @-> returning (ptr_opt void)))
+
+  let get_renderer =
+    F.(foreign "SDL_GetRenderer"
+         (Types.Window.t @-> returning (ptr_opt void)))
+
+  let get_renderer_info =
+    F.(foreign "SDL_GetRendererInfo"
+         (ptr void @-> ptr Types.renderer_info @-> returning int))
+
+  let get_renderer_output_size =
+    F.(foreign "SDL_GetRendererOutputSize"
+         (ptr void @-> ptr int @-> ptr int @-> returning int))
+
+  let render_clear =
+    F.(foreign "SDL_RenderClear" (ptr void @-> returning int))
+
+  let render_copy =
+    F.(foreign "SDL_RenderCopy"
+         (ptr void @-> ptr void @-> ptr Types.Rect.t @-> ptr Types.Rect.t @->
+          returning int))
+
+  let render_copy_ex =
+    F.(foreign "SDL_RenderCopyEx"
+         (ptr void @-> ptr void @-> ptr Types.Rect.t @-> ptr Types.Rect.t @->
+          double @-> ptr Types.Point.t @-> int @-> returning int))
+
+  let render_draw_line =
+    F.(foreign "SDL_RenderDrawLine"
+         (ptr void @-> int @-> int @-> int @-> int @-> returning int))
+
+  let render_draw_line_f =
+    F.(foreign "SDL_RenderDrawLineF"
+         (ptr void @-> float @-> float @-> float @-> float @-> returning int))
+
+  let render_draw_lines =
+    F.(foreign "SDL_RenderDrawLines"
+         (ptr void @-> ptr void @-> int @-> returning int))
+
+  let render_draw_point =
+    F.(foreign "SDL_RenderDrawPoint"
+         (ptr void @-> int @-> int @-> returning int))
+
+  let render_draw_points =
+    F.(foreign "SDL_RenderDrawPoints"
+         (ptr void @-> ptr void @-> int @-> returning int))
+
+  let render_draw_point_f =
+    F.(foreign "SDL_RenderDrawPointF"
+         (ptr void @-> float @-> float @-> returning int))
+
+  let render_draw_points_f =
+    F.(foreign "SDL_RenderDrawPointsF"
+         (ptr void @-> ptr void @-> int @-> returning int))
+
+  let render_draw_rect =
+    F.(foreign "SDL_RenderDrawRect"
+         (ptr void @-> ptr Types.Rect.t @-> returning int))
+
+  let render_draw_rects =
+    F.(foreign "SDL_RenderDrawRects"
+         (ptr void @-> ptr void @-> int @-> returning int))
+
+  let render_fill_rect =
+    F.(foreign "SDL_RenderFillRect"
+         (ptr void @-> ptr Types.Rect.t @-> returning int))
+
+  let render_fill_rects =
+    F.(foreign "SDL_RenderFillRects"
+         (ptr void @-> ptr void @-> int @-> returning int))
+
+  let render_geometry =
+    F.(foreign "SDL_RenderGeometry"
+         (ptr void @-> ptr void @-> ptr void @-> int @-> ptr void @-> int @->
+          returning int))
+
+  let render_geometry_raw =
+    F.(foreign "SDL_RenderGeometryRaw"
+         (ptr void @-> ptr void @->
+          ptr void @-> int @->
+          ptr void @-> int @->
+          ptr void @-> int @->
+          int @-> ptr void @-> int @-> int @-> returning int))
+
+  let render_get_clip_rect =
+    F.(foreign "SDL_RenderGetClipRect"
+         (ptr void @-> ptr Types.Rect.t @-> returning void))
+
+  let render_is_clip_enabled =
+    F.(foreign "SDL_RenderIsClipEnabled" (ptr void @-> returning bool))
+
+  let render_get_integer_scale =
+    F.(foreign "SDL_RenderGetIntegerScale" (ptr void @-> returning bool))
+
+  let render_get_logical_size =
+    F.(foreign "SDL_RenderGetLogicalSize"
+         (ptr void @-> ptr int @-> ptr int @-> returning void))
+
+  let render_get_scale =
+    F.(foreign "SDL_RenderGetScale"
+         (ptr void @-> ptr float @-> ptr float @-> returning void))
+
+  let render_get_viewport =
+    F.(foreign "SDL_RenderGetViewport"
+         (ptr void @-> ptr Types.Rect.t @-> returning void))
+
+  let render_read_pixels =
+    F.(foreign "SDL_RenderReadPixels"
+         (ptr void @-> ptr Types.Rect.t @-> uint32_t @-> ptr void @-> int @->
+          returning int))
+
+  let render_set_clip_rect =
+    F.(foreign "SDL_RenderSetClipRect"
+         (ptr void @-> ptr Types.Rect.t @-> returning int))
+
+  let render_set_integer_scale =
+    F.(foreign "SDL_RenderSetIntegerScale"
+         (ptr void @-> bool @-> returning int))
+
+  let render_set_logical_size =
+    F.(foreign "SDL_RenderSetLogicalSize"
+         (ptr void @-> int @-> int @-> returning int))
+
+  let render_set_scale =
+    F.(foreign "SDL_RenderSetScale"
+         (ptr void @-> float @-> float @-> returning int))
+
+  let render_set_viewport =
+    F.(foreign "SDL_RenderSetViewport"
+         (ptr void @-> ptr Types.Rect.t @-> returning int))
+
+  let render_target_supported =
+    F.(foreign "SDL_RenderTargetSupported" (ptr void @-> returning bool))
+
+  let set_render_draw_blend_mode =
+    F.(foreign "SDL_SetRenderDrawBlendMode"
+         (ptr void @-> Types.Blend.mode @-> returning int))
+
+  let set_render_draw_color =
+    F.(foreign "SDL_SetRenderDrawColor"
+         (ptr void @-> uint8_t @-> uint8_t @-> uint8_t @->uint8_t @->
+          returning int))
+
+  let set_render_target =
+    F.(foreign "SDL_SetRenderTarget" (ptr void @-> ptr void @-> returning int))
 end
