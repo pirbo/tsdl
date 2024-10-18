@@ -246,6 +246,16 @@ module Types (F : Ctypes.TYPE) = struct
     let targettexture = F.constant "SDL_RENDERER_TARGETTEXTURE" F.uint32_t
   end
 
+  type renderer_info
+  let renderer_info : renderer_info Ctypes_static.structure F.typ = F.structure "SDL_RendererInfo"
+  let ri_name = F.field renderer_info "name" F.string
+  let ri_flags = F.field renderer_info "flags" F.uint32_t
+  let ri_num_tf = F.field renderer_info "num_texture_formats" F.uint32_t
+  let ri_tfs = F.field renderer_info "texture_formats" F.(array 16 uint32_t)
+  let ri_max_texture_width = F.field renderer_info "max_texture_width" F.int
+  let ri_max_texture_height = F.field renderer_info "max_texture_height" F.int
+  let () = F.seal renderer_info
+
   module Texture = struct
     let access_static = F.constant "SDL_TEXTUREACCESS_STATIC" F.int
     let access_streaming = F.constant "SDL_TEXTUREACCESS_STREAMING" F.int
