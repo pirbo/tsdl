@@ -1,3 +1,8 @@
+(rule
+ (targets c_flags.sexp c_library_flags.sexp)
+ (action
+  (run ../config/discover.exe)))
+
 (library
  (name tsdl)
  (public_name tsdl)
@@ -5,15 +10,15 @@
   (:standard \ Tsdl_top_init))
  (c_library_flags
   -Wl,-no-as-needed
-  (:include ../support/c_library_flags.sexp))
- (libraries tsdl_consts ctypes-foreign)
+  (:include c_library_flags.sexp))
+ (libraries ctypes-foreign)
  (flags
   (:standard -w -9-27))
  (foreign_stubs
   (language c)
   (names tsdl_stubs)
   (flags
-   (:include ../support/c_flags.sexp)))
+   (:include c_flags.sexp)))
  (ctypes
   (external_library_name sdl2)
   (headers
