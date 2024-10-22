@@ -332,15 +332,15 @@ let rw_ops : _rw_ops structure ptr typ = ptr rw_ops_struct
 let rw_ops_opt : _rw_ops structure ptr option typ = ptr_opt rw_ops_struct
 
 let _rw_ops_size = field rw_ops_struct "size"
-    (funptr (rw_ops @-> returning int64_t))
+    (static_funptr (rw_ops @-> returning int64_t))
 let _rw_ops_seek = field rw_ops_struct "seek"
-    (funptr (rw_ops @-> int64_t @-> int @-> returning int64_t))
+    (static_funptr (rw_ops @-> int64_t @-> int @-> returning int64_t))
 let _rw_ops_read = field rw_ops_struct "read"
-    (funptr (rw_ops @-> ptr void @-> size_t @-> size_t @-> returning size_t))
+    (static_funptr (rw_ops @-> ptr void @-> size_t @-> size_t @-> returning size_t))
 let _rw_ops_write = field rw_ops_struct "write"
-    (funptr (rw_ops @-> ptr void @-> size_t @-> size_t @-> returning size_t))
-let rw_ops_close = field rw_ops_struct "close"
-    (funptr (rw_ops @-> returning int))
+    (static_funptr (rw_ops @-> ptr void @-> size_t @-> size_t @-> returning size_t))
+let _rw_ops_close = field rw_ops_struct "close"
+    (static_funptr (rw_ops @-> returning int))
 let _ = field rw_ops_struct "type" uint32_t
 (* ... #ifdef'd union follows, we don't care we don't use Ctypes.make *)
 let () = seal rw_ops_struct
@@ -378,9 +378,11 @@ let load_file filename = (* defined as a macro in SDL_rwops.h *)
   | Error _ as e -> e
   | Ok rw -> load_file_rw rw true
 
+let rw_close =
+  foreign "SDL_RWclose" (rw_ops @-> returning int)
+
 let rw_close ops =
-  let close = getf (!@ ops) rw_ops_close in
-  if close ops = 0 then Ok () else (error ())
+  if rw_close ops = 0 then Ok () else (error ())
 
 let unsafe_rw_ops_of_ptr addr : rw_ops =
   from_voidp rw_ops_struct (ptr_of_raw_address addr)
