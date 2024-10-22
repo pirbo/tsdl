@@ -13,31 +13,9 @@ module Types (F : Ctypes.TYPE) = struct
   end
 
   module Hint = struct
-    (*
-  let framebuffer_acceleration = F.constant "SDL_HINT_FRAMEBUFFER_ACCELERATION" F.string
-  let idle_timer_disabled = F.constant "SDL_HINT_IDLE_TIMER_DISABLED" F.string
-  let mouse_focus_clickthrough = F.constant "SDL_HINT_MOUSE_FOCUS_CLICKTHROUGH" F.string
-  let orientations = F.constant "SDL_HINT_ORIENTATIONS" F.string
-  let render_driver = F.constant "SDL_HINT_RENDER_DRIVER" F.string
-  let render_opengl_shaders = F.constant "SDL_HINT_RENDER_OPENGL_SHADERS" F.string
-  let render_logical_size_mode = F.constant "SDL_HINT_RENDER_LOGICAL_SIZE_MODE" F.string
-  let render_scale_quality = F.constant "SDL_HINT_RENDER_SCALE_QUALITY" F.string
-  let render_vsync = F.constant "SDL_HINT_RENDER_VSYNC" F.string
-     *)
     let default = F.constant "SDL_HINT_DEFAULT" F.int
     let normal = F.constant "SDL_HINT_NORMAL" F.int
     let override = F.constant "SDL_HINT_OVERRIDE" F.int
-(*
-  let no_signal_handlers = F.constant "SDL_HINT_NO_SIGNAL_HANDLERS" F.string
-  let thread_stack_size = F.constant "SDL_HINT_THREAD_STACK_SIZE" F.string
-  let window_frame_usable_while_cursor_hidden = F.constant "SDL_HINT_WINDOW_FRAME_USABLE_WHILE_CURSOR_HIDDEN" F.string
-
-  let audio_resampling_mode = F.constant "SDL_HINT_AUDIO_RESAMPLING_MODE" F.string
-  let mouse_normal_speed_scale = F.constant "SDL_HINT_MOUSE_NORMAL_SPEED_SCALE" F.string
-  let mouse_relative_speed_scale = F.constant "SDL_HINT_MOUSE_RELATIVE_SPEED_SCALE" F.string
-  let touch_mouse_events = F.constant "SDL_HINT_TOUCH_MOUSE_EVENTS" F.string
-  let mouse_touch_events = F.constant "SDL_HINT_MOUSE_TOUCH_EVENTS" F.string
- *)
   end
 
   module Log = struct

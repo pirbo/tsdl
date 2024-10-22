@@ -12,8 +12,6 @@ module Sdl = struct
 
 (* Enum cases and #ifdef'd constants, see support/ in the distribution *)
 
-open Tsdl_consts
-
 (* Formatting with continuation. *)
 
 let kpp k fmt =
@@ -56,26 +54,18 @@ let int_as_int32_t =
 let int32_as_uint32_t =
   view ~read:Unsigned.UInt32.to_int32 ~write:Unsigned.UInt32.of_int32 uint32_t
 
+let char_array_as_string a =
+  Ctypes.(string_from_ptr (CArray.start a) ~length:(CArray.length a))
+
 let string_as_char_array n = (* FIXME: drop this if ctypes proposes better *)
   let n_array = array n char in
-  let read a =
-    let len = CArray.length a in
-    let b = Buffer.create len in
-    try
-      for i = 0 to len - 1 do
-        let c = CArray.get a i in
-        if c = '\000' then raise Exit else Buffer.add_char b c
-      done;
-      Buffer.contents b
-    with Exit -> Buffer.contents b
-  in
   let write s =
     let a = CArray.make char n in
     let len = min (CArray.length a) (String.length s) in
     for i = 0 to len - 1 do CArray.set a i (s.[i]) done;
     a
   in
-  view ~read ~write n_array
+  view ~read:char_array_as_string ~write n_array
 
 let get_error =
   foreign "SDL_GetError" (void @-> returning string)
@@ -194,24 +184,38 @@ let was_init = function
 
 module Hint = struct
   type t = string
-  let audio_resampling_mode = sdl_hint_audio_resampling_mode
-  let framebuffer_acceleration = sdl_hint_framebuffer_acceleration
-  let idle_timer_disabled = sdl_hint_idle_timer_disabled
-  let orientations = sdl_hint_orientations
-  let mouse_focus_clickthrough = sdl_hint_mouse_focus_clickthrough
-  let mouse_normal_speed_scale = sdl_hint_mouse_normal_speed_scale
-  let mouse_relative_speed_scale = sdl_hint_mouse_relative_speed_scale
-  let render_driver = sdl_hint_render_driver
-  let render_logical_size_mode = sdl_hint_render_logical_size_mode
-  let render_opengl_shaders = sdl_hint_render_opengl_shaders
-  let render_scale_quality = sdl_hint_render_scale_quality
-  let render_vsync = sdl_hint_render_vsync
-  let no_signal_handlers = sdl_hint_no_signal_handlers
-  let thread_stack_size = sdl_hint_thread_stack_size
-  let touch_mouse_events = sdl_hint_touch_mouse_events
-  let mouse_touch_events = sdl_hint_mouse_touch_events
+  let audio_resampling_mode =
+    char_array_as_string (!@ C.Functions.Hint.audio_resampling_mode)
+  let framebuffer_acceleration =
+    char_array_as_string (!@ C.Functions.Hint.framebuffer_acceleration)
+  let idle_timer_disabled =
+    char_array_as_string (!@ C.Functions.Hint.idle_timer_disabled)
+  let orientations = char_array_as_string (!@ C.Functions.Hint.orientations)
+  let mouse_focus_clickthrough =
+    char_array_as_string (!@ C.Functions.Hint.mouse_focus_clickthrough)
+  let mouse_normal_speed_scale =
+    char_array_as_string (!@ C.Functions.Hint.mouse_normal_speed_scale)
+  let mouse_relative_speed_scale =
+    char_array_as_string (!@ C.Functions.Hint.mouse_relative_speed_scale)
+  let render_driver = char_array_as_string (!@ C.Functions.Hint.render_driver)
+  let render_logical_size_mode =
+    char_array_as_string (!@ C.Functions.Hint.render_logical_size_mode)
+  let render_opengl_shaders =
+    char_array_as_string (!@ C.Functions.Hint.render_opengl_shaders)
+  let render_scale_quality =
+    char_array_as_string (!@ C.Functions.Hint.render_scale_quality)
+  let render_vsync = char_array_as_string (!@ C.Functions.Hint.render_vsync)
+  let no_signal_handlers =
+    char_array_as_string (!@ C.Functions.Hint.no_signal_handlers)
+  let thread_stack_size =
+    char_array_as_string (!@ C.Functions.Hint.thread_stack_size)
+  let touch_mouse_events =
+    char_array_as_string (!@ C.Functions.Hint.touch_mouse_events)
+  let mouse_touch_events =
+    char_array_as_string (!@ C.Functions.Hint.mouse_touch_events)
   let window_frame_usable_while_cursor_hidden =
-    sdl_hint_window_frame_usable_while_cursor_hidden
+    char_array_as_string
+      (!@ C.Functions.Hint.window_frame_usable_while_cursor_hidden)
 
   type priority = int
   include C.Types.Hint
