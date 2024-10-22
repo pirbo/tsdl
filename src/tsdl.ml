@@ -750,11 +750,11 @@ let calculate_gamma_ramp g =
   ba
 
 module Blend = struct
-  type mode = int
-  let mode_none = sdl_blendmode_none
-  let mode_blend = sdl_blendmode_blend
-  let mode_add = sdl_blendmode_add
-  let mode_mod = sdl_blendmode_mod
+  type mode = Unsigned.UInt.t
+  let mode_none = Unsigned.UInt.of_int sdl_blendmode_none
+  let mode_blend = Unsigned.UInt.of_int sdl_blendmode_blend
+  let mode_add = Unsigned.UInt.of_int sdl_blendmode_add
+  let mode_mod = Unsigned.UInt.of_int sdl_blendmode_mod
 
   type operation = int
   let add = sdl_blendoperation_add
@@ -779,7 +779,7 @@ end
 
 let compose_custom_blend_mode =
   foreign "SDL_ComposeCustomBlendMode"
-    (int @-> int @-> int @-> int @-> int @-> int @-> returning int)
+    (int @-> int @-> int @-> int @-> int @-> int @-> returning uint)
 
 module Pixel = struct
   type format_enum = Unsigned.UInt32.t
@@ -1107,10 +1107,10 @@ let get_surface_alpha_mod s =
 
 let get_surface_blend_mode =
   foreign "SDL_GetSurfaceBlendMode"
-    (surface @-> ptr int @-> returning int)
+    (surface @-> ptr uint @-> returning int)
 
 let get_surface_blend_mode s =
-  let mode = allocate int 0 in
+  let mode = allocate uint Unsigned.UInt.zero in
   match get_surface_blend_mode s mode with
   0 -> Ok (!@ mode) | _ -> error ()
 
@@ -1211,7 +1211,7 @@ let set_surface_alpha_mod s x = set_surface_alpha_mod s x |> zero_to_ok
 
 let set_surface_blend_mode =
   foreign "SDL_SetSurfaceBlendMode"
-    (surface @-> int @-> returning int)
+    (surface @-> uint @-> returning int)
 let set_surface_blend_mode s x = set_surface_blend_mode s x |> zero_to_ok
 
 let set_surface_color_mod =
@@ -1325,10 +1325,10 @@ let get_num_render_drivers () = get_num_render_drivers () |> nat_to_ok
 
 let get_render_draw_blend_mode =
   foreign "SDL_GetRenderDrawBlendMode"
-    (renderer @-> ptr int @-> returning int)
+    (renderer @-> ptr uint @-> returning int)
 
 let get_render_draw_blend_mode r =
-  let m = allocate int 0 in
+  let m = allocate uint Unsigned.UInt.zero in
   match get_render_draw_blend_mode r m with
   | 0 -> Ok !@m | _ -> error ()
 
@@ -1671,7 +1671,7 @@ let render_target_supported =
 
 let set_render_draw_blend_mode =
   foreign "SDL_SetRenderDrawBlendMode"
-    (renderer @-> int @-> returning int)
+    (renderer @-> uint @-> returning int)
 let set_render_draw_blend_mode r x = set_render_draw_blend_mode r x |> zero_to_ok
 
 let set_render_draw_color =
@@ -1730,10 +1730,10 @@ let get_texture_alpha_mod t =
 
 let get_texture_blend_mode =
   foreign "SDL_GetTextureBlendMode"
-    (texture @-> ptr int @-> returning int)
+    (texture @-> ptr uint @-> returning int)
 
 let get_texture_blend_mode t =
-  let m = allocate int 0 in
+  let m = allocate uint Unsigned.UInt.zero in
   match get_texture_blend_mode t m with
   | 0 -> Ok (!@ m) | _ -> error ()
 
@@ -1800,7 +1800,7 @@ let set_texture_alpha_mod t a = set_texture_alpha_mod t a |> zero_to_ok
 
 let set_texture_blend_mode =
   foreign "SDL_SetTextureBlendMode"
-    (texture @-> int @-> returning int)
+    (texture @-> uint @-> returning int)
 let set_texture_blend_mode t b = set_texture_blend_mode t b |> zero_to_ok
 
 let set_texture_color_mod =
