@@ -39,14 +39,10 @@ than on the issue tracker.
 Sample programs are located in the `test` directory of the
 distribution. They can be built with:
 
-    ./pkg/pkg.ml build --tests true
+    dune build @test/all
 
-and listed with
+The resulting binaries are in `_build/default/test` :
 
-    ./pkg/pkg.ml test --list
-
-The resulting binaries are in `_build/test` :
-
-- `test_tsdl.native`, tests the bindings, the executable should exit with 0.
-- `sdlevents.native`, traces SDL events.
-- `min.native` a minimal SDL example.
+- `test_tsdl.exe`, tests the bindings, the executable should exit with 0.
+- `sdlevents.exe`, traces SDL events.
+- `min.exe` a minimal SDL example.
