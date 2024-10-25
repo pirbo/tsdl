@@ -846,8 +846,6 @@ module Flip = struct
 end
 
 type texture = unit ptr
-let texture : texture typ = ptr void
-let texture_opt : texture option typ = ptr_opt void
 
 let unsafe_texture_of_ptr addr : texture =
   ptr_of_raw_address addr
@@ -855,8 +853,6 @@ let unsafe_ptr_of_texture texture =
   raw_address_of_ptr (to_voidp texture)
 
 type renderer = unit ptr
-let renderer : renderer typ = ptr void
-let renderer_opt : renderer option typ = ptr_opt void
 
 let unsafe_renderer_of_ptr addr : renderer =
   ptr_of_raw_address addr
@@ -1158,68 +1154,37 @@ module Texture = struct
   include C.Types.Texture
 end
 
-let create_texture =
-  foreign "SDL_CreateTexture"
-    (renderer @-> uint32_t @-> int @-> int @-> int @->
-     returning renderer_opt)
-
 let create_texture r pf access ~w ~h =
-  create_texture r pf access w h |> some_to_ok
+  C.Functions.create_texture r pf access w h |> some_to_ok
 
-let create_texture_from_surface =
-  foreign "SDL_CreateTextureFromSurface"
-    (renderer @-> ptr C.Types.surface @-> returning texture_opt)
-let create_texture_from_surface r s = create_texture_from_surface r s |> some_to_ok
+let create_texture_from_surface r s =
+  C.Functions.create_texture_from_surface r s |> some_to_ok
 
-let destroy_texture =
-  foreign "SDL_DestroyTexture" (texture @-> returning void)
-
-let get_texture_alpha_mod =
-  foreign "SDL_GetTextureAlphaMod"
-    (texture @-> ptr uint8_t @-> returning int)
+let destroy_texture = C.Functions.destroy_texture
 
 let get_texture_alpha_mod t =
   let alpha = allocate uint8_t Unsigned.UInt8.zero in
-  match get_texture_alpha_mod t alpha with
+  match C.Functions.get_texture_alpha_mod t alpha with
   | 0 -> Ok (Unsigned.UInt8.to_int (!@ alpha)) | _ -> error ()
-
-let get_texture_blend_mode =
-  foreign "SDL_GetTextureBlendMode"
-    (texture @-> ptr C.Types.Blend.mode @-> returning int)
 
 let get_texture_blend_mode t =
   let m = allocate Blend.mode Blend.mode_invalid in
-  match get_texture_blend_mode t m with
+  match C.Functions.get_texture_blend_mode t m with
   | 0 -> Ok (!@ m) | _ -> error ()
-
-let get_texture_color_mod =
-  foreign "SDL_GetTextureColorMod"
-    (renderer @-> ptr uint8_t @-> ptr uint8_t @-> ptr uint8_t @->
-     returning int)
 
 let get_texture_color_mod t =
   let alloc () = allocate uint8_t Unsigned.UInt8.zero in
   let get v = Unsigned.UInt8.to_int (!@ v) in
   let r, g, b = alloc (), alloc (), alloc () in
-  match get_texture_color_mod t r g b with
+  match C.Functions.get_texture_color_mod t r g b with
   | 0 -> Ok (get r, get g, get b) | _ -> error ()
-
-let query_texture =
-  foreign "SDL_QueryTexture"
-    (texture @-> ptr uint32_t @-> ptr int @-> ptr int @-> ptr int @->
-     returning int)
 
 let _texture_height t =
   let h = allocate int 0 in
   let unull = coerce (ptr void) (ptr uint32_t) null in
   let inull = coerce (ptr void) (ptr int) null in
-  match query_texture t unull inull inull h with
+  match C.Functions.query_texture t unull inull inull h with
   | 0 -> Ok (!@ h) | _ -> error ()
-
-let lock_texture =
-  foreign "SDL_LockTexture"
-    (texture @-> ptr C.Types.Rect.t @-> ptr (ptr void) @-> ptr int @->
-     returning int)
 
 let lock_texture t r kind =
   match (match r with None -> _texture_height t | Some r -> Ok (Rect.h r)) with
@@ -1227,7 +1192,7 @@ let lock_texture t r kind =
   | Ok h ->
       let pitch = allocate int 0 in
       let p = allocate (ptr void) null in
-      match lock_texture t (Rect.opt_addr r) p pitch with
+      match C.Functions.lock_texture t (Rect.opt_addr r) p pitch with
       | 0 ->
           let p = !@ p in
           let pitch = !@ pitch in
@@ -1245,68 +1210,48 @@ let query_texture t =
   let access = allocate int 0 in
   let w = allocate int 0 in
   let h = allocate int 0 in
-  match query_texture t pf access w h with
+  match C.Functions.query_texture t pf access w h with
   | 0 -> Ok (!@ pf, !@ access, (!@ w, !@ h)) | _ -> error ()
 
-let set_texture_alpha_mod =
-  foreign "SDL_SetTextureAlphaMod"
-    (texture @-> int_as_uint8_t @-> returning int)
-let set_texture_alpha_mod t a = set_texture_alpha_mod t a |> zero_to_ok
+let set_texture_alpha_mod t a =
+  zero_to_ok (C.Functions.set_texture_alpha_mod t (Unsigned.UInt8.of_int a))
 
-let set_texture_blend_mode =
-  foreign "SDL_SetTextureBlendMode"
-    (texture @-> C.Types.Blend.mode @-> returning int)
-let set_texture_blend_mode t b = set_texture_blend_mode t b |> zero_to_ok
+let set_texture_blend_mode t b =
+  zero_to_ok (C.Functions.set_texture_blend_mode t b)
 
-let set_texture_color_mod =
-  foreign "SDL_SetTextureColorMod"
-    (texture @-> int_as_uint8_t @-> int_as_uint8_t @-> int_as_uint8_t @->
-     returning int)
-let set_texture_color_mod t a b c = set_texture_color_mod t a b c |> zero_to_ok
+let set_texture_color_mod t a b c =
+  zero_to_ok (C.Functions.set_texture_color_mod
+                t
+                (Unsigned.UInt8.of_int a)
+                (Unsigned.UInt8.of_int b)
+                (Unsigned.UInt8.of_int c))
 
-let unlock_texture =
-  foreign "SDL_UnlockTexture" (texture @-> returning void)
-
-let update_texture =
-  foreign "SDL_UpdateTexture"
-    (texture @-> ptr C.Types.Rect.t @-> ptr void @-> int @-> returning int)
+let unlock_texture = C.Functions.unlock_texture
 
 let update_texture t rect pixels pitch =
   let pitch = pitch * (ba_kind_byte_size (Bigarray.Array1.kind pixels)) in
   let pixels = to_voidp (bigarray_start array1 pixels) in
-  update_texture t (Rect.opt_addr rect) pixels pitch |> zero_to_ok
-
-let update_yuv_texture =
-  foreign "SDL_UpdateYUVTexture"
-    (texture @-> ptr C.Types.Rect.t @->
-     ptr void @-> int @-> ptr void @-> int @-> ptr void @-> int @->
-     returning int)
+  zero_to_ok (C.Functions.update_texture t (Rect.opt_addr rect) pixels pitch)
 
 let update_yuv_texture r rect ~y ypitch ~u upitch ~v vpitch =
   let yp = to_voidp (bigarray_start array1 y) in
   let up = to_voidp (bigarray_start array1 u) in
   let vp = to_voidp (bigarray_start array1 v) in
-  update_yuv_texture r (Rect.opt_addr rect) yp ypitch up upitch vp vpitch |> zero_to_ok
+  zero_to_ok (C.Functions.update_yuv_texture
+                r (Rect.opt_addr rect) yp ypitch up upitch vp vpitch)
 
 (* Video drivers *)
 
-let get_current_video_driver =
-  foreign "SDL_GetCurrentVideoDriver" (void @-> returning string_opt)
+let get_current_video_driver = C.Functions.get_current_video_driver
 
-let get_num_video_drivers =
-  foreign "SDL_GetNumVideoDrivers" (void @-> returning int)
-let get_num_video_drivers () = get_num_video_drivers () |> nat_to_ok
+let get_num_video_drivers () =
+  nat_to_ok (C.Functions.get_num_video_drivers ())
 
-let get_video_driver =
-  foreign "SDL_GetVideoDriver" (int @-> returning string_opt)
-let get_video_driver x = get_video_driver x |> some_to_ok
+let get_video_driver x = some_to_ok (C.Functions.get_video_driver x)
 
-let video_init =
-  foreign "SDL_VideoInit" (string_opt @-> returning int)
-let video_init s = video_init s |> zero_to_ok
+let video_init s = zero_to_ok (C.Functions.video_init s)
 
-let video_quit =
-  foreign "SDL_VideoQuit" (void @-> returning void)
+let video_quit = C.Functions.video_quit
 
 (* Displays *)
 
@@ -1456,12 +1401,12 @@ let create_window t ?(x = Window.pos_undefined) ?(y = Window.pos_undefined)
 
 let create_window_and_renderer =
   foreign "SDL_CreateWindowAndRenderer"
-    (int @-> int @-> uint32_t @-> ptr Window.t @-> ptr renderer @->
+    (int @-> int @-> uint32_t @-> ptr Window.t @-> ptr (ptr void) @->
      (returning int))
 
 let create_window_and_renderer ~w ~h flags =
   let win = allocate Window.t null in
-  let r = allocate renderer null in
+  let r = allocate (ptr void) null in
   match create_window_and_renderer w h flags win r with
   | 0 -> Ok (!@ win, !@ r) | _ -> error ()
 
@@ -1727,7 +1672,7 @@ end
 
 let gl_bind_texture =
   foreign "SDL_GL_BindTexture"
-    (texture @-> ptr float @-> ptr float @-> returning int)
+    (ptr void @-> ptr float @-> ptr float @-> returning int)
 
 let gl_bind_texture t =
   let w = allocate float 0. in
@@ -1793,7 +1738,7 @@ let gl_swap_window =
   foreign "SDL_GL_SwapWindow" (Window.t @-> returning void)
 
 let gl_unbind_texture =
-  foreign "SDL_GL_UnbindTexture" (texture @-> returning int)
+  foreign "SDL_GL_UnbindTexture" (ptr void @-> returning int)
 let gl_unbind_texture t = gl_unbind_texture t |> zero_to_ok
 
 (* Vulkan *)

@@ -560,4 +560,81 @@ module Functions (F : FOREIGN) = struct
 
   let set_render_target =
     F.(foreign "SDL_SetRenderTarget" (ptr void @-> ptr void @-> returning int))
+
+  let create_texture =
+    F.(foreign "SDL_CreateTexture"
+         (ptr void @-> uint32_t @-> int @-> int @-> int @->
+          returning (ptr_opt void)))
+
+  let create_texture_from_surface =
+    F.(foreign "SDL_CreateTextureFromSurface"
+         (ptr void @-> ptr Types.surface @-> returning (ptr_opt void)))
+
+  let destroy_texture =
+    F.(foreign "SDL_DestroyTexture" (ptr void @-> returning void))
+
+  let get_texture_alpha_mod =
+    F.(foreign "SDL_GetTextureAlphaMod"
+         (ptr void @-> ptr uint8_t @-> returning int))
+
+  let get_texture_blend_mode =
+    F.(foreign "SDL_GetTextureBlendMode"
+         (ptr void @-> ptr Types.Blend.mode @-> returning int))
+
+  let get_texture_color_mod =
+    F.(foreign "SDL_GetTextureColorMod"
+         (ptr void @-> ptr uint8_t @-> ptr uint8_t @-> ptr uint8_t @->
+          returning int))
+
+  let query_texture =
+    F.(foreign "SDL_QueryTexture"
+         (ptr void @-> ptr uint32_t @-> ptr int @-> ptr int @-> ptr int @->
+          returning int))
+
+  let lock_texture =
+    F.(foreign "SDL_LockTexture"
+         (ptr void @-> ptr Types.Rect.t @-> ptr (ptr void) @-> ptr int @->
+          returning int))
+
+  let set_texture_alpha_mod =
+    F.(foreign "SDL_SetTextureAlphaMod"
+         (ptr void @-> uint8_t @-> returning int))
+
+  let set_texture_blend_mode =
+    F.(foreign "SDL_SetTextureBlendMode"
+         (ptr void @-> Types.Blend.mode @-> returning int))
+
+  let set_texture_color_mod =
+    F.(foreign "SDL_SetTextureColorMod"
+         (ptr void @-> uint8_t @-> uint8_t @-> uint8_t @-> returning int))
+
+  let unlock_texture =
+    F.(foreign "SDL_UnlockTexture" (ptr void @-> returning void))
+
+  let update_texture =
+    F.(foreign "SDL_UpdateTexture"
+         (ptr void @-> ptr Types.Rect.t @-> ptr void @-> int @-> returning int))
+
+  let update_yuv_texture =
+    F.(foreign "SDL_UpdateYUVTexture"
+         (ptr void @-> ptr Types.Rect.t @->
+          ptr void @-> int @-> ptr void @-> int @-> ptr void @-> int @->
+          returning int))
+
+  (* Video drivers *)
+
+  let get_current_video_driver =
+    F.(foreign "SDL_GetCurrentVideoDriver" (void @-> returning const_string_opt))
+
+  let get_num_video_drivers =
+    F.(foreign "SDL_GetNumVideoDrivers" (void @-> returning int))
+
+  let get_video_driver =
+    F.(foreign "SDL_GetVideoDriver" (int @-> returning const_string_opt))
+
+  let video_init =
+    F.(foreign "SDL_VideoInit" (string_opt @-> returning int))
+
+  let video_quit =
+    F.(foreign "SDL_VideoQuit" (void @-> returning void))
 end
