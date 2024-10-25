@@ -244,6 +244,11 @@ module Types (F : Ctypes.TYPE) = struct
     let accelerated = F.constant "SDL_RENDERER_ACCELERATED" F.uint32_t
     let presentvsync = F.constant "SDL_RENDERER_PRESENTVSYNC" F.uint32_t
     let targettexture = F.constant "SDL_RENDERER_TARGETTEXTURE" F.uint32_t
+
+    type _renderer
+
+    type t = _renderer Ctypes_static.structure
+    let t : t F.typ = F.structure "SDL_Renderer"
   end
 
   type renderer_info
@@ -266,10 +271,22 @@ module Types (F : Ctypes.TYPE) = struct
     let modulate_alpha = F.constant "SDL_TEXTUREMODULATE_ALPHA" F.uint32_t
   end
 
+  type _display_mode
+  let display_mode : _display_mode Ctypes_static.structure F.typ =
+    F.typedef (F.structure "_") "SDL_DisplayMode"
+  let dm_format = F.field display_mode "format" F.uint32_t
+  let dm_w = F.field display_mode "w" F.int
+  let dm_h = F.field display_mode "h" F.int
+  let dm_refresh_rate = F.field display_mode "refresh_rate" F.int
+  let dm_driverdata = F.field display_mode "driverdata" F.(ptr_opt void)
+  let () = F.seal display_mode
+
   module Window = struct
-    type t = unit Ctypes_static.ptr
-    let t : t F.typ = F.ptr F.void
-    let opt : t option F.typ = F.ptr_opt F.void
+    type _t
+    type t = _t Ctypes_static.structure Ctypes_static.ptr
+    let raw : _t Ctypes_static.structure F.typ = F.structure "SDL_Window"
+    let t = F.ptr raw
+    let opt = F.ptr_opt raw
 
     let fullscreen = F.constant "SDL_WINDOW_FULLSCREEN" F.uint32_t
     let fullscreen_desktop = F.constant "SDL_WINDOW_FULLSCREEN_DESKTOP" F.uint32_t

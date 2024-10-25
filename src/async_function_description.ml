@@ -7,5 +7,5 @@ module Functions (F : FOREIGN) = struct
     F.(foreign "SDL_Delay" (int32_t @-> returning void))
 
   let render_present =
-    F.(foreign "SDL_RenderPresent" (ptr void @-> returning void))
+    F.(foreign "SDL_RenderPresent" (ptr Types.Renderer.t @-> returning void))
 end
