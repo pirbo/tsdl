@@ -846,6 +846,38 @@ module Functions (F : FOREIGN) = struct
     F.(foreign "SDL_UpdateWindowSurfaceRects"
          (Types.Window.t @-> ptr void @-> int @-> returning int))
 
+  let gl_bind_texture =
+    F.(foreign "SDL_GL_BindTexture"
+         (ptr void @-> ptr float @-> ptr float @-> returning int))
+
+  let gl_create_context =
+    F.(foreign "SDL_GL_CreateContext"
+         (Types.Window.t @-> returning  (ptr_opt Types.Gl.context)))
+
+  let gl_delete_context =
+    F.(foreign "SDL_GL_DeleteContext" (ptr Types.Gl.context @-> returning void))
+
+  let gl_extension_supported =
+    F.(foreign "SDL_GL_ExtensionSupported" (string @-> returning bool))
+
+  let gl_get_attribute =
+    F.(foreign "SDL_GL_GetAttribute" (int @-> (ptr int) @-> returning int))
+
+  let gl_get_current_context =
+    F.(foreign "SDL_GL_GetCurrentContext"
+         (void @-> returning (ptr_opt Types.Gl.context)))
+
+  let gl_get_drawable_size =
+    F.(foreign "SDL_GL_GetDrawableSize"
+         (Types.Window.t @-> ptr int @-> ptr int @-> returning void))
+
+  let gl_get_swap_interval =
+    F.(foreign "SDL_GL_GetSwapInterval" (void @-> returning int))
+
+  let gl_make_current =
+    F.(foreign "SDL_GL_MakeCurrent"
+         (Types.Window.t @-> ptr Types.Gl.context @-> returning int))
+
   let pump_events =
     F.(foreign "SDL_PumpEvents" (void @-> returning void))
 end

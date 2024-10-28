@@ -354,6 +354,10 @@ module Types (F : Ctypes.TYPE) = struct
     let context_profile_mask = F.constant "SDL_GL_CONTEXT_PROFILE_MASK" F.int
     let share_with_current_context = F.constant "SDL_GL_SHARE_WITH_CURRENT_CONTEXT" F.int
     let framebuffer_srgb_capable = F.constant "SDL_GL_FRAMEBUFFER_SRGB_CAPABLE" F.int
+
+    type _context
+    type context = _context Ctypes_static.structure
+    let context : context F.typ = F.structure "SDL_GLContext"
   end
 
   module Message_box = struct

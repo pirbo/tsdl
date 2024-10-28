@@ -1513,15 +1513,6 @@ let update_window_surface_rects w rs =
 
 (* OpenGL contexts *)
 
-type gl_context = unit ptr
-let gl_context : unit ptr typ = ptr void
-let gl_context_opt : unit ptr option typ = ptr_opt void
-
-let unsafe_gl_context_of_ptr addr : gl_context =
-  ptr_of_raw_address addr
-let unsafe_ptr_of_gl_context gl_context =
-  raw_address_of_ptr (to_voidp gl_context)
-
 module Gl = struct
   type context_flags = int
   type profile = int
@@ -1529,6 +1520,13 @@ module Gl = struct
 
   include C.Types.Gl
 end
+
+type gl_context = C.Types.Gl.context ptr
+
+let unsafe_gl_context_of_ptr addr : gl_context =
+  from_voidp C.Types.Gl.context  (ptr_of_raw_address addr)
+let unsafe_ptr_of_gl_context gl_context =
+  raw_address_of_ptr (to_voidp gl_context)
 
 let gl_bind_texture =
   foreign "SDL_GL_BindTexture"
@@ -1542,11 +1540,11 @@ let gl_bind_texture t =
 
 let gl_create_context =
   foreign "SDL_GL_CreateContext"
-    (Window.t @-> returning  gl_context_opt)
+    (Window.t @-> returning  (ptr_opt C.Types.Gl.context))
 let gl_create_context w = gl_create_context w |> some_to_ok
 
 let gl_delete_context =
-  foreign "SDL_GL_DeleteContext" (gl_context @-> returning void)
+  foreign "SDL_GL_DeleteContext" (ptr C.Types.Gl.context @-> returning void)
 
 let gl_extension_supported =
   foreign "SDL_GL_ExtensionSupported" (string @-> returning bool)
@@ -1561,7 +1559,7 @@ let gl_get_attribute att =
 
 let gl_get_current_context =
   foreign "SDL_GL_GetCurrentContext"
-    (void @-> returning gl_context_opt)
+    (void @-> returning (ptr_opt C.Types.Gl.context))
 let gl_get_current_context () = gl_get_current_context () |> some_to_ok
 
 let gl_get_drawable_size =
@@ -1580,7 +1578,7 @@ let gl_get_swap_interval () = Ok (gl_get_swap_interval ())
 
 let gl_make_current =
   foreign "SDL_GL_MakeCurrent"
-    (Window.t @-> gl_context @-> returning int)
+    (Window.t @-> ptr C.Types.Gl.context @-> returning int)
 let gl_make_current w g = gl_make_current w g |> zero_to_ok
 
 let gl_reset_attributes =
