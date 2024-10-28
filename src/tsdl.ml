@@ -93,9 +93,6 @@ let sdl_free = C.Functions.sdl_free
 let () =
   C.Functions.set_main_ready ()
 
-let stub = true
-
-
 (* Integer types and maps *)
 
 type uint8 = int
@@ -1528,61 +1525,40 @@ let unsafe_gl_context_of_ptr addr : gl_context =
 let unsafe_ptr_of_gl_context gl_context =
   raw_address_of_ptr (to_voidp gl_context)
 
-let gl_bind_texture =
-  foreign "SDL_GL_BindTexture"
-    (ptr void @-> ptr float @-> ptr float @-> returning int)
-
 let gl_bind_texture t =
   let w = allocate float 0. in
   let h = allocate float 0. in
-  match gl_bind_texture t w h with
+  match C.Functions.gl_bind_texture t w h with
   | 0 -> Ok (!@ w, !@ h) | _ -> error ()
 
-let gl_create_context =
-  foreign "SDL_GL_CreateContext"
-    (Window.t @-> returning  (ptr_opt C.Types.Gl.context))
-let gl_create_context w = gl_create_context w |> some_to_ok
+let gl_create_context w =
+  some_to_ok (C.Functions.gl_create_context w)
 
-let gl_delete_context =
-  foreign "SDL_GL_DeleteContext" (ptr C.Types.Gl.context @-> returning void)
+let gl_delete_context = C.Functions.gl_delete_context
 
-let gl_extension_supported =
-  foreign "SDL_GL_ExtensionSupported" (string @-> returning bool)
-
-let gl_get_attribute =
-  foreign "SDL_GL_GetAttribute" (int @-> (ptr int) @-> returning int)
+let gl_extension_supported = C.Functions.gl_extension_supported
 
 let gl_get_attribute att =
   let value = allocate int 0 in
-  match gl_get_attribute att value with
+  match C.Functions.gl_get_attribute att value with
   | 0 -> Ok (!@ value) | _err -> error ()
 
-let gl_get_current_context =
-  foreign "SDL_GL_GetCurrentContext"
-    (void @-> returning (ptr_opt C.Types.Gl.context))
-let gl_get_current_context () = gl_get_current_context () |> some_to_ok
-
-let gl_get_drawable_size =
-  foreign "SDL_GL_GetDrawableSize"
-    (Window.t @-> ptr int @-> ptr int @-> returning void)
+let gl_get_current_context () =
+  some_to_ok (C.Functions.gl_get_current_context ())
 
 let gl_get_drawable_size win =
   let w = allocate int 0 in
   let h = allocate int 0 in
-  gl_get_drawable_size win w h;
+  C.Functions.gl_get_drawable_size win w h;
   (!@ w, !@ h)
 
-let gl_get_swap_interval =
-  foreign "SDL_GL_GetSwapInterval" (void @-> returning int)
-let gl_get_swap_interval () = Ok (gl_get_swap_interval ())
+let gl_get_swap_interval () = Ok (C.Functions.gl_get_swap_interval ())
 
-let gl_make_current =
-  foreign "SDL_GL_MakeCurrent"
-    (Window.t @-> ptr C.Types.Gl.context @-> returning int)
-let gl_make_current w g = gl_make_current w g |> zero_to_ok
+let gl_make_current w g =
+  zero_to_ok (C.Functions.gl_make_current w g)
 
 let gl_reset_attributes =
-  foreign "SDL_GL_ResetAttributes" ~stub (void @-> returning void)
+  foreign "SDL_GL_ResetAttributes" (void @-> returning void)
 
 let gl_set_attribute =
   foreign "SDL_GL_SetAttribute" (int @-> int @-> returning int)
@@ -2348,7 +2324,7 @@ let game_controller_add_mapping s = game_controller_add_mapping s |> bool_to_ok
 
 let game_controller_add_mapping_from_rw =
   foreign "SDL_GameControllerAddMappingsFromRW"
-    ~stub (C.Types.rw_ops @-> bool @-> returning int)
+    (C.Types.rw_ops @-> bool @-> returning int)
 let game_controller_add_mapping_from_rw r b = game_controller_add_mapping_from_rw r b |> nat_to_ok
 
 let game_controller_close =
@@ -3863,7 +3839,7 @@ let has_altivec =
   foreign "SDL_HasAltiVec" (void @-> returning bool)
 
 let has_avx =
-  foreign ~stub "SDL_HasAVX" (void @-> returning bool)
+  foreign "SDL_HasAVX" (void @-> returning bool)
 
 let has_avx2 =
   foreign  "SDL_HasAVX2" (void @-> returning bool)
