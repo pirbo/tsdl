@@ -1557,79 +1557,61 @@ let gl_get_swap_interval () = Ok (C.Functions.gl_get_swap_interval ())
 let gl_make_current w g =
   zero_to_ok (C.Functions.gl_make_current w g)
 
-let gl_reset_attributes =
-  foreign "SDL_GL_ResetAttributes" (void @-> returning void)
+let gl_reset_attributes = C.Functions.gl_reset_attributes
 
-let gl_set_attribute =
-  foreign "SDL_GL_SetAttribute" (int @-> int @-> returning int)
-let gl_set_attribute x y = gl_set_attribute x y |> zero_to_ok
+let gl_set_attribute x y =
+  zero_to_ok (C.Functions.gl_set_attribute x y)
 
-let gl_set_swap_interval =
-  foreign "SDL_GL_SetSwapInterval" (int @-> returning int)
-let gl_set_swap_interval x = gl_set_swap_interval x |> zero_to_ok
+let gl_set_swap_interval x =
+  zero_to_ok (C.Functions.gl_set_swap_interval x)
 
-let gl_swap_window =
-  foreign "SDL_GL_SwapWindow" (Window.t @-> returning void)
+let gl_swap_window = C.Functions.gl_swap_window
 
-let gl_unbind_texture =
-  foreign "SDL_GL_UnbindTexture" (ptr void @-> returning int)
-let gl_unbind_texture t = gl_unbind_texture t |> zero_to_ok
+let gl_unbind_texture t =
+  zero_to_ok (C.Functions.gl_unbind_texture t)
 
 (* Vulkan *)
 
 module Vulkan = struct
 
   type instance = unit ptr
-  let instance = ptr void
   let unsafe_ptr_of_instance = raw_address_of_ptr
   let unsafe_instance_of_ptr x = ptr_of_raw_address x
 
-  type surface = uint64
-  let surface = int64_t
-  let unsafe_uint64_of_surface x = x
-  let unsafe_surface_of_uint64 x = x
+  type surface = C.Types.Vulkan.surface
+  let unsafe_uint64_of_surface x =
+    Int64.of_nativeint (raw_address_of_ptr (to_voidp x))
+  let unsafe_surface_of_uint64 x =
+    from_voidp C.Types.Vulkan.raw_surface
+      (ptr_of_raw_address (Int64.to_nativeint x))
 
-  let load_library =
-    foreign "SDL_Vulkan_LoadLibrary" (string_opt @-> returning int)
-  let load_library s = load_library s |> zero_to_ok
+  let load_library s =
+    zero_to_ok (C.Functions.Vulkan.load_library s)
 
-  let unload_library =
-    foreign "SDL_Vulkan_UnloadLibrary" (void @-> returning void)
-
-  let get_instance_extensions =
-    foreign "SDL_Vulkan_GetInstanceExtensions"
-      (Window.t @-> ptr int @-> ptr string @-> returning bool)
+  let unload_library = C.Functions.Vulkan.unload_library
 
   let get_instance_extensions window =
     let n = allocate int 0 in
-    match get_instance_extensions window n
+    match C.Functions.Vulkan.get_instance_extensions window n
             (Ctypes.coerce (ptr void) (ptr string) null) with
     | false -> None
     | true ->
         let exts = allocate_n string ~count:(!@n) in
-        match get_instance_extensions window n exts with
+        match C.Functions.Vulkan.get_instance_extensions window n exts with
         | false -> None
         | true -> Some CArray.(to_list @@ from_ptr exts (!@n))
 
-  let create_surface =
-    foreign "SDL_Vulkan_CreateSurface"
-      (Window.t @-> instance @-> ptr surface @-> returning bool)
-
   let create_surface window instance =
-    let s = allocate_n surface ~count:1 in
-    if create_surface window instance s then
+    let s = allocate_n C.Types.Vulkan.surface ~count:1 in
+    if C.Functions.Vulkan.create_surface window instance s then
       Some !@s
     else
     None
 
-  let get_drawable_size =
-    foreign "SDL_Vulkan_GetDrawableSize"
-      (Window.t @-> ptr int @-> ptr int @-> returning void)
-
   let get_drawable_size window =
     let w = allocate int 0 in
     let h = allocate int 0 in
-    get_drawable_size window w h;
+    C.Functions.Vulkan.get_drawable_size window w h;
     !@w, !@h
 end
 

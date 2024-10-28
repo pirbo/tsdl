@@ -878,6 +878,42 @@ module Functions (F : FOREIGN) = struct
     F.(foreign "SDL_GL_MakeCurrent"
          (Types.Window.t @-> ptr Types.Gl.context @-> returning int))
 
+  let gl_reset_attributes =
+    F.(foreign "SDL_GL_ResetAttributes" (void @-> returning void))
+
+  let gl_set_attribute =
+    F.(foreign "SDL_GL_SetAttribute" (int @-> int @-> returning int))
+
+  let gl_set_swap_interval =
+    F.(foreign "SDL_GL_SetSwapInterval" (int @-> returning int))
+
+  let gl_swap_window =
+    F.(foreign "SDL_GL_SwapWindow" (Types.Window.t @-> returning void))
+
+  let gl_unbind_texture =
+    F.(foreign "SDL_GL_UnbindTexture" (ptr void @-> returning int))
+
+  module Vulkan = struct
+    let load_library =
+      F.(foreign "SDL_Vulkan_LoadLibrary" (const_string_opt @-> returning int))
+
+    let unload_library =
+      F.(foreign "SDL_Vulkan_UnloadLibrary" (void @-> returning void))
+
+    let get_instance_extensions =
+      F.(foreign "SDL_Vulkan_GetInstanceExtensions"
+           (Types.Window.t @-> ptr int @-> ptr string @-> returning bool))
+
+    let create_surface =
+      F.(foreign "SDL_Vulkan_CreateSurface"
+           (Types.Window.t @-> ptr void @-> ptr Types.Vulkan.surface @->
+            returning bool))
+
+    let get_drawable_size =
+      F.(foreign "SDL_Vulkan_GetDrawableSize"
+           (Types.Window.t @-> ptr int @-> ptr int @-> returning void))
+  end
+
   let pump_events =
     F.(foreign "SDL_PumpEvents" (void @-> returning void))
 end

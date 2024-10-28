@@ -21,7 +21,7 @@
  (ctypes
   (external_library_name sdl2)
   (headers
-   (include "SDL.h"))
+   (include "SDL.h" "SDL_vulkan.h"))
   (build_flags_resolver pkg_config)
   (type_description
    (instance Types)

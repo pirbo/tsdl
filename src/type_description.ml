@@ -360,6 +360,15 @@ module Types (F : Ctypes.TYPE) = struct
     let context : context F.typ = F.structure "SDL_GLContext"
   end
 
+  module Vulkan = struct
+    type _surface
+    type surface = _surface Ctypes_static.structure Ctypes_static.ptr
+
+    let raw_surface : _surface Ctypes_static.structure F.typ =
+      F.structure "VkSurfaceKHR_T"
+    let surface : surface F.typ = F.ptr raw_surface
+  end
+
   module Message_box = struct
     let error = F.constant "SDL_MESSAGEBOX_ERROR" F.uint32_t
     let warning = F.constant "SDL_MESSAGEBOX_WARNING" F.uint32_t
