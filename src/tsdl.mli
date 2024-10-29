@@ -2272,7 +2272,7 @@ module K : sig
   val sleep : keycode
 end
 
-type keymod = int
+type keymod = Unsigned.uint16
 (** {{:http://wiki.libsdl.org/SDL2/SDL_Keymod}SDL_Keymod}. *)
 
 (** Constants for {!keymod} *)

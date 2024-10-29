@@ -138,7 +138,7 @@ let pp_keyboard_event ppf e =
     Sdl.Event.(get e keyboard_repeat > 0)
     Sdl.(get_scancode_name Event.(get e keyboard_scancode))
     Sdl.(get_key_name Event.(get e keyboard_keycode))
-    Sdl.Event.(get e keyboard_keymod)
+    (Unsigned.UInt16.to_int Sdl.Event.(get e keyboard_keymod))
 
 let pp_mouse_button_event ppf e =
   pp ppf "@[<1>mouse_button_event window_id:%d@ which:%ld@ button:%d@ \

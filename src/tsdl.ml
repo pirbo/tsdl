@@ -1617,14 +1617,11 @@ end
 
 (* Screen saver *)
 
-let disable_screen_saver =
-  foreign "SDL_DisableScreenSaver" (void @-> returning void)
+let disable_screen_saver = C.Functions.disable_screen_saver
 
-let enable_screen_saver =
-  foreign "SDL_EnableScreenSaver" (void @-> returning void)
+let enable_screen_saver = C.Functions.enable_screen_saver
 
-let is_screen_saver_enabled =
-  foreign "SDL_IsScreenSaverEnabled" (void @-> returning bool)
+let is_screen_saver_enabled = C.Functions.is_screen_saver_enabled
 
 (* Message boxes *)
 
@@ -1639,20 +1636,9 @@ module Message_box = struct
       button_id : int;
       button_text : string }
 
-  let button_data = structure "SDL_MessageBoxButtonData"
-  let button_flags = field button_data "flags" uint32_t
-  let button_buttonid = field button_data "buttonid" int
-  let button_text = field button_data "text" string
-  let () = seal button_data
-
   type flags = Unsigned.uint32
 
   type color = int * int * int
-  let color = structure "SDL_MessageBoxColor"
-  let color_r = field color "r" uint8_t
-  let color_g = field color "g" uint8_t
-  let color_b = field color "b" uint8_t
-  let () = seal color
 
   type _color_type = int
 
@@ -1663,10 +1649,6 @@ module Message_box = struct
       color_button_background : color;
       color_button_selected : color; }
 
-  let color_scheme = structure "SDL_MessageBoxColorScheme"
-  let colors = field color_scheme "colors" (array color_button_max color)
-  let () = seal color_scheme
-
   type data =
     { flags : flags;
       window : Window.t option;
@@ -1674,16 +1656,6 @@ module Message_box = struct
       message : string;
       buttons : button_data list;
       color_scheme : color_scheme option }
-
-  let data = structure "SDL_MessageBoxData"
-  let d_flags = field data "flags" uint32_t
-  let d_window = field data "window" Window.opt
-  let d_title = field data "title" string
-  let d_message = field data "message" string
-  let d_numbuttons = field data "numbuttons" int
-  let d_buttons = field data "buttons" (ptr button_data)
-  let d_color_scheme = field data "colorScheme" (ptr color_scheme)
-  let () = seal data
 
   let buttons_to_c bl =
     let button_data_to_c b =
@@ -1696,8 +1668,8 @@ module Message_box = struct
     CArray.start (CArray.of_list button_data (List.map button_data_to_c bl))
 
   let color_scheme_to_c s =
-    let st = make color_scheme in
-    let colors = getf st colors in
+    let st = make C.Functions.Message_box.color_scheme in
+    let colors = getf st C.Functions.Message_box.colors in
     let set i (rv, gv, bv) =
       let ct = CArray.get colors i in
       setf ct color_r (Unsigned.UInt8.of_int rv);
@@ -1712,6 +1684,7 @@ module Message_box = struct
     st
 
   let data_to_c d =
+    let open C.Functions.Message_box in
     let dt = make data in
     setf dt d_flags d.flags;
     setf dt d_window d.window;
@@ -1720,37 +1693,23 @@ module Message_box = struct
     setf dt d_numbuttons (List.length d.buttons);
     setf dt d_buttons (buttons_to_c d.buttons);
     setf dt d_color_scheme
-      begin match d.color_scheme with
-      | None -> coerce (ptr void) (ptr color_scheme) null
-      | Some s -> addr (color_scheme_to_c s)
-      end;
+      (Option.map (fun s -> addr (color_scheme_to_c s)) d.color_scheme);
     dt
 end
-
-let show_message_box =
-  foreign "SDL_ShowMessageBox"
-    (ptr Message_box.data @-> ptr int @-> returning int)
 
 let show_message_box d =
   let d = addr (Message_box.data_to_c d) in
   let ret = allocate int 0 in
-  match show_message_box d ret with
+  match C.Functions.Message_box.show d ret with
   | 0 -> Ok (!@ ret) | _ -> error ()
 
-let show_simple_message_box =
-  foreign "SDL_ShowSimpleMessageBox"
-    (uint32_t @-> string @-> string @-> Window.opt @-> returning int)
-
 let show_simple_message_box t ~title msg w =
-  show_simple_message_box t title msg w |> zero_to_ok
+  zero_to_ok (C.Functions.Message_box.show_simple t title msg w)
 
 (* Clipboard *)
 
-let get_clipboard_text =
-  foreign "SDL_GetClipboardText" (void @-> returning (ptr char))
-
 let get_clipboard_text () =
-  let p = get_clipboard_text () in
+  let p = C.Functions.get_clipboard_text () in
   if (to_voidp p) = null then error () else
   let b = Buffer.create 255 in
   let ptr = ref p in
@@ -1761,12 +1720,10 @@ let get_clipboard_text () =
   sdl_free (to_voidp p);
   Ok (Buffer.contents b)
 
-let has_clipboard_text =
-  foreign "SDL_HasClipboardText" (void @-> returning bool)
+let has_clipboard_text = C.Functions.has_clipboard_text
 
-let set_clipboard_text =
-  foreign "SDL_SetClipboardText" (string @-> returning int)
-let set_clipboard_text s = set_clipboard_text s |> zero_to_ok
+let set_clipboard_text s =
+  zero_to_ok (C.Functions.set_clipboard_text s)
 
 (* Input *)
 
@@ -1781,7 +1738,6 @@ let enable = C.Types.enable
 (* Keyboard *)
 
 type scancode = int
-let scancode = int
 
 module Scancode = struct
   include C.Types.Scancode
@@ -1838,70 +1794,50 @@ module Scancode = struct
 end
 
 type keycode = int
-let keycode = int
 
 module K = C.Types.K
 
-type keymod = int
-let keymod = int_as_uint16_t
+type keymod = Unsigned.UInt16.t
 
 module Kmod = C.Types.Kmod
 
-let get_keyboard_focus =
-  foreign "SDL_GetKeyboardFocus" (void @-> returning Window.opt)
-
-let get_keyboard_state =
-  foreign "SDL_GetKeyboardState" (ptr int @-> returning (ptr int))
+let get_keyboard_focus = C.Functions.get_keyboard_focus
 
 let get_keyboard_state () =
   let count = allocate int 0 in
-  let p = get_keyboard_state count in
-  bigarray_of_ptr array1 (!@ count) Bigarray.int8_unsigned p
+  let p = C.Functions.get_keyboard_state count in
+  let p' = coerce (ptr uint8_t) (ptr int) p in
+  let a  = CArray.from_ptr p' (!@ count) in
+  bigarray_of_array array1 Bigarray.int8_unsigned a
 
-let get_key_from_name =
-  foreign "SDL_GetKeyFromName" (string @-> returning keycode)
+let get_key_from_name = C.Functions.get_key_from_name
 
-let get_key_from_scancode =
-  foreign "SDL_GetKeyFromScancode" (scancode @-> returning keycode)
+let get_key_from_scancode = C.Functions.get_key_from_scancode
 
-let get_key_name =
-  foreign "SDL_GetKeyName" (keycode @-> returning string)
+let get_key_name = C.Functions.get_key_name
 
-let get_mod_state =
-  foreign "SDL_GetModState" (void @-> returning keymod)
+let get_mod_state = C.Functions.get_mod_state
 
-let get_scancode_from_key =
-  foreign "SDL_GetScancodeFromKey" (keycode @-> returning scancode)
+let get_scancode_from_key = C.Functions.get_scancode_from_key
 
-let get_scancode_from_name =
-  foreign "SDL_GetScancodeFromName" (string @-> returning scancode)
+let get_scancode_from_name = C.Functions.get_scancode_from_name
 
-let get_scancode_name =
-  foreign "SDL_GetScancodeName" (scancode @-> returning string)
+let get_scancode_name = C.Functions. get_scancode_name
 
-let has_screen_keyboard_support =
-  foreign "SDL_HasScreenKeyboardSupport" (void @-> returning bool)
+let has_screen_keyboard_support = C.Functions.has_screen_keyboard_support
 
-let is_screen_keyboard_shown =
-  foreign "SDL_IsScreenKeyboardShown" (Window.t @-> returning bool)
+let is_screen_keyboard_shown = C.Functions.is_screen_keyboard_shown
 
-let is_text_input_active =
-  foreign "SDL_IsTextInputActive" (void @-> returning bool)
+let is_text_input_active = C.Functions.is_text_input_active
 
-let set_mod_state =
-  foreign "SDL_SetModState" (keymod @-> returning void)
-
-let set_text_input_rect =
-  foreign "SDL_SetTextInputRect" (ptr C.Types.Rect.t @-> returning void)
+let set_mod_state = C.Functions.set_mod_state
 
 let set_text_input_rect r =
-  set_text_input_rect (Rect.opt_addr r)
+  C.Functions.set_text_input_rect (Rect.opt_addr r)
 
-let start_text_input =
-  foreign "SDL_StartTextInput" (void @-> returning void)
+let start_text_input = C.Functions.start_text_input
 
-let stop_text_input =
-  foreign "SDL_StopTextInput" (void @-> returning void)
+let stop_text_input = C.Functions.stop_text_input
 
 (* Mouse *)
 
@@ -2504,9 +2440,9 @@ module Event = struct
     let _padding2 = field t "padding2" uint8_t
     let _padding3 = field t "padding3" uint8_t
     (* We inline the definition of SDL_Keysym *)
-    let scancode = field t "scancode" scancode
-    let keycode = field t "sym" keycode
-    let keymod = field t "mod" keymod
+    let scancode = field t "scancode" int
+    let keycode = field t "sym" int
+    let keymod = field t "mod" uint16_t
     let _unused = field t "unused" uint32_t
     let () = seal t
   end

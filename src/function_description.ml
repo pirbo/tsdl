@@ -914,6 +914,102 @@ module Functions (F : FOREIGN) = struct
            (Types.Window.t @-> ptr int @-> ptr int @-> returning void))
   end
 
+  let disable_screen_saver =
+    F.(foreign "SDL_DisableScreenSaver" (void @-> returning void))
+
+  let enable_screen_saver =
+    F.(foreign "SDL_EnableScreenSaver" (void @-> returning void))
+
+  let is_screen_saver_enabled =
+    F.(foreign "SDL_IsScreenSaverEnabled" (void @-> returning bool))
+
+  module Message_box = struct
+    type _color_scheme
+    let color_scheme : _color_scheme structure typ = structure "SDL_MessageBoxColorScheme"
+    let colors = field color_scheme "colors" (array Types.Message_box.color_button_max Types.Message_box.color)
+    let () = seal color_scheme
+
+    type _data
+    let data : _data structure typ = structure "SDL_MessageBoxData"
+    let d_flags = field data "flags" uint32_t
+    let d_window = field data "window" Types.Window.opt
+    let d_title = field data "title" string
+    let d_message = field data "message" string
+    let d_numbuttons = field data "numbuttons" int
+    let d_buttons = field data "buttons" (ptr Types.Message_box.button_data)
+    let d_color_scheme = field data "colorScheme" (ptr_opt color_scheme)
+    let () = seal data
+
+    let show =
+      F.(foreign "SDL_ShowMessageBox"
+           ((ptr (typedef data "SDL_MessageBoxData")) @-> ptr int @-> returning int))
+
+    let show_simple =
+      F.(foreign "SDL_ShowSimpleMessageBox"
+           (uint32_t @-> string @-> string @-> Types.Window.opt @-> returning int))
+  end
+
+  let get_clipboard_text =
+    F.(foreign "SDL_GetClipboardText" (void @-> returning (ptr char)))
+
+  let has_clipboard_text =
+    F.(foreign "SDL_HasClipboardText" (void @-> returning bool))
+
+  let set_clipboard_text =
+    F.(foreign "SDL_SetClipboardText" (string @-> returning int))
+
+  let scancode = int
+  let keycode = int
+  let keymod = uint16_t
+
+  let get_keyboard_focus =
+    F.(foreign "SDL_GetKeyboardFocus" (void @-> returning Types.Window.opt))
+
+  let get_keyboard_state =
+    F.(foreign "SDL_GetKeyboardState" (ptr int @-> returning (ptr (const uint8_t))))
+
+  let get_key_from_name =
+    F.(foreign "SDL_GetKeyFromName" (string @-> returning keycode))
+
+  let get_key_from_scancode =
+    F.(foreign "SDL_GetKeyFromScancode" (scancode @-> returning keycode))
+
+  let get_key_name =
+    F.(foreign "SDL_GetKeyName" (keycode @-> returning string))
+
+  let get_mod_state =
+    F.(foreign "SDL_GetModState" (void @-> returning keymod))
+
+  let get_scancode_from_key =
+    F.(foreign "SDL_GetScancodeFromKey" (keycode @-> returning scancode))
+
+  let get_scancode_from_name =
+    F.(foreign "SDL_GetScancodeFromName" (string @-> returning scancode))
+
+  let get_scancode_name =
+    F.(foreign "SDL_GetScancodeName" (scancode @-> returning string))
+
+  let has_screen_keyboard_support =
+    F.(foreign "SDL_HasScreenKeyboardSupport" (void @-> returning bool))
+
+  let is_screen_keyboard_shown =
+    F.(foreign "SDL_IsScreenKeyboardShown" (Types.Window.t @-> returning bool))
+
+  let is_text_input_active =
+    F.(foreign "SDL_IsTextInputActive" (void @-> returning bool))
+
+  let set_mod_state =
+    F.(foreign "SDL_SetModState" (keymod @-> returning void))
+
+  let set_text_input_rect =
+    F.(foreign "SDL_SetTextInputRect" (ptr Types.Rect.t @-> returning void))
+
+  let start_text_input =
+    F.(foreign "SDL_StartTextInput" (void @-> returning void))
+
+  let stop_text_input =
+    F.(foreign "SDL_StopTextInput" (void @-> returning void))
+
   let pump_events =
     F.(foreign "SDL_PumpEvents" (void @-> returning void))
 end

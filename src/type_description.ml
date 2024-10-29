@@ -273,7 +273,7 @@ module Types (F : Ctypes.TYPE) = struct
 
   type _display_mode
   let display_mode : _display_mode Ctypes_static.structure F.typ =
-    F.typedef (F.structure "_") "SDL_DisplayMode"
+    F.typedef (F.structure "_display_mode") "SDL_DisplayMode"
   let dm_format = F.field display_mode "format" F.uint32_t
   let dm_w = F.field display_mode "w" F.int
   let dm_h = F.field display_mode "h" F.int
@@ -383,6 +383,23 @@ module Types (F : Ctypes.TYPE) = struct
     let color_button_background = F.constant "SDL_MESSAGEBOX_COLOR_BUTTON_BACKGROUND" F.int
     let color_button_selected = F.constant "SDL_MESSAGEBOX_COLOR_BUTTON_SELECTED" F.int
     let color_button_max = F.constant "SDL_MESSAGEBOX_COLOR_MAX" F.int
+
+    type _button_data
+    let button_data : _button_data Ctypes_static.structure F.typ =
+      F.typedef (F.structure "_message_box_button_data") "SDL_MessageBoxButtonData"
+    let button_flags = F.field button_data "flags" F.uint32_t
+    let button_buttonid = F.field button_data "buttonid" F.int
+    let button_text = F.field button_data "text" F.string
+    let () = F.seal button_data
+
+    type _color
+    let color : _color Ctypes_static.structure F.typ =
+      F.typedef (F.structure "_messge_box_color") "SDL_MessageBoxColor"
+    let color_r = F.field color "r" F.uint8_t
+    let color_g = F.field color "g" F.uint8_t
+    let color_b = F.field color "b" F.uint8_t
+    let () = F.seal color
+
   end
 
   module Scancode = struct
@@ -870,23 +887,23 @@ module Types (F : Ctypes.TYPE) = struct
   end
 
   module Kmod = struct
-    let none = F.constant "KMOD_NONE" F.int
-    let lshift = F.constant "KMOD_LSHIFT" F.int
-    let rshift = F.constant "KMOD_RSHIFT" F.int
-    let lctrl = F.constant "KMOD_LCTRL" F.int
-    let rctrl = F.constant "KMOD_RCTRL" F.int
-    let lalt = F.constant "KMOD_LALT" F.int
-    let ralt = F.constant "KMOD_RALT" F.int
-    let lgui = F.constant "KMOD_LGUI" F.int
-    let rgui = F.constant "KMOD_RGUI" F.int
-    let num = F.constant "KMOD_NUM" F.int
-    let caps = F.constant "KMOD_CAPS" F.int
-    let mode = F.constant "KMOD_MODE" F.int
-    let reserved = F.constant "KMOD_RESERVED" F.int
-    let ctrl = F.constant "KMOD_CTRL" F.int
-    let shift = F.constant "KMOD_SHIFT" F.int
-    let alt = F.constant "KMOD_ALT" F.int
-    let gui = F.constant "KMOD_GUI" F.int
+    let none = F.constant "KMOD_NONE" F.uint16_t
+    let lshift = F.constant "KMOD_LSHIFT" F.uint16_t
+    let rshift = F.constant "KMOD_RSHIFT" F.uint16_t
+    let lctrl = F.constant "KMOD_LCTRL" F.uint16_t
+    let rctrl = F.constant "KMOD_RCTRL" F.uint16_t
+    let lalt = F.constant "KMOD_LALT" F.uint16_t
+    let ralt = F.constant "KMOD_RALT" F.uint16_t
+    let lgui = F.constant "KMOD_LGUI" F.uint16_t
+    let rgui = F.constant "KMOD_RGUI" F.uint16_t
+    let num = F.constant "KMOD_NUM" F.uint16_t
+    let caps = F.constant "KMOD_CAPS" F.uint16_t
+    let mode = F.constant "KMOD_MODE" F.uint16_t
+    let reserved = F.constant "KMOD_RESERVED" F.uint16_t
+    let ctrl = F.constant "KMOD_CTRL" F.uint16_t
+    let shift = F.constant "KMOD_SHIFT" F.uint16_t
+    let alt = F.constant "KMOD_ALT" F.uint16_t
+    let gui = F.constant "KMOD_GUI" F.uint16_t
   end
 
   module System_cursor = struct
