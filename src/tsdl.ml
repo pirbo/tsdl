@@ -1927,86 +1927,43 @@ let gesture_id = int64_t
 type finger_id = int64
 let finger_id = int64_t
 
-type _finger
-type finger = _finger structure
-let finger : finger typ = structure "SDL_Finger"
-let finger_finger_id = field finger "id" finger_id
-let finger_x = field finger "x" float
-let finger_y = field finger "y" float
-let finger_pressure = field finger "pressure" float
-let () = seal finger
-
 module Finger = struct
-  let id f = getf f finger_finger_id
-  let x f = getf f finger_x
-  let y f = getf f finger_y
-  let pressure f = getf f finger_pressure
+  include C.Types.Finger
+
+  let id f = getf f id
+  let x f = getf f x
+  let y f = getf f y
+  let pressure f = getf f pressure
 end
+type finger = Finger.t
 
-let get_num_touch_devices =
-  foreign "SDL_GetNumTouchDevices" (void @-> returning int)
+let get_num_touch_devices = C.Functions.get_num_touch_devices
 
-let get_num_touch_fingers =
-  foreign "SDL_GetNumTouchFingers" (touch_id @-> returning int)
-
-let get_touch_device =
-  foreign "SDL_GetTouchDevice" (int @-> returning touch_id)
+let get_num_touch_fingers = C.Functions.get_num_touch_fingers
 
 let get_touch_device i =
-  match get_touch_device i with
+  match C.Functions.get_touch_device i with
   | 0L -> error () | id -> Ok id
 
-let get_touch_finger =
-  foreign "SDL_GetTouchFinger"
-    (touch_id @-> int @-> returning (ptr_opt finger))
-
 let get_touch_finger id i =
-  match get_touch_finger id i with
+  match C.Functions.get_touch_finger id i with
   | None -> None | Some p -> Some (!@ p)
 
-let load_dollar_templates =
-  foreign "SDL_LoadDollarTemplates"
-    (touch_id @-> C.Types.rw_ops @-> returning int)
-let load_dollar_templates x y = load_dollar_templates x y |> zero_to_ok
+let load_dollar_templates x y =
+  zero_to_ok (C.Functions.load_dollar_templates x y)
 
-let record_gesture =
-  foreign "SDL_RecordGesture" (touch_id @-> returning int)
-let record_gesture i = record_gesture i |> one_to_ok
+let record_gesture i =
+  one_to_ok (C.Functions.record_gesture i)
 
-let save_dollar_template =
-  foreign "SDL_SaveDollarTemplate"
-    (gesture_id @-> C.Types.rw_ops @-> returning int)
-let save_dollar_template x y = save_dollar_template x y |> zero_to_ok
+let save_dollar_template x y =
+  zero_to_ok (C.Functions.save_dollar_template x y)
 
-let save_all_dollar_templates =
-  foreign "SDL_SaveAllDollarTemplates" (C.Types.rw_ops @-> returning int)
-let save_all_dollar_templates o = save_all_dollar_templates o |> zero_to_ok
+let save_all_dollar_templates o =
+  zero_to_ok (C.Functions.save_all_dollar_templates o)
 
 (* Joystick *)
 
-type _joystick_guid
-type joystick_guid = _joystick_guid structure
-let joystick_guid : joystick_guid typ = structure "SDL_JoystickGUID"
-(* FIXME: No array here, see
-   https://github.com/ocamllabs/ocaml-ctypes/issues/113 *)
-(* let _= field joystick_guid "data" (array 16 uint8_t) *)
-let _= field joystick_guid "data0" uint8_t
-let _= field joystick_guid "data1" uint8_t
-let _= field joystick_guid "data2" uint8_t
-let _= field joystick_guid "data3" uint8_t
-let _= field joystick_guid "data4" uint8_t
-let _= field joystick_guid "data5" uint8_t
-let _= field joystick_guid "data6" uint8_t
-let _= field joystick_guid "data7" uint8_t
-let _= field joystick_guid "data8" uint8_t
-let _= field joystick_guid "data9" uint8_t
-let _= field joystick_guid "data10" uint8_t
-let _= field joystick_guid "data11" uint8_t
-let _= field joystick_guid "data12" uint8_t
-let _= field joystick_guid "data13" uint8_t
-let _= field joystick_guid "data14" uint8_t
-let _= field joystick_guid "data15" uint8_t
-let () = seal joystick_guid
+type joystick_guid = C.Types.guid
 
 type joystick_id = int32
 let joystick_id = int32_t
@@ -2026,20 +1983,14 @@ module Joystick_power_level = C.Types.Joystick_power_level
 
 module Joystick_type = C.Types.Joystick_type
 
-let joystick_close =
-  foreign "SDL_JoystickClose" (joystick @-> returning void)
+let joystick_close = C.Functions.joystick_close
 
-let joystick_current_power_level =
-  foreign "SDL_JoystickCurrentPowerLevel"
-    (joystick @-> returning int)
+let joystick_current_power_level = C.Functions.joystick_current_power_level
 
-let joystick_event_state =
-  foreign "SDL_JoystickEventState" (int @-> returning int)
 let joystick_event_state i =
-  joystick_event_state i |> nat_to_ok |> Result.map Unsigned.UInt8.of_int
+  C.Functions.joystick_event_state i |> nat_to_ok |> Result.map Unsigned.UInt8.of_int
 
-let joystick_from_instance_id =
-  foreign "SDL_JoystickFromInstanceID" (joystick_id @-> returning joystick)
+let joystick_from_instance_id = C.Functions.joystick_from_instance_id
 
 let joystick_get_event_state () =
   joystick_event_state C.Types.sdl_query
@@ -2047,122 +1998,92 @@ let joystick_get_event_state () =
 let joystick_set_event_state s =
   joystick_event_state (Unsigned.UInt8.to_int s)
 
-let joystick_get_attached =
-  foreign "SDL_JoystickGetAttached" (joystick @-> returning bool)
+let joystick_get_attached = C.Functions.joystick_get_attached
 
-let joystick_get_axis =
-  foreign "SDL_JoystickGetAxis" (joystick @-> int @-> returning int16_t)
+let joystick_get_axis = C.Functions.joystick_get_axis
 
-let joystick_get_axis_initial_state =
-  foreign "SDL_JoystickGetAxisInitialState"
-    (joystick @-> int @-> returning int16_t)
-
-let joystick_get_ball =
-  foreign "SDL_JoystickGetBall"
-    (joystick @-> int @-> (ptr int) @-> (ptr int) @-> returning int)
+let joystick_get_axis_initial_state j i =
+  let out = allocate int16_t 0 in
+  (* FIXME: should probably be an option, no? *)
+  if C.Functions.joystick_get_axis_initial_state j i out then !@ out else 0
 
 let joystick_get_ball j i =
   let x = allocate int 0 in
   let y = allocate int 0 in
-  match joystick_get_ball j i x y with
+  match C.Functions.joystick_get_ball j i x y with
   | 0 -> Ok (!@ x, !@ y) | _ -> error ()
 
-let joystick_get_button =
-  foreign "SDL_JoystickGetButton"
-    (joystick @-> int @-> returning int_as_uint8_t)
+let joystick_get_button j i =
+  Unsigned.UInt8.to_int (C.Functions.joystick_get_button j i)
 
-let joystick_get_device_guid =
-  foreign "SDL_JoystickGetDeviceGUID" (int @-> returning joystick_guid)
+let joystick_get_device_guid = C.Functions.joystick_get_device_guid
 
-let joystick_get_device_product =
-  foreign "SDL_JoystickGetDeviceProduct" (int @-> returning int_as_uint16_t)
+let joystick_get_device_product i =
+  Unsigned.UInt16.to_int (C.Functions.joystick_get_device_product i)
 
-let joystick_get_device_product_version =
-  foreign "SDL_JoystickGetDeviceProductVersion"
-    (int @-> returning int_as_uint16_t)
+let joystick_get_device_product_version i =
+  Unsigned.UInt16.to_int (C.Functions.joystick_get_device_product_version i)
 
-let joystick_get_device_type =
-  foreign "SDL_JoystickGetDeviceType" (int @-> returning int)
+let joystick_get_device_type = C.Functions.joystick_get_device_type
 
-let joystick_get_device_instance_id =
-  foreign "SDL_JoystickGetDeviceInstanceID" (int @-> returning joystick_id)
+let joystick_get_device_instance_id = C.Functions.joystick_get_device_instance_id
 
-let joystick_get_device_vendor =
-  foreign "SDL_JoystickGetDeviceVendor" (int @-> returning int_as_uint16_t)
+let joystick_get_device_vendor i =
+  Unsigned.UInt16.to_int (C.Functions.joystick_get_device_vendor i)
 
-let joystick_get_guid =
-  foreign "SDL_JoystickGetGUID" (joystick @-> returning joystick_guid)
+let joystick_get_guid = C.Functions.joystick_get_guid
 
-let joystick_get_guid_from_string =
-  foreign "SDL_JoystickGetGUIDFromString" (string @-> returning joystick_guid)
-
-let joystick_get_guid_string =
-  foreign "SDL_JoystickGetGUIDString"
-    (joystick_guid @-> ptr char @-> int @-> returning void)
+let joystick_get_guid_from_string = C.Functions.joystick_get_guid_from_string
 
 let joystick_get_guid_string guid =
   let len = 33 in
   let s = CArray.start (CArray.make char 33) in
-  joystick_get_guid_string guid s len;
+  C.Functions.joystick_get_guid_string guid s len;
   coerce (ptr char) string s
 
-let joystick_get_hat =
-  foreign "SDL_JoystickGetHat" (joystick @-> int @-> returning int_as_uint8_t)
+let joystick_get_hat j i =
+    Unsigned.UInt8.to_int (C.Functions.joystick_get_hat j i)
 
-let joystick_get_product =
-  foreign "SDL_JoystickGetProduct" (joystick @-> returning int_as_uint16_t)
+let joystick_get_product j =
+  Unsigned.UInt16.to_int (C.Functions.joystick_get_product j)
 
-let joystick_get_product_version =
-  foreign "SDL_JoystickGetProductVersion"
-    (joystick @-> returning int_as_uint16_t)
+let joystick_get_product_version j =
+  Unsigned.UInt16.to_int (C.Functions.joystick_get_product_version j)
 
-let joystick_get_type =
-  foreign "SDL_JoystickGetType" (joystick @-> returning int)
+let joystick_get_type = C.Functions.joystick_get_type
 
-let joystick_get_vendor =
-  foreign "SDL_JoystickGetVendor" (joystick @-> returning int_as_uint16_t)
-
-let joystick_instance_id =
-  foreign "SDL_JoystickInstanceID" (joystick @-> returning joystick_id)
+let joystick_get_vendor j =
+  Unsigned.UInt16.to_int (C.Functions.joystick_get_vendor j)
 
 let joystick_instance_id j =
-  match joystick_instance_id j with
+  match C.Functions.joystick_instance_id j with
   | n when n < 0l -> error () | n -> Ok n
 
-let joystick_name =
-  foreign "SDL_JoystickName" (joystick @-> returning string_opt)
-let joystick_name j = joystick_name j |> some_to_ok
+let joystick_name j =
+  some_to_ok (C.Functions.joystick_name j)
 
-let joystick_name_for_index =
-  foreign "SDL_JoystickNameForIndex" (int @-> returning string_opt)
-let joystick_name_for_index i = joystick_name_for_index i |> some_to_ok
+let joystick_name_for_index i =
+  some_to_ok (C.Functions.joystick_name_for_index i)
 
-let joystick_num_axes =
-  foreign "SDL_JoystickNumAxes" (joystick @-> returning int)
-let joystick_num_axes j = joystick_num_axes j |> nat_to_ok
+let joystick_num_axes j =
+  nat_to_ok (C.Functions.joystick_num_axes j)
 
-let joystick_num_balls =
-  foreign "SDL_JoystickNumBalls" (joystick @-> returning int)
-let joystick_num_balls j = joystick_num_balls j |> nat_to_ok
+let joystick_num_balls j =
+  nat_to_ok (C.Functions.joystick_num_balls j)
 
-let joystick_num_buttons =
-  foreign "SDL_JoystickNumButtons" (joystick @-> returning int)
-let joystick_num_buttons j = joystick_num_buttons j |> nat_to_ok
+let joystick_num_buttons j =
+  nat_to_ok (C.Functions.joystick_num_buttons j)
 
-let joystick_num_hats =
-  foreign "SDL_JoystickNumHats" (joystick @-> returning int)
-let joystick_num_hats j = joystick_num_hats j |> nat_to_ok
+let joystick_num_hats j =
+  nat_to_ok (C.Functions.joystick_num_hats j)
 
-let joystick_open =
-  foreign "SDL_JoystickOpen" (int @-> returning joystick_opt)
-let joystick_open i = joystick_open i |> some_to_ok
+let joystick_open i =
+  some_to_ok (C.Functions.joystick_open i)
 
-let joystick_update =
-  foreign "SDL_JoystickUpdate" (void @-> returning void)
+let joystick_update = C.Functions.joystick_update
 
-let num_joysticks =
-  foreign "SDL_NumJoysticks" (void @-> returning int)
-let num_joysticks () = num_joysticks () |> nat_to_ok
+let num_joysticks () =
+  nat_to_ok (C.Functions.num_joysticks ())
 
 (* Game controller *)
 
@@ -2281,7 +2202,7 @@ let game_controller_mapping_for_index i = game_controller_mapping_for_index i |>
 
 let game_controller_mapping_for_guid =
   foreign "SDL_GameControllerMappingForGUID"
-    (joystick_guid @-> returning string_opt)
+    (C.Types.joystick_guid @-> returning string_opt)
 let game_controller_mapping_for_guid g = game_controller_mapping_for_guid g |> some_to_ok
 
 let game_controller_name =

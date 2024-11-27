@@ -394,7 +394,7 @@ module Types (F : Ctypes.TYPE) = struct
 
     type _color
     let color : _color Ctypes_static.structure F.typ =
-      F.typedef (F.structure "_messge_box_color") "SDL_MessageBoxColor"
+      F.typedef (F.structure "_message_box_color") "SDL_MessageBoxColor"
     let color_r = F.field color "r" F.uint8_t
     let color_g = F.field color "g" F.uint8_t
     let color_b = F.field color "b" F.uint8_t
@@ -937,6 +937,25 @@ module Types (F : Ctypes.TYPE) = struct
 
   (* Touch *)
   let touch_mouseid = F.constant "SDL_TOUCH_MOUSEID" F.int64_t
+
+  module Finger = struct
+    type _t
+    type t = _t Ctypes_static.structure
+    let t : t F.typ = F.structure "SDL_Finger"
+    let id = F.field t "id" F.int64_t
+    let x = F.field t "x" F.float
+    let y = F.field t "y" F.float
+    let pressure = F.field t "pressure" F.float
+    let () = F.seal t
+  end
+
+  type _guid
+  type guid = _guid Ctypes_static.structure
+  let guid : guid F.typ = F.typedef (F.structure "_guid") "SDL_GUID"
+  let _= F.field guid "data" F.(array 16 uint8_t)
+  let () = F.seal guid
+
+  let joystick_guid = F.typedef guid "SDL_JoystickGUID"
 
   module Hat = struct
     type t = int
