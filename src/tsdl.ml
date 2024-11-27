@@ -1842,8 +1842,6 @@ let stop_text_input = C.Functions.stop_text_input
 (* Mouse *)
 
 type cursor = unit ptr
-let cursor : cursor typ = ptr void
-let cursor_opt : cursor option typ = ptr_opt void
 
 let unsafe_cursor_of_ptr addr : cursor =
   ptr_of_raw_address addr
@@ -1857,106 +1855,65 @@ end
 
 module Button = C.Types.Button
 
-let capture_mouse =
-  foreign "SDL_CaptureMouse" (bool @-> returning int)
-let capture_mouse b = capture_mouse b |> zero_to_ok
-
-let create_color_cursor =
-  foreign "SDL_CreateColorCursor"
-    (ptr C.Types.surface @-> int @-> int @-> returning cursor_opt)
+let capture_mouse b = zero_to_ok (C.Functions.capture_mouse b)
 
 let create_color_cursor s ~hot_x ~hot_y =
-  create_color_cursor s hot_x hot_y |> some_to_ok
-
-let create_cursor =
-  foreign "SDL_CreateCursor"
-    (ptr void @-> ptr void @-> int @-> int @-> int @-> int @->
-     returning cursor_opt)
+  some_to_ok (C.Functions.create_color_cursor s hot_x hot_y)
 
 let create_cursor d m ~w ~h ~hot_x ~hot_y =
   (* FIXME: we could try to check bounds *)
   let d = to_voidp (bigarray_start array1 d) in
   let m = to_voidp (bigarray_start array1 m) in
-  create_cursor d m w h hot_x hot_y |> some_to_ok
+  some_to_ok (C.Functions.create_cursor d m w h hot_x hot_y)
 
-let create_system_cursor =
-  foreign "SDL_CreateSystemCursor"
-    (int @-> returning cursor_opt)
-let create_system_cursor i = create_system_cursor i |> some_to_ok
+let create_system_cursor i =
+  some_to_ok (C.Functions.create_system_cursor i)
 
-let free_cursor =
-  foreign "SDL_FreeCursor" (cursor @-> returning void)
+let free_cursor = C.Functions.free_cursor
 
-let get_cursor =
-  foreign "SDL_GetCursor" (void @-> returning cursor_opt)
+let get_cursor = C.Functions.get_cursor
 
-let get_default_cursor =
-  foreign "SDL_GetDefaultCursor" (void @-> returning cursor_opt)
-
-let get_global_mouse_state =
-  foreign "SDL_GetGlobalMouseState"
-    (ptr int @-> ptr int @-> returning int32_as_uint32_t)
+let get_default_cursor = C.Functions.get_default_cursor
 
 let get_global_mouse_state () =
   let x = allocate int 0 in
   let y = allocate int 0 in
-  let s = get_global_mouse_state x y in
-  s, (!@ x, !@ y)
+  let s = C.Functions.get_global_mouse_state x y in
+  Unsigned.UInt32.to_int32 s, (!@ x, !@ y)
 
 let get_mouse_focus =
-  foreign "SDL_GetMouseFocus" (void @-> returning Window.opt)
-
-let get_mouse_state =
-  foreign "SDL_GetMouseState"
-    (ptr int @-> ptr int @-> returning int32_as_uint32_t)
+  C.Functions.get_mouse_focus
 
 let get_mouse_state () =
   let x = allocate int 0 in
   let y = allocate int 0 in
-  let s = get_mouse_state x y in
-  s, (!@ x, !@ y)
+  let s = C.Functions.get_mouse_state x y in
+  Unsigned.UInt32.to_int32 s, (!@ x, !@ y)
 
-let get_relative_mouse_mode =
-  foreign "SDL_GetRelativeMouseMode" (void @-> returning bool)
+let get_relative_mouse_mode = C.Functions.get_relative_mouse_mode
 
-let get_relative_mouse_state =
-  foreign "SDL_GetRelativeMouseState"
-    (ptr int @-> ptr int @-> returning int32_as_uint32_t)
-
-let get_relative_mouse_state () =
+  let get_relative_mouse_state () =
   let x = allocate int 0 in
   let y = allocate int 0 in
-  let s = get_relative_mouse_state x y in
-  s, (!@ x, !@ y)
-
-let show_cursor =
-  foreign "SDL_ShowCursor" (int @-> returning int)
+  let s = C.Functions.get_relative_mouse_state x y in
+  Unsigned.UInt32.to_int32 s, (!@ x, !@ y)
 
 let get_cursor_shown () =
-  show_cursor (-1) |> bool_to_ok
+  bool_to_ok (C.Functions.show_cursor (-1))
 
-let set_cursor =
-  foreign "SDL_SetCursor" (cursor_opt @-> returning void)
+let set_cursor = C.Functions.set_cursor
 
-let set_relative_mouse_mode =
-  foreign "SDL_SetRelativeMouseMode" (bool @-> returning int)
-let set_relative_mouse_mode b = set_relative_mouse_mode b |> zero_to_ok
+let set_relative_mouse_mode b =
+  zero_to_ok (C.Functions.set_relative_mouse_mode b)
 
 let show_cursor b =
-  show_cursor (if b then 1 else 0) |> bool_to_ok
-
-let warp_mouse_in_window =
-  foreign "SDL_WarpMouseInWindow"
-    (Window.opt @-> int @-> int @-> returning void)
+  bool_to_ok (C.Functions.show_cursor (if b then 1 else 0))
 
 let warp_mouse_in_window w ~x ~y =
-  warp_mouse_in_window w x y
-
-let warp_mouse_global=
-  foreign "SDL_WarpMouseGlobal" (int @-> int @-> returning int)
+  C.Functions.warp_mouse_in_window w x y
 
 let warp_mouse_global ~x ~y =
-  warp_mouse_global x y |> zero_to_ok
+  zero_to_ok (C.Functions.warp_mouse_global x y)
 
 (* Touch *)
 

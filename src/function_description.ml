@@ -1010,6 +1010,65 @@ module Functions (F : FOREIGN) = struct
   let stop_text_input =
     F.(foreign "SDL_StopTextInput" (void @-> returning void))
 
+  let capture_mouse =
+    F.(foreign "SDL_CaptureMouse" (bool @-> returning int))
+
+  let create_color_cursor =
+    F.(foreign "SDL_CreateColorCursor"
+         (ptr Types.surface @-> int @-> int @-> returning (ptr_opt void)))
+
+  let create_cursor =
+    F.(foreign "SDL_CreateCursor"
+         (ptr void @-> ptr void @-> int @-> int @-> int @-> int @->
+          returning (ptr_opt void)))
+
+  let create_system_cursor =
+    F.(foreign "SDL_CreateSystemCursor"
+         (int @-> returning (ptr_opt void)))
+
+  let free_cursor =
+    F.(foreign "SDL_FreeCursor" (ptr void @-> returning void))
+
+  let get_cursor =
+    F.(foreign "SDL_GetCursor" (void @-> returning (ptr_opt void)))
+
+  let get_default_cursor =
+    F.(foreign "SDL_GetDefaultCursor" (void @-> returning (ptr_opt void)))
+
+  let get_global_mouse_state =
+    F.(foreign "SDL_GetGlobalMouseState"
+         (ptr int @-> ptr int @-> returning uint32_t))
+
+  let get_mouse_focus =
+    F.(foreign "SDL_GetMouseFocus" (void @-> returning Types.Window.opt))
+
+  let get_mouse_state =
+    F.(foreign "SDL_GetMouseState"
+         (ptr int @-> ptr int @-> returning uint32_t))
+
+  let get_relative_mouse_mode =
+    F.(foreign "SDL_GetRelativeMouseMode" (void @-> returning bool))
+
+  let get_relative_mouse_state =
+    F.(foreign "SDL_GetRelativeMouseState"
+         (ptr int @-> ptr int @-> returning uint32_t))
+
+  let show_cursor =
+    F.(foreign "SDL_ShowCursor" (int @-> returning int))
+
+  let set_cursor =
+    F.(foreign "SDL_SetCursor" (ptr_opt void @-> returning void))
+
+  let set_relative_mouse_mode =
+    F.(foreign "SDL_SetRelativeMouseMode" (bool @-> returning int))
+
+  let warp_mouse_in_window =
+    F.(foreign "SDL_WarpMouseInWindow"
+         (Types.Window.opt @-> int @-> int @-> returning void))
+
+  let warp_mouse_global=
+    F.(foreign "SDL_WarpMouseGlobal" (int @-> int @-> returning int))
+
   let pump_events =
     F.(foreign "SDL_PumpEvents" (void @-> returning void))
 end
