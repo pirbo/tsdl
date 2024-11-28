@@ -1202,6 +1202,99 @@ module Functions (F : FOREIGN) = struct
   let num_joysticks =
     F.(foreign "SDL_NumJoysticks" (void @-> returning int))
 
+  let game_controller_add_mapping =
+    F.(foreign "SDL_GameControllerAddMapping" (string @-> returning int))
+
+  let game_controller_add_mapping_from_rw =
+    F.(foreign "SDL_GameControllerAddMappingsFromRW"
+         (Types.rw_ops @-> bool @-> returning int))
+
+  let game_controller_close =
+    F.(foreign "SDL_GameControllerClose" (ptr Types.game_controller @-> returning void))
+
+  let game_controller_event_state =
+    F.(foreign "SDL_GameControllerEventState" (int @-> returning int))
+
+  let game_controller_from_instance_id =
+    F.(foreign "SDL_GameControllerFromInstanceID"
+         (int32_t @-> returning (ptr Types.game_controller)))
+
+  let game_controller_get_attached =
+    F.(foreign "SDL_GameControllerGetAttached"
+         (ptr Types.game_controller @-> returning bool))
+
+  let game_controller_get_axis =
+    F.(foreign "SDL_GameControllerGetAxis"
+         (ptr Types.game_controller @-> int @-> returning int16_t))
+
+  let game_controller_get_axis_from_string =
+    F.(foreign "SDL_GameControllerGetAxisFromString"
+         (string @-> returning int))
+
+  let game_controller_get_button =
+    F.(foreign "SDL_GameControllerGetButton"
+         (ptr Types.game_controller @-> int @-> returning uint8_t))
+
+  let game_controller_get_button_from_string =
+    F.(foreign "SDL_GameControllerGetButtonFromString" (string @-> returning int))
+
+  let game_controller_get_joystick =
+    F.(foreign "SDL_GameControllerGetJoystick"
+         (ptr Types.game_controller @-> returning (ptr_opt void)))
+
+  let game_controller_get_product =
+    F.(foreign "SDL_GameControllerGetProduct"
+         (ptr Types.game_controller @-> returning uint16_t))
+
+  let game_controller_get_product_version =
+    F.(foreign "SDL_GameControllerGetProductVersion"
+         (ptr Types.game_controller @-> returning uint16_t))
+
+  let game_controller_get_string_for_axis =
+    F.(foreign "SDL_GameControllerGetStringForAxis"
+         (int @-> returning const_string_opt))
+
+  let game_controller_get_string_for_button =
+    F.(foreign "SDL_GameControllerGetStringForButton"
+         (int @-> returning const_string_opt))
+
+  let game_controller_get_vendor =
+    F.(foreign "SDL_GameControllerGetVendor"
+         (ptr Types.game_controller @-> returning uint16_t))
+
+  let game_controller_mapping =
+    F.(foreign "SDL_GameControllerMapping"
+         (ptr Types.game_controller @-> returning const_string_opt))
+
+  let game_controller_mapping_for_index =
+    F.(foreign "SDL_GameControllerMappingForIndex"
+         (int @-> returning const_string_opt))
+
+  let game_controller_mapping_for_guid =
+    F.(foreign "SDL_GameControllerMappingForGUID"
+         (Types.joystick_guid @-> returning const_string_opt))
+
+  let game_controller_name =
+    F.(foreign "SDL_GameControllerName"
+         (ptr Types.game_controller @-> returning const_string_opt))
+
+  let game_controller_name_for_index =
+    F.(foreign "SDL_GameControllerNameForIndex"
+         (int @-> returning const_string_opt))
+
+  let game_controller_num_mappings =
+    F.(foreign "SDL_GameControllerNumMappings" (void @-> returning int))
+
+  let game_controller_open =
+    F.(foreign "SDL_GameControllerOpen"
+         (int @-> returning (ptr_opt Types.game_controller)))
+
+  let game_controller_update =
+    F.(foreign "SDL_GameControllerUpdate" (void @-> returning void))
+
+  let is_game_controller =
+    F.(foreign "SDL_IsGameController" (int @-> returning bool))
+
   let pump_events =
     F.(foreign "SDL_PumpEvents" (void @-> returning void))
 end

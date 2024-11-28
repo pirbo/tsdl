@@ -1031,6 +1031,12 @@ module Types (F : Ctypes.TYPE) = struct
     let button_max = F.constant "SDL_CONTROLLER_BUTTON_MAX" F.int
   end
 
+  type _game_controller
+
+  let game_controller :
+    _game_controller Ctypes_static.structure F.typ =
+    F.typedef (F.structure "_SDL_GameController") "SDL_GameController"
+
   let sdl_query = F.constant "SDL_QUERY" F.int
 
   let disable = F.constant "SDL_DISABLE" F.uint8_t

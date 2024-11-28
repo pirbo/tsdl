@@ -1970,7 +1970,6 @@ let joystick_id = int32_t
 
 type joystick = unit ptr
 let joystick : joystick typ = ptr void
-let joystick_opt : joystick option typ = ptr_opt void
 
 let unsafe_joystick_of_ptr addr : joystick =
   ptr_of_raw_address addr
@@ -2087,12 +2086,10 @@ let num_joysticks () =
 
 (* Game controller *)
 
-type game_controller = unit ptr
-let game_controller : game_controller typ = ptr void
-let game_controller_opt : game_controller option typ = ptr_opt void
+type game_controller = C.Types._game_controller structure ptr
 
 let unsafe_game_controller_of_ptr addr : game_controller =
-  ptr_of_raw_address addr
+  from_voidp C.Types.game_controller (ptr_of_raw_address addr)
 let unsafe_ptr_of_game_controller game_controller =
   raw_address_of_ptr (to_voidp game_controller)
 
@@ -2114,26 +2111,18 @@ module Controller = struct
   let bind_hat_value v = getf v button_bind_value1, getf v button_bind_value2
 end
 
-let game_controller_add_mapping =
-  foreign "SDL_GameControllerAddMapping" (string @-> returning int)
-let game_controller_add_mapping s = game_controller_add_mapping s |> bool_to_ok
+let game_controller_add_mapping s =
+  bool_to_ok (C.Functions.game_controller_add_mapping s)
 
-let game_controller_add_mapping_from_rw =
-  foreign "SDL_GameControllerAddMappingsFromRW"
-    (C.Types.rw_ops @-> bool @-> returning int)
-let game_controller_add_mapping_from_rw r b = game_controller_add_mapping_from_rw r b |> nat_to_ok
+let game_controller_add_mapping_from_rw r b =
+  nat_to_ok (C.Functions.game_controller_add_mapping_from_rw r b)
 
-let game_controller_close =
-  foreign "SDL_GameControllerClose" (game_controller @-> returning void)
+let game_controller_close = C.Functions.game_controller_close
 
-let game_controller_event_state =
-  foreign "SDL_GameControllerEventState" (int @-> returning int)
 let game_controller_event_state i =
-  game_controller_event_state i |> nat_to_ok |> Result.map Unsigned.UInt8.of_int
+  C.Functions.game_controller_event_state i |> nat_to_ok |> Result.map Unsigned.UInt8.of_int
 
-let game_controller_from_instance_id =
-  foreign "SDL_GameControllerFromInstanceID"
-    (joystick_id @-> returning game_controller)
+let game_controller_from_instance_id = C.Functions.game_controller_from_instance_id
 
 let game_controller_get_event_state () =
   game_controller_event_state C.Types.sdl_query
@@ -2141,93 +2130,68 @@ let game_controller_get_event_state () =
 let game_controller_set_event_state t =
   game_controller_event_state (Unsigned.UInt8.to_int t)
 
-let game_controller_get_attached =
-  foreign "SDL_GameControllerGetAttached" (game_controller @-> returning bool)
+let game_controller_get_attached = C.Functions.game_controller_get_attached
 
-let game_controller_get_axis =
-  foreign "SDL_GameControllerGetAxis"
-    (game_controller @-> int @-> returning int16_t)
+let game_controller_get_axis = C.Functions.game_controller_get_axis
 
 let game_controller_get_axis_from_string =
-  foreign "SDL_GameControllerGetAxisFromString"
-    (string @-> returning int)
+  C.Functions.game_controller_get_axis_from_string
 
 let game_controller_get_bind_for_axis =
   foreign "SDL_GameControllerGetBindForAxis"
-    (game_controller @-> int @-> returning button_bind)
+    (ptr C.Types.game_controller @-> int @-> returning button_bind)
 
 let game_controller_get_bind_for_button =
   foreign "SDL_GameControllerGetBindForButton"
-    (game_controller @-> int @-> returning button_bind)
+    (ptr C.Types.game_controller @-> int @-> returning button_bind)
 
-let game_controller_get_button =
-  foreign "SDL_GameControllerGetButton"
-    (game_controller @-> int @-> returning int_as_uint8_t)
+let game_controller_get_button c i =
+  Unsigned.UInt8.to_int (C.Functions.game_controller_get_button c i)
 
 let game_controller_get_button_from_string =
-  foreign "SDL_GameControllerGetButtonFromString" (string @-> returning int)
+  C.Functions.game_controller_get_button_from_string
 
-let game_controller_get_joystick =
-  foreign "SDL_GameControllerGetJoystick"
-    (game_controller @-> returning joystick_opt)
-let game_controller_get_joystick c = game_controller_get_joystick c |> some_to_ok
+let game_controller_get_joystick c =
+  some_to_ok (C.Functions.game_controller_get_joystick c)
 
-let game_controller_get_product =
-  foreign "SDL_GameControllerGetProduct"
-    (game_controller @-> returning int_as_uint16_t)
+let game_controller_get_product t =
+  Unsigned.UInt16.to_int (C.Functions.game_controller_get_product t)
 
-let game_controller_get_product_version =
-  foreign "SDL_GameControllerGetProductVersion"
-    (game_controller @-> returning int_as_uint16_t)
+let game_controller_get_product_version t =
+  Unsigned.UInt16.to_int (C.Functions.game_controller_get_product_version t)
 
 let game_controller_get_string_for_axis =
-  foreign "SDL_GameControllerGetStringForAxis" (int @-> returning string_opt)
+  C.Functions.game_controller_get_string_for_axis
 
 let game_controller_get_string_for_button =
-  foreign "SDL_GameControllerGetStringForButton" (int @-> returning string_opt)
+  C.Functions.game_controller_get_string_for_button
 
-let game_controller_get_vendor =
-  foreign "SDL_GameControllerGetVendor"
-    (game_controller @-> returning int_as_uint16_t)
+let game_controller_get_vendor t =
+  Unsigned.UInt16.to_int (C.Functions.game_controller_get_vendor t)
 
-let game_controller_mapping =
-  foreign "SDL_GameControllerMapping"
-    (game_controller @-> returning string_opt)
-let game_controller_mapping c = game_controller_mapping c |> some_to_ok
+let game_controller_mapping c =
+  some_to_ok (C.Functions.game_controller_mapping c)
 
-let game_controller_mapping_for_index =
-  foreign "SDL_GameControllerMappingForIndex"
-    (int @-> returning string_opt)
-let game_controller_mapping_for_index i = game_controller_mapping_for_index i |> some_to_ok
+let game_controller_mapping_for_index i =
+  some_to_ok (C.Functions.game_controller_mapping_for_index i)
 
-let game_controller_mapping_for_guid =
-  foreign "SDL_GameControllerMappingForGUID"
-    (C.Types.joystick_guid @-> returning string_opt)
-let game_controller_mapping_for_guid g = game_controller_mapping_for_guid g |> some_to_ok
+let game_controller_mapping_for_guid g =
+  some_to_ok (C.Functions.game_controller_mapping_for_guid g)
 
-let game_controller_name =
-  foreign "SDL_GameControllerName"
-    (game_controller @-> returning string_opt)
-let game_controller_name c = game_controller_name c |> some_to_ok
+let game_controller_name c =
+  some_to_ok (C.Functions.game_controller_name c)
 
-let game_controller_name_for_index =
-  foreign "SDL_GameControllerNameForIndex"
-    (int @-> returning string_opt)
-let game_controller_name_for_index i = game_controller_name_for_index i |> some_to_ok
+let game_controller_name_for_index i =
+  some_to_ok (C.Functions.game_controller_name_for_index i)
 
-let game_controller_num_mappings =
-  foreign "SDL_GameControllerNumMappings" (void @-> returning int)
+let game_controller_num_mappings = C.Functions.game_controller_num_mappings
 
-let game_controller_open =
-  foreign "SDL_GameControllerOpen"
-    (int @-> returning game_controller_opt)
-let game_controller_open i = game_controller_open i |> some_to_ok
+let game_controller_open i =
+  some_to_ok (C.Functions.game_controller_open i)
 
-let game_controller_update =
-  foreign "SDL_GameControllerUpdate" (void @-> returning void)
+let game_controller_update = C.Functions.game_controller_update
 
-let is_game_controller =
-  foreign "SDL_IsGameController" (int @-> returning bool)
+let is_game_controller = C.Functions.is_game_controller
 
 (* Events *)
 
