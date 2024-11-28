@@ -1295,6 +1295,9 @@ module Functions (F : FOREIGN) = struct
   let is_game_controller =
     F.(foreign "SDL_IsGameController" (int @-> returning bool))
 
+  let event_state =
+    F.(foreign "SDL_EventState" (uint32_t @-> int @-> returning uint8_t))
+
   let pump_events =
     F.(foreign "SDL_PumpEvents" (void @-> returning void))
 end

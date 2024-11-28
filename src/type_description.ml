@@ -1047,76 +1047,76 @@ module Types (F : Ctypes.TYPE) = struct
 
 
   module Event = struct
-    let first_event = F.constant "SDL_FIRSTEVENT" F.int
-    let last_event = F.constant "SDL_LASTEVENT" F.int
+    let first_event = F.constant "SDL_FIRSTEVENT" F.uint32_t
+    let last_event = F.constant "SDL_LASTEVENT" F.uint32_t
 
-    let quit = F.constant "SDL_QUIT" F.int
+    let quit = F.constant "SDL_QUIT" F.uint32_t
 
-    let app_terminating = F.constant "SDL_APP_TERMINATING" F.int
-    let app_low_memory = F.constant "SDL_APP_LOWMEMORY" F.int
-    let app_will_enter_background = F.constant "SDL_APP_WILLENTERBACKGROUND" F.int
-    let app_did_enter_background = F.constant "SDL_APP_DIDENTERBACKGROUND" F.int
-    let app_will_enter_foreground = F.constant "SDL_APP_WILLENTERFOREGROUND" F.int
-    let app_did_enter_foreground = F.constant "SDL_APP_DIDENTERFOREGROUND" F.int
+    let app_terminating = F.constant "SDL_APP_TERMINATING" F.uint32_t
+    let app_low_memory = F.constant "SDL_APP_LOWMEMORY" F.uint32_t
+    let app_will_enter_background = F.constant "SDL_APP_WILLENTERBACKGROUND" F.uint32_t
+    let app_did_enter_background = F.constant "SDL_APP_DIDENTERBACKGROUND" F.uint32_t
+    let app_will_enter_foreground = F.constant "SDL_APP_WILLENTERFOREGROUND" F.uint32_t
+    let app_did_enter_foreground = F.constant "SDL_APP_DIDENTERFOREGROUND" F.uint32_t
 
-    let display_event = F.constant "SDL_DISPLAYEVENT" F.int
-    let window_event = F.constant "SDL_WINDOWEVENT" F.int
-    let sys_wm_event = F.constant "SDL_SYSWMEVENT" F.int
-    let sensor_update = F.constant "SDL_SENSORUPDATE" F.int
-    let user_event = F.constant "SDL_USEREVENT" F.int
+    let display_event = F.constant "SDL_DISPLAYEVENT" F.uint32_t
+    let window_event = F.constant "SDL_WINDOWEVENT" F.uint32_t
+    let sys_wm_event = F.constant "SDL_SYSWMEVENT" F.uint32_t
+    let sensor_update = F.constant "SDL_SENSORUPDATE" F.uint32_t
+    let user_event = F.constant "SDL_USEREVENT" F.uint32_t
 
-    let key_down = F.constant "SDL_KEYDOWN" F.int
-    let key_up = F.constant "SDL_KEYUP" F.int
-    let keymap_changed = F.constant "SDL_KEYMAPCHANGED" F.int
+    let key_down = F.constant "SDL_KEYDOWN" F.uint32_t
+    let key_up = F.constant "SDL_KEYUP" F.uint32_t
+    let keymap_changed = F.constant "SDL_KEYMAPCHANGED" F.uint32_t
 
-    let text_editing = F.constant "SDL_TEXTEDITING" F.int
-    let text_input = F.constant "SDL_TEXTINPUT" F.int
+    let text_editing = F.constant "SDL_TEXTEDITING" F.uint32_t
+    let text_input = F.constant "SDL_TEXTINPUT" F.uint32_t
 
-    let mouse_motion = F.constant "SDL_MOUSEMOTION" F.int
-    let mouse_button_down = F.constant "SDL_MOUSEBUTTONDOWN" F.int
-    let mouse_button_up = F.constant "SDL_MOUSEBUTTONUP" F.int
-    let mouse_wheel = F.constant "SDL_MOUSEWHEEL" F.int
+    let mouse_motion = F.constant "SDL_MOUSEMOTION" F.uint32_t
+    let mouse_button_down = F.constant "SDL_MOUSEBUTTONDOWN" F.uint32_t
+    let mouse_button_up = F.constant "SDL_MOUSEBUTTONUP" F.uint32_t
+    let mouse_wheel = F.constant "SDL_MOUSEWHEEL" F.uint32_t
 
     type mouse_wheel_direction = int
     let mouse_wheel_normal = F.constant "SDL_MOUSEWHEEL_NORMAL" F.int
     let mouse_wheel_flipped = F.constant "SDL_MOUSEWHEEL_FLIPPED" F.int
 
-    let joy_axis_motion = F.constant "SDL_JOYAXISMOTION" F.int
-    let joy_ball_motion = F.constant "SDL_JOYBALLMOTION" F.int
-    let joy_hat_motion = F.constant "SDL_JOYHATMOTION" F.int
-    let joy_button_down = F.constant "SDL_JOYBUTTONDOWN" F.int
-    let joy_button_up = F.constant "SDL_JOYBUTTONUP" F.int
-    let joy_device_added = F.constant "SDL_JOYDEVICEADDED" F.int
-    let joy_device_removed = F.constant "SDL_JOYDEVICEREMOVED" F.int
+    let joy_axis_motion = F.constant "SDL_JOYAXISMOTION" F.uint32_t
+    let joy_ball_motion = F.constant "SDL_JOYBALLMOTION" F.uint32_t
+    let joy_hat_motion = F.constant "SDL_JOYHATMOTION" F.uint32_t
+    let joy_button_down = F.constant "SDL_JOYBUTTONDOWN" F.uint32_t
+    let joy_button_up = F.constant "SDL_JOYBUTTONUP" F.uint32_t
+    let joy_device_added = F.constant "SDL_JOYDEVICEADDED" F.uint32_t
+    let joy_device_removed = F.constant "SDL_JOYDEVICEREMOVED" F.uint32_t
 
-    let controller_axis_motion = F.constant "SDL_CONTROLLERAXISMOTION" F.int
-    let controller_button_down = F.constant "SDL_CONTROLLERBUTTONDOWN" F.int
-    let controller_button_up = F.constant "SDL_CONTROLLERBUTTONUP" F.int
-    let controller_device_added = F.constant "SDL_CONTROLLERDEVICEADDED" F.int
-    let controller_device_removed = F.constant "SDL_CONTROLLERDEVICEREMOVED" F.int
-    let controller_device_remapped = F.constant "SDL_CONTROLLERDEVICEREMAPPED" F.int
+    let controller_axis_motion = F.constant "SDL_CONTROLLERAXISMOTION" F.uint32_t
+    let controller_button_down = F.constant "SDL_CONTROLLERBUTTONDOWN" F.uint32_t
+    let controller_button_up = F.constant "SDL_CONTROLLERBUTTONUP" F.uint32_t
+    let controller_device_added = F.constant "SDL_CONTROLLERDEVICEADDED" F.uint32_t
+    let controller_device_removed = F.constant "SDL_CONTROLLERDEVICEREMOVED" F.uint32_t
+    let controller_device_remapped = F.constant "SDL_CONTROLLERDEVICEREMAPPED" F.uint32_t
 
-    let finger_down = F.constant "SDL_FINGERDOWN" F.int
-    let finger_up = F.constant "SDL_FINGERUP" F.int
-    let finger_motion = F.constant "SDL_FINGERMOTION" F.int
+    let finger_down = F.constant "SDL_FINGERDOWN" F.uint32_t
+    let finger_up = F.constant "SDL_FINGERUP" F.uint32_t
+    let finger_motion = F.constant "SDL_FINGERMOTION" F.uint32_t
 
-    let dollar_gesture = F.constant "SDL_DOLLARGESTURE" F.int
-    let dollar_record = F.constant "SDL_DOLLARRECORD" F.int
+    let dollar_gesture = F.constant "SDL_DOLLARGESTURE" F.uint32_t
+    let dollar_record = F.constant "SDL_DOLLARRECORD" F.uint32_t
 
-    let multi_gesture = F.constant "SDL_MULTIGESTURE" F.int
+    let multi_gesture = F.constant "SDL_MULTIGESTURE" F.uint32_t
 
-    let clipboard_update = F.constant "SDL_CLIPBOARDUPDATE" F.int
+    let clipboard_update = F.constant "SDL_CLIPBOARDUPDATE" F.uint32_t
 
-    let drop_file = F.constant "SDL_DROPFILE" F.int
-    let drop_text = F.constant "SDL_DROPTEXT" F.int
-    let drop_begin = F.constant "SDL_DROPBEGIN" F.int
-    let drop_complete = F.constant "SDL_DROPCOMPLETE" F.int
+    let drop_file = F.constant "SDL_DROPFILE" F.uint32_t
+    let drop_text = F.constant "SDL_DROPTEXT" F.uint32_t
+    let drop_begin = F.constant "SDL_DROPBEGIN" F.uint32_t
+    let drop_complete = F.constant "SDL_DROPCOMPLETE" F.uint32_t
 
-    let audio_device_added = F.constant "SDL_AUDIODEVICEADDED" F.int
-    let audio_device_removed = F.constant "SDL_AUDIODEVICEREMOVED" F.int
+    let audio_device_added = F.constant "SDL_AUDIODEVICEADDED" F.uint32_t
+    let audio_device_removed = F.constant "SDL_AUDIODEVICEREMOVED" F.uint32_t
 
-    let render_targets_reset = F.constant "SDL_RENDER_TARGETS_RESET" F.int
-    let render_device_reset = F.constant "SDL_RENDER_DEVICE_RESET" F.int
+    let render_targets_reset = F.constant "SDL_RENDER_TARGETS_RESET" F.uint32_t
+    let render_device_reset = F.constant "SDL_RENDER_DEVICE_RESET" F.uint32_t
 
     let texteditingevent_text_size = F.constant "SDL_TEXTEDITINGEVENT_TEXT_SIZE" F.int
     let textinputevent_text_size = F.constant "SDL_TEXTINPUTEVENT_TEXT_SIZE" F.int
@@ -1139,6 +1139,378 @@ module Types (F : Ctypes.TYPE) = struct
     let window_event_close = F.constant "SDL_WINDOWEVENT_CLOSE" F.int
     let window_event_take_focus = F.constant "SDL_WINDOWEVENT_TAKE_FOCUS" F.int
     let window_event_hit_test = F.constant "SDL_WINDOWEVENT_HIT_TEST" F.int
+
+    module Common = struct
+      type t
+      let t : t Ctypes_static.structure F.typ = F.structure "SDL_CommonEvent"
+      let typ = F.field t "type" F.uint32_t
+      let timestamp = F.field t "timestamp" F.uint32_t
+      let () = F.seal t
+    end
+
+    module Controller_axis_event = struct
+      type t
+      let t : t Ctypes_static.structure F.typ =
+        F.structure "SDL_ControllerAxisEvent"
+      let _ = F.field t "type" F.uint32_t
+      let _ = F.field t "timestamp" F.uint32_t
+      let which = F.field t "which" F.int32_t
+      let axis = F.field t "axis" F.uint8_t
+      let _ = F.field t "padding1" F.uint8_t
+      let _ = F.field t "padding2" F.uint8_t
+      let _ = F.field t "padding3" F.uint8_t
+      let value = F.field t "value" F.int16_t
+      let _ = F.field t "padding4" F.uint16_t
+      let () = F.seal t
+    end
+
+    module Controller_button_event = struct
+      type t
+      let t : t Ctypes_static.structure F.typ =
+        F.structure "SDL_ControllerButtonEvent"
+      let _ = F.field t "type" F.uint32_t
+      let _ = F.field t "timestamp" F.uint32_t
+      let which = F.field t "which" F.int32_t
+      let button = F.field t "button" F.uint8_t
+      let state = F.field t "state" F.uint8_t
+      let _ = F.field t "padding1" F.uint8_t
+      let _ = F.field t "padding2" F.uint8_t
+      let () = F.seal t
+    end
+
+    module Controller_device_event = struct
+      type t
+      let t : t Ctypes_static.structure F.typ =
+        F.structure "SDL_ControllerDeviceEvent"
+      let _ = F.field t "type" F.uint32_t
+      let _ = F.field t "timestamp" F.uint32_t
+      let which = F.field t "which" F.int32_t
+      let () = F.seal t
+    end
+
+    module Dollar_gesture_event = struct
+      type t
+      let t : t Ctypes_static.structure F.typ =
+        F.structure "SDL_DollarGestureEvent"
+      let _ = F.field t "type" F.uint32_t
+      let _ = F.field t "timestamp" F.uint32_t
+      let touch_id = F.field t "touchId" F.int64_t
+      let gesture_id = F.field t "gestureId" F.int64_t
+      let num_fingers = F.field t "numFingers" F.uint32_t
+      let error = F.field t "error" F.float
+      let x = F.field t "x" F.float
+      let y = F.field t "y" F.float
+      let () = F.seal t
+    end
+
+    module Drop_event = struct
+      type t
+      let t : t Ctypes_static.structure F.typ = F.structure "SDL_DropEvent"
+      let _ = F.field t "type" F.uint32_t
+      let _ = F.field t "timestamp" F.uint32_t
+      let file = F.field t "file" F.(ptr char)
+      let window_id = F.field t "windowID" F.uint32_t
+      let () = F.seal t
+    end
+
+    module Keyboard_event = struct
+      type keysym
+      let keysym: keysym Ctypes_static.structure F.typ = F.structure "SDL_Keysym"
+      let scancode = F.field keysym "scancode" F.int
+      let keycode = F.field keysym "sym" F.int
+      let keymod = F.field keysym "mod" F.uint16_t
+      let _unused = F.field keysym "unused" F.uint32_t
+      let () = F.seal keysym
+
+      type t
+      let t : t Ctypes_static.structure F.typ = F.structure "SDL_KeyboardEvent"
+      let _ = F.field t "type" F.uint32_t
+      let _ = F.field t "timestamp" F.uint32_t
+      let window_id = F.field t "windowID" F.uint32_t
+      let state = F.field t "state" F.uint8_t
+      let repeat = F.field t "repeat" F.uint8_t
+      let _padding2 = F.field t "padding2" F.uint8_t
+      let _padding3 = F.field t "padding3" F.uint8_t
+      let keysym = F.field t "keysym" keysym
+      let () = F.seal t
+    end
+
+    module Joy_axis_event = struct
+      type t
+      let t : t Ctypes_static.structure F.typ = F.structure "SDL_JoyAxisEvent"
+      let _ = F.field t "type" F.uint32_t
+      let _ = F.field t "timestamp" F.uint32_t
+      let which = F.field t "which" F.int32_t
+      let axis = F.field t "axis" F.uint8_t
+      let _ = F.field t "padding1" F.uint8_t
+      let _ = F.field t "padding2" F.uint8_t
+      let _ = F.field t "padding3" F.uint8_t
+      let value = F.field t "value" F.int16_t
+      let _ = F.field t "padding4" F.uint16_t
+      let () = F.seal t
+    end
+
+    module Joy_ball_event = struct
+      type t
+      let t : t Ctypes_static.structure F.typ = F.structure "SDL_JoyBallEvent"
+      let _ = F.field t "type" F.uint32_t
+      let _ = F.field t "timestamp" F.uint32_t
+      let which = F.field t "which" F.int32_t
+      let ball = F.field t "ball" F.uint8_t
+      let _ = F.field t "padding1" F.uint8_t
+      let _ = F.field t "padding2" F.uint8_t
+      let _ = F.field t "padding3" F.uint8_t
+      let xrel = F.field t "xrel" F.int16_t
+      let yrel = F.field t "yrel" F.int16_t
+      let () = F.seal t
+    end
+
+    module Joy_button_event = struct
+      type t
+      let t : t Ctypes_static.structure F.typ = F.structure "SDL_JoyButtonEvent"
+      let _ = F.field t "type" F.uint32_t
+      let _ = F.field t "timestamp" F.uint32_t
+      let which = F.field t "which" F.int32_t
+      let button = F.field t "button" F.uint8_t
+      let state = F.field t "state" F.uint8_t
+      let _ = F.field t "padding1" F.uint8_t
+      let _ = F.field t "padding2" F.uint8_t
+      let () = F.seal t
+    end
+
+    module Joy_device_event = struct
+      type t
+      let t : t Ctypes_static.structure F.typ = F.structure "SDL_JoyDeviceEvent"
+      let _ = F.field t "type" F.uint32_t
+      let _ = F.field t "timestamp" F.uint32_t
+      let which = F.field t "which" F.int32_t
+      let () = F.seal t
+    end
+
+    module Joy_hat_event = struct
+      type t
+      let t : t Ctypes_static.structure F.typ = F.structure "SDL_JoyHatEvent"
+      let _ = F.field t "type" F.uint32_t
+      let _ = F.field t "timestamp" F.uint32_t
+      let which = F.field t "which" F.int32_t
+      let hat = F.field t "hat" F.uint8_t
+      let value = F.field t "value" F.uint8_t
+      let _ = F.field t "padding1" F.uint8_t
+      let _ = F.field t "padding2" F.uint8_t
+      let () = F.seal t
+    end
+
+    module Mouse_button_event = struct
+      type t
+      let t : t Ctypes_static.structure F.typ =
+        F.structure "SDL_MouseButtonEvent"
+      let _ = F.field t "type" F.uint32_t
+      let _ = F.field t "timestamp" F.uint32_t
+      let window_id = F.field t "windowID" F.uint32_t
+      let which = F.field t "which" F.uint32_t
+      let button = F.field t "button" F.uint8_t
+      let state = F.field t "state" F.uint8_t
+      let clicks = F.field t "clicks" F.uint8_t
+      let _ = F.field t "padding1" F.uint8_t
+      let x = F.field t "x" F.int32_t
+      let y = F.field t "y" F.int32_t
+      let () = F.seal t
+    end
+
+    module Mouse_motion_event = struct
+      type t
+      let t : t Ctypes_static.structure F.typ =
+        F.structure "SDL_MouseMotionEvent"
+      let _ = F.field t "type" F.uint32_t
+      let _ = F.field t "timestamp" F.uint32_t
+      let window_id = F.field t "windowID" F.uint32_t
+      let which = F.field t "which" F.uint32_t
+      let state = F.field t "state" F.uint32_t
+      let x = F.field t "x" F.int32_t
+      let y = F.field t "y" F.int32_t
+      let xrel = F.field t "xrel" F.int32_t
+      let yrel = F.field t "yrel" F.int32_t
+      let () = F.seal t
+    end
+
+    module Mouse_wheel_event = struct
+      type t
+      let t : t Ctypes_static.structure F.typ =
+        F.structure "SDL_MouseWheelEvent"
+      let _ = F.field t "type" F.uint32_t
+      let _ = F.field t "timestamp" F.uint32_t
+      let window_id = F.field t "windowID" F.uint32_t
+      let which = F.field t "which" F.uint32_t
+      let x = F.field t "x" F.int32_t
+      let y = F.field t "y" F.int32_t
+      let direction = F.field t "direction" F.uint32_t
+      let () = F.seal t
+    end
+
+    module Multi_gesture_event = struct
+      type t
+      let t : t Ctypes_static.structure F.typ =
+        F.structure "SDL_MultiGestureEvent"
+      let _ = F.field t "type" F.uint32_t
+      let _ = F.field t "timestamp" F.uint32_t
+      let touch_id = F.field t "touchId" F.int64_t
+      let dtheta = F.field t "dTheta" F.float
+      let ddist = F.field t "dDist" F.float
+      let x = F.field t "x" F.float
+      let y = F.field t "y" F.float
+      let num_fingers = F.field t "numFingers" F.uint16_t
+      let _ = F.field t "padding" F.uint16_t
+      let () = F.seal t
+    end
+
+    module Sensor_event = struct
+      type t
+      let t : t Ctypes_static.structure F.typ = F.structure "SDL_SensorEvent"
+      let _ = F.field t "type" F.uint32_t
+      let _ = F.field t "timestamp" F.uint32_t
+      let which = F.field t "which" F.uint32_t
+      let data = F.field t "data" F.(array 6 float)
+      let () = F.seal t
+    end
+
+    module Quit_event = struct
+      type t
+      let t : t Ctypes_static.structure F.typ = F.structure "SDL_QuitEvent"
+      let _ = F.field t "type" F.uint32_t
+      let _ = F.field t "timestamp" F.uint32_t
+      let () = F.seal t
+    end
+
+    module Sys_wm_event = struct
+      type t
+      let t : t Ctypes_static.structure F.typ = F.structure "SDL_SysWMEvent"
+      let _ = F.field t "type" F.uint32_t
+      let _ = F.field t "timestamp" F.uint32_t
+      let _ = F.field t "msg" F.(ptr void)
+      let () = F.seal t
+    end
+
+    module Text_editing_event = struct
+      type t
+      let t : t Ctypes_static.structure F.typ =
+        F.structure "SDL_TextEditingEvent"
+      let _ = F.field t "type" F.uint32_t
+      let _ = F.field t "timestamp" F.uint32_t
+      let window_id = F.field t "windowID" F.uint32_t
+      let text = F.field t "text" F.(ptr char)
+      let start = F.field t "start" F.int32_t
+      let length = F.field t "length" F.int32_t
+      let () = F.seal t
+    end
+
+    module Text_input_event = struct
+      type t
+      let t : t Ctypes_static.structure F.typ =
+        F.structure "SDL_TextInputEvent"
+      let _ = F.field t "type" F.uint32_t
+      let _ = F.field t "timestamp" F.uint32_t
+      let window_id = F.field t "windowID" F.uint32_t
+      let text = F.field t "text" F.(ptr char)
+      let () = F.seal t
+    end
+
+    module Touch_finger_event = struct
+      type t
+      let t : t Ctypes_static.structure F.typ =
+        F.structure "SDL_TouchFingerEvent"
+      let _ = F.field t "type" F.uint32_t
+      let _ = F.field t "timestamp" F.uint32_t
+      let touch_id = F.field t "touchId" F.int64_t
+      let finger_id = F.field t "fingerId" F.int64_t
+      let x = F.field t "x" F.float
+      let y = F.field t "y" F.float
+      let dx = F.field t "dx" F.float
+      let dy = F.field t "dy" F.float
+      let pressure = F.field t "pressure" F.float
+      let () = F.seal t
+    end
+
+    module User_event = struct
+      type t
+      let t : t Ctypes_static.structure F.typ = F.structure "SDL_UserEvent"
+      let _ = F.field t "type" F.uint32_t
+      let _ = F.field t "timestamp" F.uint32_t
+      let window_id = F.field t "windowID" F.uint32_t
+      let code = F.field t "code" F.int32_t
+      let _ = F.field t "data1" F.(ptr void)
+      let _ = F.field t "data2" F.(ptr void)
+      let () = F.seal t
+    end
+
+    module Window_event = struct
+      type t
+      let t : t Ctypes_static.structure F.typ = F.structure "SDL_WindowEvent"
+      let _ = F.field t "type" F.uint32_t
+      let _ = F.field t "timestamp" F.uint32_t
+      let window_id = F.field t "windowID" F.uint32_t
+      let event = F.field t "event" F.uint8_t
+      let _padding1 = F.field t "padding1" F.uint8_t
+      let _padding2 = F.field t "padding2" F.uint8_t
+      let _padding3 = F.field t "padding3" F.uint8_t
+      let data1 = F.field t "data1" F.int32_t
+      let data2 = F.field t "data2" F.int32_t
+      let () = F.seal t
+    end
+
+    module Display_event = struct
+      type t
+      let t : t Ctypes_static.structure F.typ = F.structure "SDL_DisplayEvent"
+      let _ = F.field t "type" F.uint32_t
+      let _ = F.field t "timestamp" F.uint32_t
+      let display = F.field t "display" F.uint32_t
+      let event = F.field t "event" F.uint8_t
+      let _padding1 = F.field t "padding1" F.uint8_t
+      let _padding2 = F.field t "padding2" F.uint8_t
+      let _padding3 = F.field t "padding3" F.uint8_t
+      let data1 = F.field t "data1" F.int32_t
+      let () = F.seal t
+    end
+
+    module Audio_device_event = struct
+      type t
+      let t : t Ctypes_static.structure F.typ = F.structure "SDL_AudioDeviceEvent"
+      let _ = F.field t "type" F.uint32_t
+      let timestamp = F.field t "timestamp" F.uint32_t
+      let which = F.field t "which" F.uint32_t
+      let iscapture = F.field t "iscapture" F.uint8_t
+      let () = F.seal t
+    end
+
+    type t
+    let t : t Ctypes_static.union F.typ = F.union "SDL_Event"
+    let _typ = F.field t "type" F.uint32_t
+    let audio_device_event = F.field t "adevice" Audio_device_event.t
+    let common = F.field t "common" Common.t
+    let controller_axis_event = F.field t "caxis" Controller_axis_event.t
+    let controller_button_event = F.field t "cbutton" Controller_button_event.t
+    let controller_device_event = F.field t "cdevice" Controller_device_event.t
+    let dollar_gesture_event = F.field t "dgesture" Dollar_gesture_event.t
+    let drop_event = F.field t "drop" Drop_event.t
+    let joy_axis_event = F.field t "jaxis" Joy_axis_event.t
+    let joy_ball_event = F.field t "jball" Joy_ball_event.t
+    let joy_button_event = F.field t "jbutton" Joy_button_event.t
+    let joy_device_event = F.field t "jdevice" Joy_device_event.t
+    let joy_hat_event = F.field t "jhat" Joy_hat_event.t
+    let keyboard_event = F.field t "key" Keyboard_event.t
+    let mouse_button_event = F.field t "button" Mouse_button_event.t
+    let mouse_motion_event = F.field t "motion" Mouse_motion_event.t
+    let mouse_wheel_event = F.field t "wheel" Mouse_wheel_event.t
+    let multi_gesture_event = F.field t "mgesture" Multi_gesture_event.t
+    let _quit_event = F.field t "quit" Quit_event.t
+    let _sys_wm_event = F.field t "syswm" Sys_wm_event.t
+    let text_editing_event = F.field t "edit" Text_editing_event.t
+    let text_input_event = F.field t "text" Text_input_event.t
+    let touch_finger_event = F.field t "tfinger" Touch_finger_event.t
+    let _user_event = F.field t "user" User_event.t
+    let _window_event = F.field t "window" Window_event.t
+    let _display_event = F.field t "display" Display_event.t
+    let sensor_event = F.field t "sensor" Sensor_event.t
+    let () = F.seal t
   end
 
   module Haptic = struct

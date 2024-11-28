@@ -2875,7 +2875,7 @@ val is_game_controller : int -> bool
 
 (** {2:events {{:http://wiki.libsdl.org/SDL2/CategoryEvents}Events}} *)
 
-type event_type = int
+type event_type = Unsigned.UInt32.t
 (** {{:http://wiki.libsdl.org/SDL2/SDL_EventType}SDL_EventType}.
     See {!Event} for constants. *)
 
@@ -3230,7 +3230,7 @@ module Event : sig
 
   val window_event : event_type
 
-  type window_event_id = int
+  type window_event_id
   (** {{:https://wiki.libsdl.org/SDL2/SDL_WindowEventID}SDL_WindowEventID} *)
 
   type window_event_enum =
@@ -3305,7 +3305,7 @@ module Event : sig
   | `Mouse_wheel | `Multi_gesture | `Quit
   | `Render_targets_reset | `Render_device_reset
   | `Sys_wm_event
-  | `Text_editing | `Text_input | `Unknown of int | `User_event
+  | `Text_editing | `Text_input | `Unknown of Unsigned.UInt32.t | `User_event
   | `Window_event | `Display_event | `Sensor_update ]
 
   val enum : event_type -> enum

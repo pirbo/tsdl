@@ -48,24 +48,11 @@ let int_as_uint16_t =
 let int_as_uint32_t =
   view ~read:Unsigned.UInt32.to_int ~write:Unsigned.UInt32.of_int uint32_t
 
-let int_as_int32_t =
-  view ~read:Signed.Int32.to_int ~write:Signed.Int32.of_int int32_t
-
 let int32_as_uint32_t =
   view ~read:Unsigned.UInt32.to_int32 ~write:Unsigned.UInt32.of_int32 uint32_t
 
 let char_array_as_string a =
   Ctypes.(string_from_ptr (CArray.start a) ~length:(CArray.length a))
-
-let string_as_char_array n = (* FIXME: drop this if ctypes proposes better *)
-  let n_array = array n char in
-  let write s =
-    let a = CArray.make char n in
-    let len = min (CArray.length a) (String.length s) in
-    for i = 0 to len - 1 do CArray.set a i (s.[i]) done;
-    a
-  in
-  view ~read:char_array_as_string ~write n_array
 
 (* SDL results *)
 
@@ -101,8 +88,7 @@ type int16 = int
 type uint32 = int32
 type uint64 = int64
 
-module Int = struct type t = int let compare : int -> int -> int = compare end
-module Imap = Map.Make(Int)
+module Imap = Map.Make(Unsigned.UInt32)
 
 (* Bigarrays *)
 
@@ -1918,14 +1904,11 @@ let warp_mouse_global ~x ~y =
 (* Touch *)
 
 type touch_id = int64
-let touch_id = int64_t
 let touch_mouse_id = C.Types.touch_mouseid
 
 type gesture_id = int64
-let gesture_id = int64_t
 
 type finger_id = int64
-let finger_id = int64_t
 
 module Finger = struct
   include C.Types.Finger
@@ -1966,7 +1949,6 @@ let save_all_dollar_templates o =
 type joystick_guid = C.Types.guid
 
 type joystick_id = int32
-let joystick_id = int32_t
 
 type joystick = unit ptr
 let joystick : joystick typ = ptr void
@@ -2195,380 +2177,12 @@ let is_game_controller = C.Functions.is_game_controller
 
 (* Events *)
 
-type event_type = int
-let event_type : event_type typ = int_as_uint32_t
+type event_type = Unsigned.UInt32.t
+let event_type : event_type typ = uint32_t
 
 module Event = struct
   include C.Types.Event
   (* Event structures *)
-
-  module Common = struct
-    type t
-    let t : t structure typ = structure "SDL_CommonEvent"
-    let typ = field t "type" int_as_uint32_t
-    let timestamp = field t "timestamp" int32_as_uint32_t
-    let () = seal t
-  end
-
-  module Controller_axis_event = struct
-    type t
-    let t : t structure typ = structure "SDL_ControllerAxisEvent"
-    let _ = field t "type" int_as_uint32_t
-    let _ = field t "timestamp" int32_as_uint32_t
-    let which = field t "which" joystick_id
-    let axis = field t "axis" int_as_uint8_t
-    let _ = field t "padding1" uint8_t
-    let _ = field t "padding2" uint8_t
-    let _ = field t "padding3" uint8_t
-    let value = field t "value" int16_t
-    let _ = field t "padding4" uint16_t
-    let () = seal t
-  end
-
-  module Controller_button_event = struct
-    type t
-    let t : t structure typ = structure "SDL_ControllerButtonEvent"
-    let _ = field t "type" int_as_uint32_t
-    let _ = field t "timestamp" int32_as_uint32_t
-    let which = field t "which" joystick_id
-    let button = field t "button" int_as_uint8_t
-    let state = field t "state" uint8_t
-    let _ = field t "padding1" uint8_t
-    let _ = field t "padding2" uint8_t
-    let () = seal t
-  end
-
-  module Controller_device_event = struct
-    type t
-    let t : t structure typ = structure "SDL_ControllerDeviceEvent"
-    let _ = field t "type" int_as_uint32_t
-    let _ = field t "timestamp" int32_as_uint32_t
-    let which = field t "which" joystick_id
-    let () = seal t
-  end
-
-  module Dollar_gesture_event = struct
-    type t
-    let t : t structure typ = structure "SDL_DollarGestureEvent"
-    let _ = field t "type" int_as_uint32_t
-    let _ = field t "timestamp" int32_as_uint32_t
-    let touch_id = field t "touchId" touch_id
-    let gesture_id = field t "gestureId" gesture_id
-    let num_fingers = field t "numFingers" int_as_uint32_t
-    let error = field t "error" float
-    let x = field t "x" float
-    let y = field t "y" float
-    let () = seal t
-  end
-
-  module Drop_event = struct
-    type t
-    let t : t structure typ = structure "SDL_DropEvent"
-    let _ = field t "type" int_as_uint32_t
-    let _ = field t "timestamp" int32_as_uint32_t
-    let file = field t "file" (ptr char)
-    let window_id = field t "windowID" int_as_uint32_t
-    let () = seal t
-  end
-
-  module Keyboard_event = struct
-    type t
-    let t : t structure typ = structure "SDL_KeyboardEvent"
-    let _ = field t "type" int_as_uint32_t
-    let _ = field t "timestamp" int32_as_uint32_t
-    let window_id = field t "windowID" int_as_uint32_t
-    let state = field t "state" uint8_t
-    let repeat = field t "repeat" int_as_uint8_t
-    let _padding2 = field t "padding2" uint8_t
-    let _padding3 = field t "padding3" uint8_t
-    (* We inline the definition of SDL_Keysym *)
-    let scancode = field t "scancode" int
-    let keycode = field t "sym" int
-    let keymod = field t "mod" uint16_t
-    let _unused = field t "unused" uint32_t
-    let () = seal t
-  end
-
-  module Joy_axis_event = struct
-    type t
-    let t : t structure typ = structure "SDL_JoyAxisEvent"
-    let _ = field t "type" int_as_uint32_t
-    let _ = field t "timestamp" int32_as_uint32_t
-    let which = field t "which" joystick_id
-    let axis = field t "axis" int_as_uint8_t
-    let _ = field t "padding1" uint8_t
-    let _ = field t "padding2" uint8_t
-    let _ = field t "padding3" uint8_t
-    let value = field t "value" int16_t
-    let _ = field t "padding4" uint16_t
-    let () = seal t
-  end
-
-  module Joy_ball_event = struct
-    type t
-    let t : t structure typ = structure "SDL_JoyBallEvent"
-    let _ = field t "type" int_as_uint32_t
-    let _ = field t "timestamp" int32_as_uint32_t
-    let which = field t "which" joystick_id
-    let ball = field t "ball" int_as_uint8_t
-    let _ = field t "padding1" uint8_t
-    let _ = field t "padding2" uint8_t
-    let _ = field t "padding3" uint8_t
-    let xrel = field t "xrel" int16_t
-    let yrel = field t "yrel" int16_t
-    let () = seal t
-  end
-
-  module Joy_button_event = struct
-    type t
-    let t : t structure typ = structure "SDL_JoyButtonEvent"
-    let _ = field t "type" int_as_uint32_t
-    let _ = field t "timestamp" int32_as_uint32_t
-    let which = field t "which" joystick_id
-    let button = field t "button" int_as_uint8_t
-    let state = field t "state" uint8_t
-    let _ = field t "padding1" uint8_t
-    let _ = field t "padding2" uint8_t
-    let () = seal t
-  end
-
-  module Joy_device_event = struct
-    type t
-    let t : t structure typ = structure "SDL_JoyDeviceEvent"
-    let _ = field t "type" int_as_uint32_t
-    let _ = field t "timestamp" int32_as_uint32_t
-    let which = field t "which" joystick_id
-    let () = seal t
-  end
-
-  module Joy_hat_event = struct
-    type t
-    let t : t structure typ = structure "SDL_JoyHatEvent"
-    let _ = field t "type" int_as_uint32_t
-    let _ = field t "timestamp" int32_as_uint32_t
-    let which = field t "which" joystick_id
-    let hat = field t "hat" int_as_uint8_t
-    let value = field t "value" int_as_uint8_t
-    let _ = field t "padding1" uint8_t
-    let _ = field t "padding2" uint8_t
-    let () = seal t
-  end
-
-  module Mouse_button_event = struct
-    type t
-    let t : t structure typ = structure "SDL_MouseButtonEvent"
-    let _ = field t "type" int_as_uint32_t
-    let _ = field t "timestamp" int32_as_uint32_t
-    let window_id = field t "windowID" int_as_uint32_t
-    let which = field t "which" int32_as_uint32_t
-    let button = field t "button" int_as_uint8_t
-    let state = field t "state" uint8_t
-    let clicks = field t "clicks" int_as_uint8_t
-    let _ = field t "padding1" int_as_uint8_t
-    let x = field t "x" int_as_int32_t
-    let y = field t "y" int_as_int32_t
-    let () = seal t
-  end
-
-  module Mouse_motion_event = struct
-    type t
-    let t : t structure typ = structure "SDL_MouseMotionEvent"
-    let _ = field t "type" int_as_uint32_t
-    let _ = field t "timestamp" int32_as_uint32_t
-    let window_id = field t "windowID" int_as_uint32_t
-    let which = field t "which" int32_as_uint32_t
-    let state = field t "state" int32_as_uint32_t
-    let x = field t "x" int_as_int32_t
-    let y = field t "y" int_as_int32_t
-    let xrel = field t "xrel" int_as_int32_t
-    let yrel = field t "yrel" int_as_int32_t
-    let () = seal t
-  end
-
-  module Mouse_wheel_event = struct
-    type t
-    let t : t structure typ = structure "SDL_MouseWheelEvent"
-    let _ = field t "type" int_as_uint32_t
-    let _ = field t "timestamp" int32_as_uint32_t
-    let window_id = field t "windowID" int_as_uint32_t
-    let which = field t "which" int32_as_uint32_t
-    let x = field t "x" int_as_int32_t
-    let y = field t "y" int_as_int32_t
-    let direction = field t "direction" int_as_uint32_t
-    let () = seal t
-  end
-
-  module Multi_gesture_event = struct
-    type t
-    let t : t structure typ = structure "SDL_MultiGestureEvent"
-    let _ = field t "type" int_as_uint32_t
-    let _ = field t "timestamp" int32_as_uint32_t
-    let touch_id = field t "touchId" touch_id
-    let dtheta = field t "dTheta" float
-    let ddist = field t "ddist" float
-    let x = field t "x" float
-    let y = field t "y" float
-    let num_fingers = field t "numFingers" int_as_uint16_t
-    let _ = field t "padding" uint16_t
-    let () = seal t
-  end
-
-  module Sensor_event = struct
-    type t
-    let t : t structure typ = structure "SDL_SensorEvent"
-    let _ = field t "type" int_as_uint32_t
-    let _ = field t "timestamp" int32_as_uint32_t
-    let which = field t "which" int32_as_uint32_t
-    (* FIXME: No array here, see
-       https://github.com/ocamllabs/ocaml-ctypes/issues/113 *)
-    let data0 = field t "data0" float
-    let data1 = field t "data1" float
-    let data2 = field t "data2" float
-    let data3 = field t "data3" float
-    let data4 = field t "data4" float
-    let data5 = field t "data5" float
-    let () = seal t
-  end
-
-  module Quit_event = struct
-    type t
-    let t : t structure typ = structure "SDL_QuitEvent"
-    let _ = field t "type" int_as_uint32_t
-    let _ = field t "timestamp" int32_as_uint32_t
-    let () = seal t
-  end
-
-  module Sys_wm_event = struct
-    type t
-    let t : t structure typ = structure "SDL_SysWMEvent"
-    let _ = field t "type" int_as_uint32_t
-    let _ = field t "timestamp" int32_as_uint32_t
-    let _ = field t "msg" (ptr void)
-    let () = seal t
-  end
-
-  module Text_editing_event = struct
-    type t
-    let t : t structure typ = structure "SDL_TextEditingEvent"
-    let _ = field t "type" int_as_uint32_t
-    let _ = field t "timestamp" int32_as_uint32_t
-    let window_id = field t "windowID" int_as_uint32_t
-    let text = field t "text" (string_as_char_array
-                                 C.Types.Event.texteditingevent_text_size)
-    let start = field t "start" int_as_int32_t
-    let length = field t "end" int_as_int32_t
-    let () = seal t
-  end
-
-  module Text_input_event = struct
-    type t
-    let t : t structure typ = structure "SDL_TextIfmtsnputEvent"
-    let _ = field t "type" int_as_uint32_t
-    let _ = field t "timestamp" int32_as_uint32_t
-    let window_id = field t "windowID" int_as_uint32_t
-    let text = field t "text" (string_as_char_array
-                                 C.Types.Event.textinputevent_text_size)
-    let () = seal t
-  end
-
-  module Touch_finger_event = struct
-    type t
-    let t : t structure typ = structure "SDL_TouchFingerEvent"
-    let _ = field t "type" int_as_uint32_t
-    let _ = field t "timestamp" int32_as_uint32_t
-    let touch_id = field t "touchId" touch_id
-    let finger_id = field t "fingerId" finger_id
-    let x = field t "x" float
-    let y = field t "y" float
-    let dx = field t "dx" float
-    let dy = field t "dy" float
-    let pressure = field t "pressure" float
-    let () = seal t
-  end
-
-  module User_event = struct
-    type t
-    let t : t structure typ = structure "SDL_UserEvent"
-    let _ = field t "type" int_as_uint32_t
-    let _ = field t "timestamp" int32_as_uint32_t
-    let window_id = field t "windowID" int_as_uint32_t
-    let code = field t "code" int_as_int32_t
-    let _ = field t "data1" (ptr void)
-    let _ = field t "data2" (ptr void)
-    let () = seal t
-  end
-
-  module Window_event = struct
-    type t
-    let t : t structure typ = structure "SDL_WindowEvent"
-    let _ = field t "type" int_as_uint32_t
-    let _ = field t "timestamp" int32_as_uint32_t
-    let window_id = field t "windowID" int_as_uint32_t
-    let event = field t "event" int_as_uint8_t
-    let _padding1 = field t "padding1" uint8_t
-    let _padding2 = field t "padding2" uint8_t
-    let _padding3 = field t "padding3" uint8_t
-    let data1 = field t "data1" int32_t
-    let data2 = field t "data2" int32_t
-    let () = seal t
-  end
-
-  module Display_event = struct
-    type t
-    let t : t structure typ = structure "SDL_DisplayEvent"
-    let _ = field t "type" int_as_uint32_t
-    let _ = field t "timestamp" int32_as_uint32_t
-    let display = field t "display" int32_as_uint32_t
-    let event = field t "event" int_as_uint8_t
-    let _padding1 = field t "padding1" uint8_t
-    let _padding2 = field t "padding2" uint8_t
-    let _padding3 = field t "padding3" uint8_t
-    let data1 = field t "data1" int32_t
-    let () = seal t
-  end
-
-  module Audio_device_event = struct
-    type t
-    let t : t structure typ = structure "SDL_AudioDevice"
-    let _ = field t "type" int_as_uint32_t
-    let timestamp = field t "timestamp" int32_as_uint32_t
-    let which = field t "which" int32_as_uint32_t
-    let iscapture = field t "iscapture" int_as_uint8_t
-    let () = seal t
-  end
-
-  type t
-  let t : t union typ = union "SDL_Event"
-  let _typ = field t "type" int_as_uint32_t
-  let audio_device_event = field t "adevice" Audio_device_event.t
-  let common = field t "common" Common.t
-  let controller_axis_event = field t "caxis" Controller_axis_event.t
-  let controller_button_event = field t "cbutton" Controller_button_event.t
-  let controller_device_event = field t "cdevice" Controller_device_event.t
-  let dollar_gesture_event = field t "dgesture" Dollar_gesture_event.t
-  let drop_event = field t "drop" Drop_event.t
-  let joy_axis_event = field t "jaxis" Joy_axis_event.t
-  let joy_ball_event = field t "jball" Joy_ball_event.t
-  let joy_button_event = field t "jbutton" Joy_button_event.t
-  let joy_device_event = field t "jdevice" Joy_device_event.t
-  let joy_hat_event = field t "jhat" Joy_hat_event.t
-  let keyboard_event = field t "key" Keyboard_event.t
-  let mouse_button_event = field t "button" Mouse_button_event.t
-  let mouse_motion_event = field t "motion" Mouse_motion_event.t
-  let mouse_wheel_event = field t "wheel" Mouse_wheel_event.t
-  let multi_gesture_event = field t "mgesture" Multi_gesture_event.t
-  let _quit_event = field t "quit" Quit_event.t
-  let _sys_wm_event = field t "syswm" Sys_wm_event.t
-  let text_editing_event = field t "edit" Text_editing_event.t
-  let text_input_event = field t "text" Text_input_event.t
-  let touch_finger_event = field t "tfinger" Touch_finger_event.t
-  let _user_event = field t "user" User_event.t
-  let _window_event = field t "window" Window_event.t
-  let _display_event = field t "display" Display_event.t
-  let sensor_event = field t "sensor" Sensor_event.t
-  (*let _padding = field t "padding"
-      (abstract ~name:"padding" ~size: ~alignment:1)*)
-  let () = seal t
 
   let create () = make t
   let opt_addr = function
@@ -2578,48 +2192,58 @@ module Event = struct
   type _ field =
       F : (* existential to hide the 'a structure *)
         (('a structure, t union) Ctypes.field *
-         ('b, 'a structure) Ctypes.field) -> 'b field
+         ('b, 'a structure) Ctypes.field *
+         ('b -> 'c) * ('b -> 'c -> 'b)) -> 'c field
 
-  let get e (F (s, f)) = getf (getf e s) f
-  let set e (F (s, f)) v = setf (getf e s) f v
+  let get e (F (s, f, c, _)) = c (getf (getf e s) f)
+  let set e (F (s, f, _, c)) v = let x = getf e s in setf x f (c (getf x f) v)
 
   (* Common *)
 
-  let typ  = F (common, Common.typ)
-  let timestamp = F (common, Common.timestamp)
+  let typ  = F (common, Common.typ, Fun.id, (fun _ x -> x))
+  let timestamp =
+    F (common, Common.timestamp,
+       Unsigned.UInt32.to_int32, (fun _ x -> Unsigned.UInt32.of_int32 x))
 
   (* Controller events *)
 
   let controller_axis_which =
-    F (controller_axis_event, Controller_axis_event.which)
+    F (controller_axis_event, Controller_axis_event.which, Fun.id, (fun _ x -> x))
   let controller_axis_axis =
-    F (controller_axis_event, Controller_axis_event.axis)
+    F (controller_axis_event, Controller_axis_event.axis,
+       Unsigned.UInt8.to_int, (fun _ x -> Unsigned.UInt8.of_int x))
   let controller_axis_value =
-    F (controller_axis_event, Controller_axis_event.value)
+    F (controller_axis_event, Controller_axis_event.value, Fun.id, (fun _ x -> x))
 
   let controller_button_which =
-    F (controller_button_event, Controller_button_event.which)
+    F (controller_button_event, Controller_button_event.which, Fun.id, (fun _ x -> x))
   let controller_button_button =
-    F (controller_button_event, Controller_button_event.button)
+    F (controller_button_event, Controller_button_event.button,
+       Unsigned.UInt8.to_int, (fun _ x -> Unsigned.UInt8.of_int x))
   let controller_button_state =
-    F (controller_button_event, Controller_button_event.state)
+    F (controller_button_event, Controller_button_event.state, Fun.id, (fun _ x -> x))
 
   let controller_device_which =
-    F (controller_device_event, Controller_device_event.which)
+    F (controller_device_event, Controller_device_event.which, Fun.id, (fun _ x -> x))
 
   let dollar_gesture_touch_id =
-    F (dollar_gesture_event, Dollar_gesture_event.touch_id)
+    F (dollar_gesture_event, Dollar_gesture_event.touch_id, Fun.id, (fun _ x -> x))
   let dollar_gesture_gesture_id =
-    F (dollar_gesture_event, Dollar_gesture_event.gesture_id)
+    F (dollar_gesture_event, Dollar_gesture_event.gesture_id, Fun.id, (fun _ x -> x))
   let dollar_gesture_num_fingers =
-    F (dollar_gesture_event, Dollar_gesture_event.num_fingers)
+    F (dollar_gesture_event, Dollar_gesture_event.num_fingers,
+       Unsigned.UInt32.to_int, (fun _ x -> Unsigned.UInt32.of_int x))
   let dollar_gesture_error =
-    F (dollar_gesture_event, Dollar_gesture_event.error)
-  let dollar_gesture_x = F (dollar_gesture_event, Dollar_gesture_event.x)
-  let dollar_gesture_y = F (dollar_gesture_event, Dollar_gesture_event.y)
+    F (dollar_gesture_event, Dollar_gesture_event.error, Fun.id, (fun _ x -> x))
+  let dollar_gesture_x =
+    F (dollar_gesture_event, Dollar_gesture_event.x, Fun.id, (fun _ x -> x))
+  let dollar_gesture_y =
+    F (dollar_gesture_event, Dollar_gesture_event.y, Fun.id, (fun _ x -> x))
 
-  let drop_file_file = F (drop_event, Drop_event.file)
-  let drop_window_id = F (drop_event, Drop_event.window_id)
+  let drop_file_file = F (drop_event, Drop_event.file, Fun.id, (fun _ x -> x))
+  let drop_window_id =
+    F (drop_event, Drop_event.window_id,
+       Unsigned.UInt32.to_int, (fun _ x -> Unsigned.UInt32.of_int x))
 
   let drop_file_free e =
     let sp = to_voidp (get e drop_file_file) in
@@ -2631,101 +2255,201 @@ module Event = struct
 
   (* Touch events *)
 
-  let touch_finger_touch_id = F (touch_finger_event,Touch_finger_event.touch_id)
+  let touch_finger_touch_id =
+    F (touch_finger_event,Touch_finger_event.touch_id, Fun.id, (fun _ x -> x))
   let touch_finger_finger_id =
-    F (touch_finger_event, Touch_finger_event.finger_id)
-  let touch_finger_x = F (touch_finger_event, Touch_finger_event.x)
-  let touch_finger_y = F (touch_finger_event, Touch_finger_event.y)
-  let touch_finger_dx = F (touch_finger_event, Touch_finger_event.dx)
-  let touch_finger_dy = F (touch_finger_event, Touch_finger_event.dy)
+    F (touch_finger_event, Touch_finger_event.finger_id, Fun.id, (fun _ x -> x))
+  let touch_finger_x =
+    F (touch_finger_event, Touch_finger_event.x, Fun.id, (fun _ x -> x))
+  let touch_finger_y =
+    F (touch_finger_event, Touch_finger_event.y, Fun.id, (fun _ x -> x))
+  let touch_finger_dx =
+    F (touch_finger_event, Touch_finger_event.dx, Fun.id, (fun _ x -> x))
+  let touch_finger_dy =
+    F (touch_finger_event, Touch_finger_event.dy, Fun.id, (fun _ x -> x))
   let touch_finger_pressure =
-    F (touch_finger_event, Touch_finger_event.pressure)
+    F (touch_finger_event, Touch_finger_event.pressure, Fun.id, (fun _ x -> x))
 
   (* Joystick events. *)
 
-  let joy_axis_which = F (joy_axis_event, Joy_axis_event.which)
-  let joy_axis_axis = F (joy_axis_event, Joy_axis_event.axis)
-  let joy_axis_value = F (joy_axis_event, Joy_axis_event.value)
+  let joy_axis_which =
+    F (joy_axis_event, Joy_axis_event.which, Fun.id, (fun _ x -> x))
+  let joy_axis_axis =
+    F (joy_axis_event, Joy_axis_event.axis,
+       Unsigned.UInt8.to_int, (fun _ x -> Unsigned.UInt8.of_int x))
+  let joy_axis_value =
+    F (joy_axis_event, Joy_axis_event.value, Fun.id, (fun _ x -> x))
 
-  let joy_ball_which = F (joy_ball_event, Joy_ball_event.which)
-  let joy_ball_ball = F (joy_ball_event, Joy_ball_event.ball)
-  let joy_ball_xrel = F (joy_ball_event, Joy_ball_event.xrel)
-  let joy_ball_yrel = F (joy_ball_event, Joy_ball_event.yrel)
+  let joy_ball_which =
+    F (joy_ball_event, Joy_ball_event.which, Fun.id, (fun _ x -> x))
+  let joy_ball_ball =
+    F (joy_ball_event, Joy_ball_event.ball,
+       Unsigned.UInt8.to_int, (fun _ x -> Unsigned.UInt8.of_int x))
+  let joy_ball_xrel =
+    F (joy_ball_event, Joy_ball_event.xrel, Fun.id, (fun _ x -> x))
+  let joy_ball_yrel =
+    F (joy_ball_event, Joy_ball_event.yrel, Fun.id, (fun _ x -> x))
 
-  let joy_button_which = F (joy_button_event, Joy_button_event.which)
-  let joy_button_button = F (joy_button_event, Joy_button_event.button)
-  let joy_button_state = F (joy_button_event, Joy_button_event.state)
+  let joy_button_which =
+    F (joy_button_event, Joy_button_event.which, Fun.id, (fun _ x -> x))
+  let joy_button_button =
+    F (joy_button_event, Joy_button_event.button,
+       Unsigned.UInt8.to_int, (fun _ x -> Unsigned.UInt8.of_int x))
+  let joy_button_state =
+    F (joy_button_event, Joy_button_event.state, Fun.id, (fun _ x -> x))
 
-  let joy_device_which = F (joy_device_event, Joy_device_event.which)
+  let joy_device_which =
+    F (joy_device_event, Joy_device_event.which, Fun.id, (fun _ x -> x))
 
-  let joy_hat_which = F (joy_hat_event, Joy_hat_event.which)
-  let joy_hat_hat = F (joy_hat_event, Joy_hat_event.hat)
-  let joy_hat_value = F (joy_hat_event, Joy_hat_event.value)
+  let joy_hat_which =
+    F (joy_hat_event, Joy_hat_event.which, Fun.id, (fun _ x -> x))
+  let joy_hat_hat =
+    F (joy_hat_event, Joy_hat_event.hat,
+       Unsigned.UInt8.to_int, (fun _ x -> Unsigned.UInt8.of_int x))
+  let joy_hat_value =
+    F (joy_hat_event, Joy_hat_event.value,
+       Unsigned.UInt8.to_int, (fun _ x -> Unsigned.UInt8.of_int x))
 
   (* Keyboard events *)
 
-  let keyboard_window_id = F (keyboard_event, Keyboard_event.window_id)
-  let keyboard_repeat = F (keyboard_event, Keyboard_event.repeat)
-  let keyboard_state = F (keyboard_event, Keyboard_event.state)
-  let keyboard_scancode = F (keyboard_event, Keyboard_event.scancode)
-  let keyboard_keycode = F (keyboard_event, Keyboard_event.keycode)
-  let keyboard_keymod = F (keyboard_event, Keyboard_event.keymod)
+  let keyboard_window_id =
+    F (keyboard_event, Keyboard_event.window_id,
+       Unsigned.UInt32.to_int, (fun _ x -> Unsigned.UInt32.of_int x))
+  let keyboard_repeat =
+    F (keyboard_event, Keyboard_event.repeat,
+       Unsigned.UInt8.to_int, (fun _ x -> Unsigned.UInt8.of_int x))
+  let keyboard_state =
+    F (keyboard_event, Keyboard_event.state, Fun.id, (fun _ x -> x))
+  let keyboard_scancode =
+    F (keyboard_event, Keyboard_event.keysym,
+       (fun k -> getf k Keyboard_event.scancode),
+       (fun k v -> let () = setf k Keyboard_event.scancode v in k))
+  let keyboard_keycode =
+    F (keyboard_event, Keyboard_event.keysym,
+       (fun k -> getf k Keyboard_event.keycode),
+       (fun k v -> let () = setf k Keyboard_event.keycode v in k))
+  let keyboard_keymod =
+    F (keyboard_event, Keyboard_event.keysym,
+       (fun k -> getf k Keyboard_event.keymod),
+       (fun k v -> let () = setf k Keyboard_event.keymod v in k))
 
   (* Mouse events *)
 
   let mouse_button_window_id =
-    F (mouse_button_event, Mouse_button_event.window_id)
-  let mouse_button_which = F (mouse_button_event, Mouse_button_event.which)
-  let mouse_button_state = F (mouse_button_event, Mouse_button_event.state)
-  let mouse_button_button = F (mouse_button_event, Mouse_button_event.button)
-  let mouse_button_clicks = F (mouse_button_event, Mouse_button_event.clicks)
-  let mouse_button_x = F (mouse_button_event, Mouse_button_event.x)
-  let mouse_button_y = F (mouse_button_event, Mouse_button_event.y)
+    F (mouse_button_event, Mouse_button_event.window_id,
+       Unsigned.UInt32.to_int, (fun _ x -> Unsigned.UInt32.of_int x))
+  let mouse_button_which =
+    F (mouse_button_event, Mouse_button_event.which,
+       Unsigned.UInt32.to_int32, (fun _ x -> Unsigned.UInt32.of_int32 x))
+  let mouse_button_state =
+    F (mouse_button_event, Mouse_button_event.state, Fun.id, (fun _ x -> x))
+  let mouse_button_button =
+    F (mouse_button_event, Mouse_button_event.button,
+       Unsigned.UInt8.to_int, (fun _ x -> Unsigned.UInt8.of_int x))
+  let mouse_button_clicks =
+    F (mouse_button_event, Mouse_button_event.clicks,
+       Unsigned.UInt8.to_int, (fun _ x -> Unsigned.UInt8.of_int x))
+  let mouse_button_x =
+    F (mouse_button_event, Mouse_button_event.x,
+       Int32.to_int, (fun _ x -> Int32.of_int x))
+  let mouse_button_y =
+    F (mouse_button_event, Mouse_button_event.y,
+       Int32.to_int, (fun _ x -> Int32.of_int x))
 
   let mouse_motion_window_id =
-    F (mouse_motion_event, Mouse_motion_event.window_id)
-  let mouse_motion_which = F (mouse_motion_event, Mouse_motion_event.which)
-  let mouse_motion_state = F (mouse_motion_event, Mouse_motion_event.state)
-  let mouse_motion_x = F (mouse_motion_event, Mouse_motion_event.x)
-  let mouse_motion_y = F (mouse_motion_event, Mouse_motion_event.y)
-  let mouse_motion_xrel = F (mouse_motion_event, Mouse_motion_event.xrel)
-  let mouse_motion_yrel = F (mouse_motion_event, Mouse_motion_event.yrel)
+    F (mouse_motion_event, Mouse_motion_event.window_id,
+       Unsigned.UInt32.to_int, (fun _ x -> Unsigned.UInt32.of_int x))
+  let mouse_motion_which =
+    F (mouse_motion_event, Mouse_motion_event.which,
+       Unsigned.UInt32.to_int32, (fun _ x -> Unsigned.UInt32.of_int32 x))
+  let mouse_motion_state =
+    F (mouse_motion_event, Mouse_motion_event.state,
+       Unsigned.UInt32.to_int32, (fun _ x -> Unsigned.UInt32.of_int32 x))
+  let mouse_motion_x =
+    F (mouse_motion_event, Mouse_motion_event.x,
+       Int32.to_int, (fun _ x -> Int32.of_int x))
+  let mouse_motion_y =
+    F (mouse_motion_event, Mouse_motion_event.y,
+       Int32.to_int, (fun _ x -> Int32.of_int x))
+  let mouse_motion_xrel =
+    F (mouse_motion_event, Mouse_motion_event.xrel,
+       Int32.to_int, (fun _ x -> Int32.of_int x))
+  let mouse_motion_yrel =
+    F (mouse_motion_event, Mouse_motion_event.yrel,
+       Int32.to_int, (fun _ x -> Int32.of_int x))
 
-  let mouse_wheel_window_id = F (mouse_wheel_event, Mouse_wheel_event.window_id)
-  let mouse_wheel_which = F (mouse_wheel_event, Mouse_wheel_event.which)
-  let mouse_wheel_x = F (mouse_wheel_event, Mouse_wheel_event.x)
-  let mouse_wheel_y = F (mouse_wheel_event, Mouse_wheel_event.y)
-  let mouse_wheel_direction = F(mouse_wheel_event, Mouse_wheel_event.direction)
+  let mouse_wheel_window_id =
+    F (mouse_wheel_event, Mouse_wheel_event.window_id,
+       Unsigned.UInt32.to_int, (fun _ x -> Unsigned.UInt32.of_int x))
+  let mouse_wheel_which =
+    F (mouse_wheel_event, Mouse_wheel_event.which,
+       Unsigned.UInt32.to_int32, (fun _ x -> Unsigned.UInt32.of_int32 x))
+  let mouse_wheel_x =
+    F (mouse_wheel_event, Mouse_wheel_event.x,
+       Int32.to_int, (fun _ x -> Int32.of_int x))
+  let mouse_wheel_y =
+    F (mouse_wheel_event, Mouse_wheel_event.y,
+       Int32.to_int, (fun _ x -> Int32.of_int x))
+  let mouse_wheel_direction =
+    F(mouse_wheel_event, Mouse_wheel_event.direction,
+      Unsigned.UInt32.to_int, (fun _ x -> Unsigned.UInt32.of_int x))
 
   (* Multi gesture events *)
 
   let multi_gesture_touch_id =
-    F (multi_gesture_event, Multi_gesture_event.touch_id)
-  let multi_gesture_dtheta = F (multi_gesture_event, Multi_gesture_event.dtheta)
-  let multi_gesture_ddist = F (multi_gesture_event, Multi_gesture_event.ddist)
-  let multi_gesture_x = F (multi_gesture_event, Multi_gesture_event.x)
-  let multi_gesture_y = F (multi_gesture_event, Multi_gesture_event.y)
+    F (multi_gesture_event, Multi_gesture_event.touch_id, Fun.id, (fun _ x -> x))
+  let multi_gesture_dtheta =
+    F (multi_gesture_event, Multi_gesture_event.dtheta, Fun.id, (fun _ x -> x))
+  let multi_gesture_ddist =
+    F (multi_gesture_event, Multi_gesture_event.ddist, Fun.id, (fun _ x -> x))
+  let multi_gesture_x =
+    F (multi_gesture_event, Multi_gesture_event.x, Fun.id, (fun _ x -> x))
+  let multi_gesture_y =
+    F (multi_gesture_event, Multi_gesture_event.y, Fun.id, (fun _ x -> x))
   let multi_gesture_num_fingers =
-    F (multi_gesture_event, Multi_gesture_event.num_fingers)
+    F (multi_gesture_event, Multi_gesture_event.num_fingers,
+       Unsigned.UInt16.to_int, (fun _ x -> Unsigned.UInt16.of_int x))
 
   let text_editing_window_id =
-    F (text_editing_event, Text_editing_event.window_id)
-  let text_editing_text = F (text_editing_event, Text_editing_event.text)
-  let text_editing_start = F (text_editing_event, Text_editing_event.start)
-  let text_editing_length = F (text_editing_event, Text_editing_event.length)
+    F (text_editing_event, Text_editing_event.window_id,
+       Unsigned.UInt32.to_int, (fun _ x -> Unsigned.UInt32.of_int x))
+  let text_editing_text =
+    F (text_editing_event, Text_editing_event.text,
+       (fun p -> string_from_ptr p ~length:texteditingevent_text_size),
+       (fun _ x -> CArray.(start (of_string x))))
+  let text_editing_start =
+    F (text_editing_event, Text_editing_event.start,
+       Int32.to_int, (fun _ x -> Int32.of_int x))
+  let text_editing_length =
+    F (text_editing_event, Text_editing_event.length,
+       Int32.to_int, (fun _ x -> Int32.of_int x))
 
-  let text_input_window_id = F (text_input_event, Text_input_event.window_id)
-  let text_input_text = F (text_input_event, Text_input_event.text)
+  let text_input_window_id =
+    F (text_input_event, Text_input_event.window_id,
+       Unsigned.UInt32.to_int, (fun _ x -> Unsigned.UInt32.of_int x))
+  let text_input_text =
+    F (text_input_event, Text_input_event.text,
+       (fun p -> string_from_ptr p ~length:textinputevent_text_size),
+       (fun _ x -> CArray.(start (of_string x))))
 
   (* User events *)
 
-  let user_window_id = F (_user_event, User_event.window_id)
-  let user_code = F (_user_event, User_event.code)
+  let user_window_id =
+    F (_user_event, User_event.window_id,
+       Unsigned.UInt32.to_int, (fun _ x -> Unsigned.UInt32.of_int x))
+  let user_code =
+    F (_user_event, User_event.code, Int32.to_int, (fun _ x -> Int32.of_int x))
 
-  let window_window_id = F (_window_event, Window_event.window_id)
-  let window_event_id = F (_window_event, Window_event.event)
-  let window_data1 = F (_window_event, Window_event.data1)
-  let window_data2 = F (_window_event, Window_event.data2)
+  let window_window_id =
+    F (_window_event, Window_event.window_id,
+       Unsigned.UInt32.to_int, (fun _ x -> Unsigned.UInt32.of_int x))
+  let window_event_id =
+    F (_window_event, Window_event.event,
+       Unsigned.UInt8.to_int, (fun _ x -> Unsigned.UInt8.of_int x))
+  let window_data1 =
+    F (_window_event, Window_event.data1, Fun.id, (fun _ x -> x))
+  let window_data2 =
+    F (_window_event, Window_event.data2, Fun.id, (fun _ x -> x))
 
   (* Window event id enum *)
 
@@ -2736,8 +2460,8 @@ module Event = struct
     | `Unknown of window_event_id ]
 
   let enum_of_window_event_id =
-    let add acc (k, v) = Imap.add k v acc in
-    let enums = [
+    (*let add acc (k, v) = Imap.add k v acc in*)
+      let enums = [
       window_event_shown, `Shown;
       window_event_hidden, `Hidden;
       window_event_exposed, `Exposed;
@@ -2755,55 +2479,73 @@ module Event = struct
       window_event_take_focus, `Take_focus;
       window_event_hit_test, `Hit_test; ]
     in
-    List.fold_left add Imap.empty enums
+    (*List.fold_left add Imap.empty*) enums
 
   let window_event_enum id =
-    try Imap.find id enum_of_window_event_id with Not_found -> `Unknown id
+    try List.assoc id enum_of_window_event_id with Not_found -> `Unknown id
 
   (* Display event *)
 
   let display_display =
-    F (_display_event, Display_event.display)
+    F (_display_event, Display_event.display,
+       Unsigned.UInt32.to_int32, (fun _ x -> Unsigned.UInt32.of_int32 x))
 
   let display_event_id =
-    F (_display_event, Display_event.event)
+    F (_display_event, Display_event.event,
+       Unsigned.UInt8.to_int, (fun _ x -> Unsigned.UInt8.of_int x))
 
   let display_data1 =
-    F (_display_event, Display_event.data1)
+    F (_display_event, Display_event.data1, Fun.id, (fun _ x -> x))
 
   (* Sensor event *)
 
   let sensor_which =
-    F (sensor_event, Sensor_event.which)
+    F (sensor_event, Sensor_event.which,
+       Unsigned.UInt32.to_int32, (fun _ x -> Unsigned.UInt32.of_int32 x))
 
   let sensor_data0 =
-    F (sensor_event, Sensor_event.data0)
+    F (sensor_event, Sensor_event.data,
+       (fun a -> CArray.get a 0),
+       (fun a x -> let () = CArray.set a 0 x in a))
 
   let sensor_data1 =
-    F (sensor_event, Sensor_event.data1)
+    F (sensor_event, Sensor_event.data,
+       (fun a -> CArray.get a 1),
+       (fun a x -> let () = CArray.set a 1 x in a))
 
   let sensor_data2 =
-    F (sensor_event, Sensor_event.data2)
+    F (sensor_event, Sensor_event.data,
+       (fun a -> CArray.get a 2),
+       (fun a x -> let () = CArray.set a 2 x in a))
 
   let sensor_data3 =
-    F (sensor_event, Sensor_event.data3)
+    F (sensor_event, Sensor_event.data,
+       (fun a -> CArray.get a 3),
+       (fun a x -> let () = CArray.set a 3 x in a))
 
   let sensor_data4 =
-    F (sensor_event, Sensor_event.data4)
+    F (sensor_event, Sensor_event.data,
+       (fun a -> CArray.get a 4),
+       (fun a x -> let () = CArray.set a 4 x in a))
 
   let sensor_data5 =
-    F (sensor_event, Sensor_event.data5)
+    F (sensor_event, Sensor_event.data,
+       (fun a -> CArray.get a 5),
+       (fun a x -> let () = CArray.set a 5 x in a))
 
   (* Audio device event *)
 
   let audio_device_timestamp =
-    F (audio_device_event, Audio_device_event.timestamp)
+    F (audio_device_event, Audio_device_event.timestamp,
+       Unsigned.UInt32.to_int32, (fun _ x -> Unsigned.UInt32.of_int32 x))
 
   let audio_device_which =
-    F (audio_device_event, Audio_device_event.which)
+    F (audio_device_event, Audio_device_event.which,
+       Unsigned.UInt32.to_int32, (fun _ x -> Unsigned.UInt32.of_int32 x))
 
   let audio_device_is_capture =
-    F (audio_device_event, Audio_device_event.iscapture)
+    F (audio_device_event, Audio_device_event.iscapture,
+       Unsigned.UInt8.to_int, (fun _ x -> Unsigned.UInt8.of_int x))
 
   (* Event type enum *)
 
@@ -2826,7 +2568,7 @@ module Event = struct
   | `Mouse_wheel | `Multi_gesture | `Quit
   | `Render_targets_reset | `Render_device_reset
   | `Sys_wm_event
-  | `Text_editing | `Text_input | `Unknown of int | `User_event
+  | `Text_editing | `Text_input | `Unknown of Unsigned.UInt32.t | `User_event
   | `Window_event | `Display_event | `Sensor_update ]
 
   let enum_of_event_type =
@@ -2889,14 +2631,11 @@ end
 
 type event = Event.t union
 
-let event_state =
-  foreign "SDL_EventState" (event_type @-> int @-> returning uint8_t)
-
 let get_event_state e =
-  event_state e C.Types.sdl_query
+  C.Functions.event_state e C.Types.sdl_query
 
 let set_event_state e s =
-  ignore (event_state e (Unsigned.UInt8.to_int s))
+  ignore (C.Functions.event_state e (Unsigned.UInt8.to_int s))
 
 let flush_event =
   foreign "SDL_FlushEvent" (event_type @-> returning void)
@@ -2927,8 +2666,9 @@ let push_event e =
 let register_events =
   foreign "SDL_RegisterEvents" (int @-> returning uint32_t)
 
-let register_event () = match Unsigned.UInt32.to_int32 (register_events 1) with
-| -1l -> None | t -> Some (Int32.to_int t)
+let register_event () =
+  let out = register_events 1 in
+  if Unsigned.UInt32.equal out Unsigned.UInt32.max_int then None else Some out
 
 let wait_event =
   foreign ~release_runtime_lock:true
