@@ -1654,8 +1654,8 @@ module Message_box = struct
     CArray.start (CArray.of_list button_data (List.map button_data_to_c bl))
 
   let color_scheme_to_c s =
-    let st = make C.Functions.Message_box.color_scheme in
-    let colors = getf st C.Functions.Message_box.colors in
+    let st = make color_scheme in
+    let colors = CArray.from_ptr (getf st colors) color_button_max in
     let set i (rv, gv, bv) =
       let ct = CArray.get colors i in
       setf ct color_r (Unsigned.UInt8.of_int rv);
@@ -1670,7 +1670,6 @@ module Message_box = struct
     st
 
   let data_to_c d =
-    let open C.Functions.Message_box in
     let dt = make data in
     setf dt d_flags d.flags;
     setf dt d_window d.window;

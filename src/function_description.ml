@@ -924,25 +924,9 @@ module Functions (F : FOREIGN) = struct
     F.(foreign "SDL_IsScreenSaverEnabled" (void @-> returning bool))
 
   module Message_box = struct
-    type _color_scheme
-    let color_scheme : _color_scheme structure typ = structure "SDL_MessageBoxColorScheme"
-    let colors = field color_scheme "colors" (array Types.Message_box.color_button_max Types.Message_box.color)
-    let () = seal color_scheme
-
-    type _data
-    let data : _data structure typ = structure "SDL_MessageBoxData"
-    let d_flags = field data "flags" uint32_t
-    let d_window = field data "window" Types.Window.opt
-    let d_title = field data "title" string
-    let d_message = field data "message" string
-    let d_numbuttons = field data "numbuttons" int
-    let d_buttons = field data "buttons" (ptr Types.Message_box.button_data)
-    let d_color_scheme = field data "colorScheme" (ptr_opt color_scheme)
-    let () = seal data
-
     let show =
       F.(foreign "SDL_ShowMessageBox"
-           ((ptr (typedef data "SDL_MessageBoxData")) @-> ptr int @-> returning int))
+           (ptr Types.Message_box.data @-> ptr int @-> returning int))
 
     let show_simple =
       F.(foreign "SDL_ShowSimpleMessageBox"

@@ -400,6 +400,23 @@ module Types (F : Ctypes.TYPE) = struct
     let color_b = F.field color "b" F.uint8_t
     let () = F.seal color
 
+    type _color_scheme
+    let color_scheme : _color_scheme Ctypes_static.structure F.typ =
+      F.typedef (F.structure "_SDL_MessageBoxColorScheme") "SDL_MessageBoxColorScheme"
+    let colors = F.field color_scheme "colors" (F.ptr color)
+    let () = F.seal color_scheme
+
+    type _data
+    let data : _data Ctypes_static.structure F.typ =
+      F.typedef (F.structure "_SDL_MessageBoxData") "SDL_MessageBoxData"
+    let d_flags = F.field data "flags" F.uint32_t
+    let d_window = F.field data "window" Window.opt
+    let d_title = F.field data "title" F.string
+    let d_message = F.field data "message" F.string
+    let d_numbuttons = F.field data "numbuttons" F.int
+    let d_buttons = F.field data "buttons" (F.ptr button_data)
+    let d_color_scheme = F.field data "colorScheme" (F.ptr_opt color_scheme)
+    let () = F.seal data
   end
 
   module Scancode = struct
