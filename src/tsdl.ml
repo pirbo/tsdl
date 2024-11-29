@@ -1655,9 +1655,10 @@ module Message_box = struct
 
   let color_scheme_to_c s =
     let st = make color_scheme in
-    let colors = CArray.from_ptr (getf st colors) color_button_max in
+    let arr = CArray.make C.Types.Message_box.color color_button_max in
+    let () = setf st colors (CArray.start arr) in
     let set i (rv, gv, bv) =
-      let ct = CArray.get colors i in
+      let ct = CArray.get arr i in
       setf ct color_r (Unsigned.UInt8.of_int rv);
       setf ct color_g (Unsigned.UInt8.of_int gv);
       setf ct color_b (Unsigned.UInt8.of_int bv);
@@ -2414,8 +2415,8 @@ module Event = struct
        Unsigned.UInt32.to_int, (fun _ x -> Unsigned.UInt32.of_int x))
   let text_editing_text =
     F (text_editing_event, Text_editing_event.text,
-       (fun p -> string_from_ptr p ~length:texteditingevent_text_size),
-       (fun _ x -> CArray.(start (of_string x))))
+       (fun p -> string_from_ptr (CArray.start p) ~length:texteditingevent_text_size),
+       (fun _ x -> CArray.of_string x))
   let text_editing_start =
     F (text_editing_event, Text_editing_event.start,
        Int32.to_int, (fun _ x -> Int32.of_int x))
@@ -2428,8 +2429,8 @@ module Event = struct
        Unsigned.UInt32.to_int, (fun _ x -> Unsigned.UInt32.of_int x))
   let text_input_text =
     F (text_input_event, Text_input_event.text,
-       (fun p -> string_from_ptr p ~length:textinputevent_text_size),
-       (fun _ x -> CArray.(start (of_string x))))
+       (fun p -> string_from_ptr (CArray.start p) ~length:textinputevent_text_size),
+       (fun _ x -> CArray.of_string x))
 
   (* User events *)
 
