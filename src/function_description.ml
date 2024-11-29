@@ -1186,6 +1186,14 @@ module Functions (F : FOREIGN) = struct
   let num_joysticks =
     F.(foreign "SDL_NumJoysticks" (void @-> returning int))
 
+  type _button_bind
+  let button_bind : _button_bind structure typ =
+    structure "SDL_GameControllerButtonBind"
+  let button_bind_bind_type = field button_bind "bindType" int
+  let button_bind_value1 = field button_bind "value1" int  (* simplified enum *)
+  let button_bind_value2 = field button_bind "value2" int
+  let () = seal button_bind
+
   let game_controller_add_mapping =
     F.(foreign "SDL_GameControllerAddMapping" (string @-> returning int))
 
@@ -1214,6 +1222,14 @@ module Functions (F : FOREIGN) = struct
   let game_controller_get_axis_from_string =
     F.(foreign "SDL_GameControllerGetAxisFromString"
          (string @-> returning int))
+
+  let game_controller_get_bind_for_axis =
+    F.(foreign "SDL_GameControllerGetBindForAxis"
+         (ptr Types.game_controller @-> int @-> returning button_bind))
+
+  let game_controller_get_bind_for_button =
+    F.(foreign "SDL_GameControllerGetBindForButton"
+         (ptr Types.game_controller @-> int @-> returning button_bind))
 
   let game_controller_get_button =
     F.(foreign "SDL_GameControllerGetButton"

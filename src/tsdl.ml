@@ -2075,22 +2075,15 @@ let unsafe_game_controller_of_ptr addr : game_controller =
 let unsafe_ptr_of_game_controller game_controller =
   raw_address_of_ptr (to_voidp game_controller)
 
-type _button_bind
-let button_bind : _button_bind structure typ =
-  structure "SDL_GameControllerBindType"
-let button_bind_bind_type = field button_bind "bindType" int
-let button_bind_value1 = field button_bind "value1" int  (* simplified enum *)
-let button_bind_value2 = field button_bind "value2" int
-let () = seal button_bind
-
 module Controller = struct
   include C.Types.Controller
 
-  type button_bind = _button_bind structure
-  let bind_type v = getf v button_bind_bind_type
-  let bind_button_value v = getf v button_bind_value1
-  let bind_axis_value v = getf v button_bind_value1
-  let bind_hat_value v = getf v button_bind_value1, getf v button_bind_value2
+  type button_bind = C.Functions._button_bind structure
+  let bind_type v = getf v C.Functions.button_bind_bind_type
+  let bind_button_value v = getf v C.Functions.button_bind_value1
+  let bind_axis_value v = getf v C.Functions.button_bind_value1
+  let bind_hat_value v =
+    getf v C.Functions.button_bind_value1, getf v C.Functions.button_bind_value2
 end
 
 let game_controller_add_mapping s =
@@ -2120,12 +2113,10 @@ let game_controller_get_axis_from_string =
   C.Functions.game_controller_get_axis_from_string
 
 let game_controller_get_bind_for_axis =
-  foreign "SDL_GameControllerGetBindForAxis"
-    (ptr C.Types.game_controller @-> int @-> returning button_bind)
+  C.Functions.game_controller_get_bind_for_axis
 
 let game_controller_get_bind_for_button =
-  foreign "SDL_GameControllerGetBindForButton"
-    (ptr C.Types.game_controller @-> int @-> returning button_bind)
+  C.Functions.game_controller_get_bind_for_button
 
 let game_controller_get_button c i =
   Unsigned.UInt8.to_int (C.Functions.game_controller_get_button c i)
