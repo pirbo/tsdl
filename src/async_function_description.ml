@@ -8,4 +8,11 @@ module Functions (F : FOREIGN) = struct
 
   let render_present =
     F.(foreign "SDL_RenderPresent" (ptr Types.Renderer.t @-> returning void))
+
+  let wait_event =
+    F.(foreign "SDL_WaitEvent" (ptr Types.Event.t @-> returning int))
+
+  let wait_event_timeout =
+    F.(foreign "SDL_WaitEventTimeout"
+         (ptr Types.Event.t @-> int @-> returning bool))
 end

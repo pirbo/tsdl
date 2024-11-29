@@ -1282,6 +1282,28 @@ module Functions (F : FOREIGN) = struct
   let event_state =
     F.(foreign "SDL_EventState" (uint32_t @-> int @-> returning uint8_t))
 
+  let flush_event =
+    F.(foreign "SDL_FlushEvent" (uint32_t @-> returning void))
+
+  let flush_events =
+    F.(foreign "SDL_FlushEvents" (uint32_t @-> uint32_t @-> returning void))
+
+  let has_event =
+    F.(foreign "SDL_HasEvent" (uint32_t @-> returning bool))
+
+  let has_events =
+    F.(foreign "SDL_HasEvents" (uint32_t @-> uint32_t @-> returning bool))
+
+  let poll_event =
+    F.(foreign "SDL_PollEvent" (ptr Types.Event.t @-> returning bool))
+
   let pump_events =
     F.(foreign "SDL_PumpEvents" (void @-> returning void))
+
+  let push_event =
+    F.(foreign "SDL_PushEvent" (ptr Types.Event.t @-> returning int))
+
+  let register_events =
+    F.(foreign "SDL_RegisterEvents" (int @-> returning uint32_t))
+
 end

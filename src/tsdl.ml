@@ -2178,7 +2178,6 @@ let is_game_controller = C.Functions.is_game_controller
 (* Events *)
 
 type event_type = Unsigned.UInt32.t
-let event_type : event_type typ = uint32_t
 
 module Event = struct
   include C.Types.Event
@@ -2637,52 +2636,31 @@ let get_event_state e =
 let set_event_state e s =
   ignore (C.Functions.event_state e (Unsigned.UInt8.to_int s))
 
-let flush_event =
-  foreign "SDL_FlushEvent" (event_type @-> returning void)
+let flush_event = C.Functions.flush_event
 
-let flush_events =
-  foreign "SDL_FlushEvents" (event_type @-> event_type @-> returning void)
+let flush_events = C.Functions.flush_events
 
-let has_event =
-  foreign "SDL_HasEvent" (event_type @-> returning bool)
+let has_event = C.Functions.has_event
 
-let has_events =
-  foreign "SDL_HasEvents" (event_type @-> event_type @-> returning bool)
-
-let poll_event =
-  foreign "SDL_PollEvent" (ptr Event.t @-> returning bool)
+let has_events = C.Functions.has_events
 
 let poll_event e =
-  poll_event (Event.opt_addr e)
+  C.Functions.poll_event (Event.opt_addr e)
 
 let pump_events = C.Functions.pump_events
 
-let push_event =
-  foreign "SDL_PushEvent" (ptr Event.t @-> returning int)
-
 let push_event e =
-  push_event (addr e) |> bool_to_ok
-
-let register_events =
-  foreign "SDL_RegisterEvents" (int @-> returning uint32_t)
+  bool_to_ok (C.Functions.push_event (addr e))
 
 let register_event () =
-  let out = register_events 1 in
-  if Unsigned.UInt32.equal out Unsigned.UInt32.max_int then None else Some out
+  let out = C.Functions.register_events 1 in
+  if Unsigned.UInt32.(equal out max_int) then None else Some out
 
-let wait_event =
-  foreign ~release_runtime_lock:true
-    "SDL_WaitEvent" (ptr Event.t @-> returning int)
-
-let wait_event e = match wait_event (Event.opt_addr e) with
+let wait_event e = match C.Async_functions.wait_event (Event.opt_addr e) with
 | 1 -> Ok () | _ -> error ()
 
-let wait_event_timeout =
-  foreign "SDL_WaitEventTimeout" ~release_runtime_lock:true
-    (ptr Event.t @-> int @-> returning bool)
-
 let wait_event_timeout e t =
-  wait_event_timeout (Event.opt_addr e) t
+  C.Async_functions.wait_event_timeout (Event.opt_addr e) t
 
 (* Force feedback *)
 
