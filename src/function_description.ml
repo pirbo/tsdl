@@ -1322,6 +1322,8 @@ module Functions (F : FOREIGN) = struct
   let register_events =
     F.(foreign "SDL_RegisterEvents" (int @-> returning uint32_t))
 
+  (* Force feedback *)
+
   let haptic_close =
     F.(foreign "SDL_HapticClose" (ptr Types.Haptic.t @-> returning void))
 
@@ -1341,7 +1343,7 @@ module Functions (F : FOREIGN) = struct
     F.(foreign "SDL_HapticIndex" (ptr Types.Haptic.t @-> returning int))
 
   let haptic_name =
-    F.(foreign "SDL_HapticName" (int @-> returning string_opt))
+    F.(foreign "SDL_HapticName" (int @-> returning const_string_opt))
 
   let haptic_new_effect =
     F.(foreign "SDL_HapticNewEffect"
@@ -1422,4 +1424,132 @@ module Functions (F : FOREIGN) = struct
 
   let num_haptics =
     F.(foreign "SDL_NumHaptics" (void @-> returning int))
+
+  (* Audio *)
+
+  (* Audio drivers *)
+
+  let audio_init =
+    F.(foreign "SDL_AudioInit" (const_string_opt @-> returning int))
+
+  let audio_quit =
+    F.(foreign "SDL_AudioQuit" (void @-> returning void))
+
+  let get_audio_driver =
+    F.(foreign "SDL_GetAudioDriver" (int @-> returning const_string_opt))
+
+  let get_current_audio_driver =
+    F.(foreign "SDL_GetCurrentAudioDriver"
+         (void @-> returning const_string_opt))
+
+  let get_num_audio_drivers =
+    F.(foreign "SDL_GetNumAudioDrivers" (void @-> returning int))
+
+  (* Audio devices *)
+
+  let close_audio_device =
+    F.(foreign "SDL_CloseAudioDevice" (uint32_t @-> returning void))
+
+  let free_wav =
+    F.(foreign "SDL_FreeWAV" (ptr void @-> returning void))
+
+  let get_audio_device_name =
+    F.(foreign "SDL_GetAudioDeviceName"
+         (int @-> bool @-> returning const_string_opt))
+
+  let get_audio_device_status =
+    F.(foreign "SDL_GetAudioDeviceStatus" (uint32_t @-> returning int))
+
+  let get_num_audio_devices =
+    F.(foreign "SDL_GetNumAudioDevices" (bool @-> returning int))
+
+  let lock_audio_device =
+    F.(foreign "SDL_LockAudioDevice" (uint32_t @-> returning void))
+
+  let pause_audio_device =
+    F.(foreign "SDL_PauseAudioDevice" (uint32_t @-> bool @-> returning void))
+
+  let unlock_audio_device =
+    F.(foreign "SDL_UnlockAudioDevice" (uint32_t @-> returning void))
+
+  let queue_audio =
+    F.(foreign "SDL_QueueAudio"
+         (uint32_t @-> ptr void @-> uint32_t @-> returning int))
+
+  let dequeue_audio =
+    F.(foreign "SDL_DequeueAudio"
+         (uint32_t @-> ptr void @-> int @-> returning uint32_t))
+
+  let get_queued_audio_size =
+    F.(foreign "SDL_GetQueuedAudioSize" (uint32_t @-> returning uint32_t))
+
+  let clear_queued_audio =
+    F.(foreign "SDL_ClearQueuedAudio" (uint32_t @-> returning void))
+
+  (* Timer *)
+
+  let get_ticks =
+    F.(foreign "SDL_GetTicks" (void @-> returning int32_t))
+
+  let get_ticks64 =
+    F.(foreign "SDL_GetTicks64" (void @-> returning int64_t))
+
+  let get_performance_counter =
+    F.(foreign "SDL_GetPerformanceCounter" (void @-> returning int64_t))
+
+  let get_performance_frequency =
+    F.(foreign "SDL_GetPerformanceFrequency" (void @-> returning int64_t))
+
+  (* Platform and CPU information *)
+
+  let get_platform =
+    F.(foreign "SDL_GetPlatform" (void @-> returning string))
+
+  let get_cpu_cache_line_size =
+    F.(foreign "SDL_GetCPUCacheLineSize" (void @-> returning int))
+
+  let get_cpu_count =
+    F.(foreign "SDL_GetCPUCount" (void @-> returning int))
+
+  let get_system_ram =
+    F.(foreign "SDL_GetSystemRAM" (void @-> returning int))
+
+  let has_3d_now =
+    F.(foreign "SDL_Has3DNow" (void @-> returning bool))
+
+  let has_altivec =
+    F.(foreign "SDL_HasAltiVec" (void @-> returning bool))
+
+  let has_avx =
+    F.(foreign "SDL_HasAVX" (void @-> returning bool))
+
+  let has_avx2 =
+    F.(foreign  "SDL_HasAVX2" (void @-> returning bool))
+
+  let has_mmx =
+    F.(foreign "SDL_HasMMX" (void @-> returning bool))
+
+  let has_neon =
+    F.(foreign "SDL_HasNEON" (void @-> returning bool))
+
+  let has_rdtsc =
+    F.(foreign "SDL_HasRDTSC" (void @-> returning bool))
+
+  let has_sse =
+    F.(foreign "SDL_HasSSE" (void @-> returning bool))
+
+  let has_sse2 =
+    F.(foreign "SDL_HasSSE2" (void @-> returning bool))
+
+  let has_sse3 =
+    F.(foreign "SDL_HasSSE3" (void @-> returning bool))
+
+  let has_sse41 =
+    F.(foreign "SDL_HasSSE41" (void @-> returning bool))
+
+  let has_sse42 =
+    F.(foreign "SDL_HasSSE42" (void @-> returning bool))
+
+  let get_power_info =
+    F.(foreign "SDL_GetPowerInfo" ((ptr int) @-> (ptr int) @-> returning int))
 end

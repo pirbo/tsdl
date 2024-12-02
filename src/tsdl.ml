@@ -45,9 +45,6 @@ let int_as_uint8_t =
 let int_as_uint16_t =
   view ~read:Unsigned.UInt16.to_int ~write:Unsigned.UInt16.of_int uint16_t
 
-let int_as_uint32_t =
-  view ~read:Unsigned.UInt32.to_int ~write:Unsigned.UInt32.of_int uint32_t
-
 let int32_as_uint32_t =
   view ~read:Unsigned.UInt32.to_int32 ~write:Unsigned.UInt32.of_int32 uint32_t
 
@@ -3018,31 +3015,22 @@ let num_haptics () = nat_to_ok (C.Functions.num_haptics ())
 
 (* Audio drivers *)
 
-let audio_init =
-  foreign "SDL_AudioInit" (string_opt @-> returning int)
-let audio_init s = audio_init s |> zero_to_ok
+let audio_init s = zero_to_ok (C.Functions.audio_init s)
 
-let audio_quit =
-  foreign "SDL_AudioQuit" (void @-> returning void)
+let audio_quit = C.Functions.audio_quit
 
-let get_audio_driver =
-  foreign "SDL_GetAudioDriver"
-    (int @-> returning string_opt)
-let get_audio_driver i = get_audio_driver i |> some_to_ok
+let get_audio_driver i = some_to_ok (C.Functions.get_audio_driver i)
 
-let get_current_audio_driver =
-  foreign "SDL_GetCurrentAudioDriver" (void @-> returning string_opt)
+let get_current_audio_driver = C.Functions.get_current_audio_driver
 
-let get_num_audio_drivers =
-  foreign "SDL_GetNumAudioDrivers" (void @-> returning int)
-let get_num_audio_drivers () = get_num_audio_drivers () |> nat_to_ok
+let get_num_audio_drivers () =
+  nat_to_ok (C.Functions.get_num_audio_drivers ())
 
 (* Audio devices *)
 
 module Audio = C.Types.Audio
 
-type audio_device_id = int32
-let audio_device_id = int32_as_uint32_t
+type audio_device_id = Unsigned.UInt32.t
 
 type audio_callback =
   unit Ctypes_static.ptr -> Unsigned.uint8 Ctypes_static.ptr -> int -> unit
@@ -3106,26 +3094,17 @@ let audio_spec_to_c a =
   setf c as_userdata null;
   c
 
-let close_audio_device =
-  foreign "SDL_CloseAudioDevice" (audio_device_id @-> returning void)
-
-let free_wav =
-  foreign "SDL_FreeWAV" (ptr void @-> returning void)
+let close_audio_device = C.Functions.close_audio_device
 
 let free_wav ba =
-  free_wav (to_voidp (bigarray_start array1 ba))
+  C.Functions.free_wav (to_voidp (bigarray_start array1 ba))
 
-let get_audio_device_name =
-  foreign "SDL_GetAudioDeviceName"
-    (int @-> bool @-> returning string_opt)
-let get_audio_device_name i b = get_audio_device_name i b |> some_to_ok
+let get_audio_device_name i b =
+  some_to_ok (C.Functions.get_audio_device_name i b)
 
-let get_audio_device_status =
-  foreign "SDL_GetAudioDeviceStatus" (audio_device_id @-> returning int)
+let get_audio_device_status = C.Functions.get_audio_device_status
 
-let get_num_audio_devices =
-  foreign "SDL_GetNumAudioDevices" (bool @-> returning int)
-let get_num_audio_devices b = get_num_audio_devices b |> nat_to_ok
+let get_num_audio_devices b = nat_to_ok (C.Functions.get_num_audio_devices b)
 
 let load_wav_rw =
   foreign ~release_runtime_lock:true "SDL_LoadWAV_RW"
@@ -3149,119 +3128,91 @@ let load_wav_rw ops spec kind =
       let d = coerce (ptr void)  ba_ptr (!@ d) in
       Ok (rspec, bigarray_of_ptr array1 ba_size kind d)
 
-let lock_audio_device =
-  foreign "SDL_LockAudioDevice" (audio_device_id @-> returning void)
+let lock_audio_device = C.Functions.lock_audio_device
 
 let open_audio_device =
   foreign "SDL_OpenAudioDevice"
     (string_opt @-> bool @-> ptr audio_spec @-> ptr audio_spec @->
-     int @-> returning int32_as_uint32_t)
+     int @-> returning uint32_t)
 
 let open_audio_device dev capture desired allow =
   let desiredc = audio_spec_to_c desired in
   let obtained = make audio_spec in
   match open_audio_device dev capture (addr desiredc) (addr obtained) allow
   with
-  | id when id = Int32.zero -> error ()
+  | id when Unsigned.UInt32.(equal id zero) -> error ()
   | id -> Ok (id,  audio_spec_of_c obtained)
 
-let pause_audio_device =
-  foreign "SDL_PauseAudioDevice" (audio_device_id @-> bool @-> returning void)
+let pause_audio_device = C.Functions.pause_audio_device
 
-let unlock_audio_device =
-  foreign "SDL_UnlockAudioDevice" (audio_device_id @-> returning void)
-
-let queue_audio =
-  foreign "SDL_QueueAudio"
-    (audio_device_id @-> ptr void @-> int_as_uint32_t @-> returning int)
+let unlock_audio_device = C.Functions.unlock_audio_device
 
 let queue_audio dev ba =
   let len = Bigarray.Array1.dim ba in
   let kind_size = ba_kind_byte_size (Bigarray.Array1.kind ba) in
-  queue_audio dev (to_voidp (bigarray_start array1 ba)) (len * kind_size) |> zero_to_ok
-
-let dequeue_audio =
-  foreign "SDL_DequeueAudio"
-    (audio_device_id @-> ptr void @-> int @-> returning int_as_uint32_t)
+  zero_to_ok (C.Functions.queue_audio
+                dev
+                (to_voidp (bigarray_start array1 ba))
+                (Unsigned.UInt32.of_int (len * kind_size)))
 
 let dequeue_audio dev ba =
   let len = Bigarray.Array1.dim ba in
   let kind_size = ba_kind_byte_size (Bigarray.Array1.kind ba) in
-  dequeue_audio dev (to_voidp (bigarray_start array1 ba)) (len * kind_size)
+  Unsigned.UInt32.to_int
+    (C.Functions.dequeue_audio
+       dev (to_voidp (bigarray_start array1 ba)) (len * kind_size))
 
-let get_queued_audio_size =
-  foreign "SDL_GetQueuedAudioSize"
-    (audio_device_id @-> returning int_as_uint32_t)
+let get_queued_audio_size x =
+  Unsigned.UInt32.to_int (C.Functions.get_queued_audio_size x)
 
-let clear_queued_audio =
-  foreign "SDL_ClearQueuedAudio" (audio_device_id @-> returning void)
+let clear_queued_audio = C.Functions.clear_queued_audio
 
 (* Timer *)
 
 let delay = C.Async_functions.delay
 
-let get_ticks =
-  foreign "SDL_GetTicks" (void @-> returning int32_t)
+let get_ticks = C.Functions.get_ticks
 
-let get_ticks64 =
-  foreign "SDL_GetTicks64" (void @-> returning int64_t)
+let get_ticks64 = C.Functions.get_ticks64
 
-let get_performance_counter =
-  foreign "SDL_GetPerformanceCounter" (void @-> returning int64_t)
+let get_performance_counter = C.Functions.get_performance_counter
 
-let get_performance_frequency =
-  foreign "SDL_GetPerformanceFrequency" (void @-> returning int64_t)
+let get_performance_frequency = C.Functions.get_performance_frequency
 
 (* Platform and CPU information *)
 
-let get_platform =
-  foreign "SDL_GetPlatform" (void @-> returning string)
+let get_platform = C.Functions.get_platform
 
-let get_cpu_cache_line_size =
-  foreign "SDL_GetCPUCacheLineSize" (void @-> returning int)
-let get_cpu_cache_line_size () = get_cpu_cache_line_size () |> nat_to_ok
+let get_cpu_cache_line_size () =
+  nat_to_ok (C.Functions.get_cpu_cache_line_size ())
 
-let get_cpu_count =
-  foreign "SDL_GetCPUCount" (void @-> returning int)
+let get_cpu_count = C.Functions.get_cpu_count
 
-let get_system_ram =
-  foreign "SDL_GetSystemRAM" (void @-> returning int)
+let get_system_ram = C.Functions.get_system_ram
 
-let has_3d_now =
-  foreign "SDL_Has3DNow" (void @-> returning bool)
+let has_3d_now = C.Functions.has_3d_now
 
-let has_altivec =
-  foreign "SDL_HasAltiVec" (void @-> returning bool)
+let has_altivec = C.Functions.has_altivec
 
-let has_avx =
-  foreign "SDL_HasAVX" (void @-> returning bool)
+let has_avx = C.Functions.has_avx
 
-let has_avx2 =
-  foreign  "SDL_HasAVX2" (void @-> returning bool)
+let has_avx2 = C.Functions.has_avx2
 
-let has_mmx =
-  foreign "SDL_HasMMX" (void @-> returning bool)
+let has_mmx = C.Functions.has_mmx
 
-let has_neon =
-  foreign "SDL_HasNEON" (void @-> returning bool)
+let has_neon = C.Functions.has_neon
 
-let has_rdtsc =
-  foreign "SDL_HasRDTSC" (void @-> returning bool)
+let has_rdtsc = C.Functions.has_rdtsc
 
-let has_sse =
-  foreign "SDL_HasSSE" (void @-> returning bool)
+let has_sse = C.Functions.has_sse
 
-let has_sse2 =
-  foreign "SDL_HasSSE2" (void @-> returning bool)
+let has_sse2 = C.Functions.has_sse2
 
-let has_sse3 =
-  foreign "SDL_HasSSE3" (void @-> returning bool)
+let has_sse3 = C.Functions.has_sse3
 
-let has_sse41 =
-  foreign "SDL_HasSSE41" (void @-> returning bool)
+let has_sse41 = C.Functions.has_sse41
 
-let has_sse42 =
-  foreign "SDL_HasSSE42" (void @-> returning bool)
+let has_sse42 = C.Functions.has_sse42
 
 (* Power management *)
 
@@ -3280,13 +3231,10 @@ type power_info =
     pi_secs : int option;
     pi_pct : int option; }
 
-let get_power_info =
-  foreign "SDL_GetPowerInfo" ((ptr int) @-> (ptr int) @-> returning int)
-
 let get_power_info () =
   let secs = allocate int 0 in
   let pct = allocate int 0 in
-  let s = get_power_info secs pct in
+  let s = C.Functions.get_power_info secs pct in
   let pi_state = try List.assoc s power_state with Not_found -> assert false in
   let pi_secs = match !@ secs with -1 -> None | secs -> Some secs in
   let pi_pct = match !@ pct with -1 -> None | pct -> Some pct in

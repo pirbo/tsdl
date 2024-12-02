@@ -3716,7 +3716,7 @@ val get_num_audio_drivers : unit -> int result
 
 (** {2:audiodevices Audio devices} *)
 
-type audio_device_id = uint32
+type audio_device_id
 
 type audio_callback
 (** The type for audio callbacks. *)
