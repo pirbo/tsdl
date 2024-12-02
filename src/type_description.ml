@@ -403,7 +403,7 @@ module Types (F : Ctypes.TYPE) = struct
     type _color_scheme
     let color_scheme : _color_scheme Ctypes_static.structure F.typ =
       F.typedef (F.structure "_SDL_MessageBoxColorScheme") "SDL_MessageBoxColorScheme"
-    let colors = F.field color_scheme "colors" (F.ptr color)
+    let colors = F.field color_scheme "colors" (F.array 5 color)
     let () = F.seal color_scheme
 
     type _data
@@ -1532,6 +1532,10 @@ module Types (F : Ctypes.TYPE) = struct
   end
 
   module Haptic = struct
+    type _t
+    type t = _t Ctypes_static.structure
+    let t : t F.typ = F.typedef (F.structure "_SDL_Haptic") "SDL_Haptic"
+
     let constant = F.constant "SDL_HAPTIC_CONSTANT" F.int
 
     let sine = F.constant "SDL_HAPTIC_SINE" F.int
@@ -1561,6 +1565,153 @@ module Types (F : Ctypes.TYPE) = struct
     let polar = F.constant "SDL_HAPTIC_POLAR" F.int
     let cartesian = F.constant "SDL_HAPTIC_CARTESIAN" F.int
     let spherical = F.constant "SDL_HAPTIC_SPHERICAL" F.int
+
+    module Direction = struct
+      type _t
+      type t = _t Ctypes_static.structure
+      let t : t F.typ = F.structure "SDL_HapticDirection"
+      let typ = F.field t "type" F.uint8_t
+      let dir = F.field t "dir" F.(array 3 int32_t)
+      let () = F.seal t
+    end
+
+    (* Effects *)
+
+    module Constant = struct
+      type t
+      let t : t Ctypes_static.structure F.typ = F.structure "SDL_HapticConstant"
+      let typ = F.field t "type" F.uint16_t
+      let direction = F.field t "direction" Direction.t
+      let length = F.field t "length" F.uint32_t
+      let delay = F.field t "delay" F.uint16_t
+      let button = F.field t "button" F.uint16_t
+      let interval = F.field t "interval" F.uint16_t
+
+      let level = F.field t "level" F.int16_t
+      let attack_length = F.field t "attack_length" F.uint16_t
+      let attack_level = F.field t "attack_level" F.uint16_t
+      let fade_length = F.field t "fade_length" F.uint16_t
+      let fade_level = F.field t "fade_level" F.uint16_t
+      let () = F.seal t
+    end
+
+    module Periodic = struct
+      type t
+      let t : t Ctypes_static.structure F.typ = F.structure "SDL_HapticPeriodic"
+      let typ = F.field t "type" F.uint16_t
+      let direction = F.field t "direction" Direction.t
+      let length = F.field t "length" F.uint32_t
+      let delay = F.field t "delay" F.uint16_t
+      let button = F.field t "button" F.uint16_t
+      let interval = F.field t "interval" F.uint16_t
+
+      let period = F.field t "period" F.uint16_t
+      let magnitude = F.field t "magnitude" F.int16_t
+      let offset = F.field t "offset" F.int16_t
+      let phase = F.field t "phase" F.uint16_t
+      let attack_length = F.field t "attack_length" F.uint16_t
+      let attack_level = F.field t "attack_level" F.uint16_t
+      let fade_length = F.field t "fade_length" F.uint16_t
+      let fade_level = F.field t "fade_level" F.uint16_t
+      let () = F.seal t
+    end
+
+    module Condition = struct
+      type t
+      let t : t Ctypes_static.structure F.typ =
+        F.structure "SDL_HapticCondition"
+      let typ = F.field t "type" F.uint16_t
+      let direction = F.field t "direction" Direction.t
+      let length = F.field t "length" F.uint32_t
+      let delay = F.field t "delay" F.uint16_t
+      let button = F.field t "button" F.uint16_t
+      let interval = F.field t "interval" F.uint16_t
+
+      let right_sat_0 = F.field t "right_sat[0]" F.uint16_t
+      let right_sat_1 = F.field t "right_sat[1]" F.uint16_t
+      let right_sat_2 = F.field t "right_sat[2]" F.uint16_t
+      let left_sat_0 = F.field t "left_sat[0]" F.uint16_t
+      let left_sat_1 = F.field t "left_sat[1]" F.uint16_t
+      let left_sat_2 = F.field t "left_sat[2]" F.uint16_t
+      let right_coeff_0 = F.field t "right_coeff[0]" F.int16_t
+      let right_coeff_1 = F.field t "right_coeff[1]" F.int16_t
+      let right_coeff_2 = F.field t "right_coeff[2]" F.int16_t
+      let left_coeff_0 = F.field t "left_coeff[0]" F.int16_t
+      let left_coeff_1 = F.field t "left_coeff[1]" F.int16_t
+      let left_coeff_2 = F.field t "left_coeff[2]" F.int16_t
+      let deadband_0 = F.field t "deadband[0]" F.uint16_t
+      let deadband_1 = F.field t "deadband[1]" F.uint16_t
+      let deadband_2 = F.field t "deadband[2]" F.uint16_t
+      let center_0 = F.field t "center[0]" F.int16_t
+      let center_1 = F.field t "center[1]" F.int16_t
+      let center_2 = F.field t "center[2]" F.int16_t
+      let () = F.seal t
+    end
+
+    module Ramp = struct
+      type t
+      let t : t Ctypes_static.structure F.typ = F.structure "SDL_HapticRamp"
+      let typ = F.field t "type" F.uint16_t
+      let direction = F.field t "direction" Direction.t
+      let length = F.field t "length" F.uint32_t
+      let delay = F.field t "delay" F.uint16_t
+      let button = F.field t "button" F.uint16_t
+      let interval = F.field t "interval" F.uint16_t
+
+      let start = F.field t "start" F.int16_t
+      let end_ = F.field t "end" F.int16_t
+      let attack_length = F.field t "attack_length" F.uint16_t
+      let attack_level = F.field t "attack_level" F.uint16_t
+      let fade_length = F.field t "fade_length" F.uint16_t
+      let fade_level = F.field t "fade_level" F.uint16_t
+      let () = F.seal t
+    end
+
+    module Left_right = struct
+      type t
+      let t : t Ctypes_static.structure F.typ =
+        F.structure "SDL_HapticLeftRight"
+      let typ = F.field t "type" F.uint16_t
+      let length = F.field t "length" F.uint32_t
+
+      let large_magnitude = F.field t "large_magnitude" F.uint16_t
+      let small_magnitude = F.field t "small_magnitude" F.uint16_t
+      let () = F.seal t
+    end
+
+    module Custom = struct
+      type t
+      let t : t Ctypes_static.structure F.typ = F.structure "SDL_HapticCustom"
+      let typ = F.field t "type" F.uint16_t
+      let direction = F.field t "direction" Direction.t
+      let length = F.field t "length" F.uint32_t
+      let delay = F.field t "delay" F.uint16_t
+      let button = F.field t "button" F.uint16_t
+      let interval = F.field t "interval" F.uint16_t
+
+      let channels = F.field t "channels" F.uint8_t
+      let period = F.field t "period" F.uint16_t
+      let samples = F.field t "samples" F.uint16_t
+      let data = F.field t "data" (F.ptr F.uint16_t)
+      let attack_length = F.field t "attack_length" F.uint16_t
+      let attack_level = F.field t "attack_level" F.uint16_t
+      let fade_length = F.field t "fade_length" F.uint16_t
+      let fade_level = F.field t "fade_level" F.uint16_t
+      let () = F.seal t
+    end
+
+    module Effect = struct
+      type t
+      let t : t Ctypes_static.union F.typ = F.union "SDL_HapticEffect"
+      let _typ = F.field t "type" F.uint16_t
+      let constant = F.field t "constant" Constant.t
+      let periodic = F.field t "periodic" Periodic.t
+      let condition = F.field t "condition" Condition.t
+      let ramp = F.field t "ramp" Ramp.t
+      let left_right = F.field t "leftright" Left_right.t
+      let custom = F.field t "custom" Custom.t
+      let () = F.seal t
+    end
   end
 
   module Audio = struct

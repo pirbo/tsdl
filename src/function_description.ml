@@ -1322,4 +1322,104 @@ module Functions (F : FOREIGN) = struct
   let register_events =
     F.(foreign "SDL_RegisterEvents" (int @-> returning uint32_t))
 
+  let haptic_close =
+    F.(foreign "SDL_HapticClose" (ptr Types.Haptic.t @-> returning void))
+
+  let haptic_destroy_effect =
+    F.(foreign "SDL_HapticDestroyEffect"
+         (ptr Types.Haptic.t @-> int @-> returning void))
+
+  let haptic_effect_supported =
+    F.(foreign "SDL_HapticEffectSupported"
+         (ptr Types.Haptic.t @-> ptr Types.Haptic.Effect.t @-> returning int))
+
+  let haptic_get_effect_status =
+    F.(foreign "SDL_HapticGetEffectStatus"
+         (ptr Types.Haptic.t @-> int @-> returning int))
+
+  let haptic_index =
+    F.(foreign "SDL_HapticIndex" (ptr Types.Haptic.t @-> returning int))
+
+  let haptic_name =
+    F.(foreign "SDL_HapticName" (int @-> returning string_opt))
+
+  let haptic_new_effect =
+    F.(foreign "SDL_HapticNewEffect"
+         (ptr Types.Haptic.t @-> ptr Types.Haptic.Effect.t @-> returning int))
+
+  let haptic_num_axes =
+    F.(foreign "SDL_HapticNumAxes" (ptr Types.Haptic.t @-> returning int))
+
+  let haptic_num_effects =
+    F.(foreign "SDL_HapticNumEffects" (ptr Types.Haptic.t @-> returning int))
+
+  let haptic_num_effects_playing =
+    F.(foreign "SDL_HapticNumEffectsPlaying" (ptr Types.Haptic.t @-> returning int))
+
+  let haptic_open =
+    F.(foreign "SDL_HapticOpen" (int @-> returning (ptr_opt Types.Haptic.t)))
+
+  let haptic_open_from_joystick =
+    F.(foreign "SDL_HapticOpenFromJoystick"
+         (ptr void @-> returning (ptr_opt Types.Haptic.t)))
+
+  let haptic_open_from_mouse =
+    F.(foreign "SDL_HapticOpenFromMouse"
+         (void @-> returning (ptr_opt Types.Haptic.t)))
+
+  let haptic_opened =
+    F.(foreign "SDL_HapticOpened" (int @-> returning int))
+
+  let haptic_pause =
+    F.(foreign "SDL_HapticPause" (ptr Types.Haptic.t @-> returning int))
+
+  let haptic_query =
+    F.(foreign "SDL_HapticQuery" (ptr Types.Haptic.t @-> returning int))
+
+  let haptic_rumble_init =
+    F.(foreign "SDL_HapticRumbleInit" (ptr Types.Haptic.t @-> returning int))
+
+  let haptic_rumble_play =
+    F.(foreign "SDL_HapticRumblePlay"
+         (ptr Types.Haptic.t @-> float @-> int32_t @-> returning int))
+
+  let haptic_rumble_stop =
+    F.(foreign "SDL_HapticRumbleStop" (ptr Types.Haptic.t @-> returning int))
+
+  let haptic_rumble_supported =
+    F.(foreign "SDL_HapticRumbleSupported" (ptr Types.Haptic.t @-> returning int))
+
+  let haptic_run_effect =
+    F.(foreign "SDL_HapticRunEffect"
+         (ptr Types.Haptic.t @-> int  @-> int32_t @-> returning int))
+
+  let haptic_set_autocenter =
+    F.(foreign "SDL_HapticSetAutocenter" (ptr Types.Haptic.t @-> int @-> returning int))
+
+  let haptic_set_gain =
+    F.(foreign "SDL_HapticSetGain" (ptr Types.Haptic.t @-> int @-> returning int))
+
+  let haptic_stop_all =
+    F.(foreign "SDL_HapticStopAll" (ptr Types.Haptic.t @-> returning int))
+
+  let haptic_stop_effect =
+    F.(foreign "SDL_HapticStopEffect"
+         (ptr Types.Haptic.t @-> int @-> returning int))
+
+  let haptic_unpause =
+    F.(foreign "SDL_HapticUnpause" (ptr Types.Haptic.t @-> returning int))
+
+  let haptic_update_effect =
+    F.(foreign "SDL_HapticUpdateEffect"
+         (ptr Types.Haptic.t @-> int @-> ptr Types.Haptic.Effect.t @->
+          returning int))
+
+  let joystick_is_haptic =
+    F.(foreign "SDL_JoystickIsHaptic" (ptr void @-> returning int))
+
+  let mouse_is_haptic =
+    F.(foreign "SDL_MouseIsHaptic" (void @-> returning int))
+
+  let num_haptics =
+    F.(foreign "SDL_NumHaptics" (void @-> returning int))
 end

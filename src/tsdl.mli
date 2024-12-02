@@ -3517,7 +3517,6 @@ module Haptic : sig
       fields} *)
 
   val left_right_type : effect_type field
-  val left_right_direction : Direction.t field
   val left_right_length : uint32 field
   val left_right_large_magnitude : uint16 field
   val left_right_small_magnitude : uint16 field

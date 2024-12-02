@@ -1655,8 +1655,7 @@ module Message_box = struct
 
   let color_scheme_to_c s =
     let st = make color_scheme in
-    let arr = CArray.make C.Types.Message_box.color color_button_max in
-    let () = setf st colors (CArray.start arr) in
+    let arr = getf st colors in
     let set i (rv, gv, bv) =
       let ct = CArray.get arr i in
       setf ct color_r (Unsigned.UInt8.of_int rv);
@@ -1951,7 +1950,6 @@ type joystick_guid = C.Types.guid
 type joystick_id = int32
 
 type joystick = unit ptr
-let joystick : joystick typ = ptr void
 
 let unsafe_joystick_of_ptr addr : joystick =
   ptr_of_raw_address addr
@@ -2655,181 +2653,25 @@ let wait_event_timeout e t =
 
 (* Force feedback *)
 
-type haptic = unit ptr
-let haptic : haptic typ = ptr void
-let haptic_opt : haptic option typ = ptr_opt void
-
 module Haptic = struct
   include C.Types.Haptic
 
   module Direction = struct
-    type _t
-    type t = _t structure
-    let t : _t structure typ = structure "SDL_HapticDirection"
-    let typ = field t "type" int_as_uint8_t
-    let dir_0 = field t "dir0" int32_t
-    let dir_1 = field t "dir1" int32_t
-    let dir_2 = field t "dir2" int32_t
-    let () = seal t
+    include Direction
 
     let create typv d0 d1 d2 =
       let d = make t in
-      setf d typ typv;
-      setf d dir_0 d0;
-      setf d dir_1 d1;
-      setf d dir_2 d2;
+      setf d typ (Unsigned.UInt8.of_int typv);
+      let dir = getf d dir in
+      CArray.set dir 0 d0;
+      CArray.set dir 1 d1;
+      CArray.set dir 2 d2;
       d
 
-    let typ d = getf d typ
-    let dir_0 d = getf d dir_0
-    let dir_1 d = getf d dir_1
-    let dir_2 d = getf d dir_2
-  end
-
-  (* Effects *)
-
-  module Constant = struct
-    type t
-    let t : t structure typ = structure "SDL_HapticConstant"
-    let typ = field t "type" int_as_uint16_t
-    let direction = field t "direction" Direction.t
-    let length = field t "length" int32_as_uint32_t
-    let delay = field t "delay" int_as_uint16_t
-    let button = field t "button" int_as_uint16_t
-    let interval = field t "interval" int_as_uint16_t
-
-    let level = field t "level" int16_t
-    let attack_length = field t "attack_length" int_as_uint16_t
-    let attack_level = field t "attack_level" int_as_uint16_t
-    let fade_length = field t "fade_length" int_as_uint16_t
-    let fade_level = field t "fade_level" int_as_uint16_t
-    let () = seal t
-  end
-
-  module Periodic = struct
-    type t
-    let t : t structure typ = structure "SDL_HapticPeriodic"
-    let typ = field t "type" int_as_uint16_t
-    let direction = field t "direction" Direction.t
-    let length = field t "length" int32_as_uint32_t
-    let delay = field t "delay" int_as_uint16_t
-    let button = field t "button" int_as_uint16_t
-    let interval = field t "interval" int_as_uint16_t
-
-    let period = field t "period" int_as_uint16_t
-    let magnitude = field t "magnitude" int16_t
-    let offset = field t "offset" int16_t
-    let phase = field t "phase" int_as_uint16_t
-    let attack_length = field t "attack_length" int_as_uint16_t
-    let attack_level = field t "attack_level" int_as_uint16_t
-    let fade_length = field t "fade_length" int_as_uint16_t
-    let fade_level = field t "fade_level" int_as_uint16_t
-    let () = seal t
-  end
-
-  module Condition = struct
-    type t
-    let t : t structure typ = structure "SDL_HapticCondition"
-    let typ = field t "type" int_as_uint16_t
-    let direction = field t "direction" Direction.t
-    let length = field t "length" int32_as_uint32_t
-    let delay = field t "delay" int_as_uint16_t
-    let button = field t "button" int_as_uint16_t
-    let interval = field t "interval" int_as_uint16_t
-
-    let right_sat_0 = field t "right_sat[0]" int_as_uint16_t
-    let right_sat_1 = field t "right_sat[1]" int_as_uint16_t
-    let right_sat_2 = field t "right_sat[2]" int_as_uint16_t
-    let left_sat_0 = field t "left_sat[0]" int_as_uint16_t
-    let left_sat_1 = field t "left_sat[1]" int_as_uint16_t
-    let left_sat_2 = field t "left_sat[2]" int_as_uint16_t
-    let right_coeff_0 = field t "right_coeff[0]" int16_t
-    let right_coeff_1 = field t "right_coeff[1]" int16_t
-    let right_coeff_2 = field t "right_coeff[2]" int16_t
-    let left_coeff_0 = field t "left_coeff[0]" int16_t
-    let left_coeff_1 = field t "left_coeff[1]" int16_t
-    let left_coeff_2 = field t "left_coeff[2]" int16_t
-    let deadband_0 = field t "deadband[0]" int_as_uint16_t
-    let deadband_1 = field t "deadband[1]" int_as_uint16_t
-    let deadband_2 = field t "deadband[2]" int_as_uint16_t
-    let center_0 = field t "center[0]" int16_t
-    let center_1 = field t "center[1]" int16_t
-    let center_2 = field t "center[2]" int16_t
-    let () = seal t
-  end
-
-  module Ramp = struct
-    type t
-    let t : t structure typ = structure "SDL_HapticRamp"
-    let typ = field t "type" int_as_uint16_t
-    let direction = field t "direction" Direction.t
-    let length = field t "length" int32_as_uint32_t
-    let delay = field t "delay" int_as_uint16_t
-    let button = field t "button" int_as_uint16_t
-    let interval = field t "interval" int_as_uint16_t
-
-    let start = field t "start" int16_t
-    let end_ = field t "end" int16_t
-    let attack_length = field t "attack_length" int_as_uint16_t
-    let attack_level = field t "attack_level" int_as_uint16_t
-    let fade_length = field t "fade_length" int_as_uint16_t
-    let fade_level = field t "fade_level" int_as_uint16_t
-    let () = seal t
-  end
-
-  module Left_right = struct
-    type t
-    let t : t structure typ = structure "SDL_HapticLeftRight"
-    let typ = field t "type" int_as_uint16_t
-    let direction = field t "direction" Direction.t
-    let length = field t "length" int32_as_uint32_t
-
-    let large_magnitude = field t "large_magnitude" int_as_uint16_t
-    let small_magnitude = field t "small_magnitude" int_as_uint16_t
-    let () = seal t
-  end
-
-  module Custom = struct
-    let int_list_as_uint16_t_ptr =
-      let read _ = invalid_arg err_read_field in
-      let write l =
-        let l = List.map Unsigned.UInt16.of_int l in
-        let a = CArray.of_list uint16_t l in
-        CArray.start a
-      in
-      view ~read ~write (ptr uint16_t)
-
-    type t
-    let t : t structure typ = structure "SDL_HapticCustom"
-    let typ = field t "type" int_as_uint16_t
-    let direction = field t "direction" Direction.t
-    let length = field t "length" int32_as_uint32_t
-    let delay = field t "delay" int_as_uint16_t
-    let button = field t "button" int_as_uint16_t
-    let interval = field t "interval" int_as_uint16_t
-
-    let channels = field t "channels" int_as_uint8_t
-    let period = field t "period" int_as_uint16_t
-    let samples = field t "samples" int_as_uint16_t
-    let data = field t "data" int_list_as_uint16_t_ptr
-    let attack_length = field t "attack_length" int_as_uint16_t
-    let attack_level = field t "attack_level" int_as_uint16_t
-    let fade_length = field t "fade_length" int_as_uint16_t
-    let fade_level = field t "fade_level" int_as_uint16_t
-    let () = seal t
-  end
-
-  module Effect = struct
-    type t
-    let t : t union typ = union "SDL_HapticEffect"
-    let _typ = field t "type" int_as_uint16_t
-    let constant = field t "constant" Constant.t
-    let periodic = field t "periodic" Periodic.t
-    let condition = field t "condition" Condition.t
-    let ramp = field t "ramp" Ramp.t
-    let left_right = field t "condition" Left_right.t
-    let custom = field t "custom" Custom.t
-    let () = seal t
+    let typ d = Unsigned.UInt8.to_int (getf d typ)
+    let dir_0 d = CArray.get (getf d dir) 0
+    let dir_1 d = CArray.get (getf d dir) 1
+    let dir_2 d = CArray.get (getf d dir) 2
   end
 
   type effect_type = int
@@ -2839,254 +2681,338 @@ module Haptic = struct
   type _ field =
       F : (* existential to hide the 'a structure *)
         (('a structure, Effect.t union) Ctypes.field *
-         ('b, 'a structure) Ctypes.field) -> 'b field
+         ('b, 'a structure) Ctypes.field *
+        ('b -> 'c) * ('c -> 'b)) -> 'c field
 
-  let get e (F (s, f)) = getf (getf e s) f
-  let set e (F (s, f)) v = setf (getf e s) f v
-  let typ = F (Effect.constant, Constant.typ) (* same in each enum *)
+  let get e (F (s, f, c, _)) = c (getf (getf e s) f)
+  let set e (F (s, f, _, c)) v = setf (getf e s) f (c v)
+
+  let typ = F (Effect.constant, Constant.typ,
+               Unsigned.UInt16.to_int, Unsigned.UInt16.of_int)
+  (* same in each enum *)
 
   (* Constant *)
 
-  let constant_type = F (Effect.constant, Constant.typ)
-  let constant_direction = F (Effect.constant, Constant.direction)
-  let constant_length = F (Effect.constant, Constant.length)
-  let constant_delay = F (Effect.constant, Constant.delay)
-  let constant_button = F (Effect.constant, Constant.button)
-  let constant_interval = F (Effect.constant, Constant.interval)
-  let constant_level = F (Effect.constant, Constant.level)
-  let constant_attack_length = F (Effect.constant, Constant.attack_length)
-  let constant_attack_level = F (Effect.constant, Constant.attack_level)
-  let constant_fade_length = F (Effect.constant, Constant.fade_length)
-  let constant_fade_level = F (Effect.constant, Constant.fade_level)
+  let constant_type =
+    F (Effect.constant, Constant.typ,
+       Unsigned.UInt16.to_int, Unsigned.UInt16.of_int)
+  let constant_direction =
+    F (Effect.constant, Constant.direction, Fun.id, Fun.id)
+  let constant_length =
+    F (Effect.constant, Constant.length,
+       Unsigned.UInt32.to_int32, Unsigned.UInt32.of_int32)
+  let constant_delay =
+    F (Effect.constant, Constant.delay,
+       Unsigned.UInt16.to_int, Unsigned.UInt16.of_int)
+  let constant_button =
+    F (Effect.constant, Constant.button,
+       Unsigned.UInt16.to_int, Unsigned.UInt16.of_int)
+  let constant_interval =
+    F (Effect.constant, Constant.interval,
+      Unsigned.UInt16.to_int, Unsigned.UInt16.of_int)
+  let constant_level =
+    F (Effect.constant, Constant.level, Fun.id, Fun.id)
+  let constant_attack_length =
+    F (Effect.constant, Constant.attack_length,
+       Unsigned.UInt16.to_int, Unsigned.UInt16.of_int)
+  let constant_attack_level =
+    F (Effect.constant, Constant.attack_level,
+       Unsigned.UInt16.to_int, Unsigned.UInt16.of_int)
+  let constant_fade_length =
+    F (Effect.constant, Constant.fade_length,
+       Unsigned.UInt16.to_int, Unsigned.UInt16.of_int)
+  let constant_fade_level =
+    F (Effect.constant, Constant.fade_level,
+       Unsigned.UInt16.to_int, Unsigned.UInt16.of_int)
 
   (* Periodic *)
 
-  let periodic_type = F (Effect.periodic, Periodic.typ)
-  let periodic_direction = F (Effect.periodic, Periodic.direction)
-  let periodic_length = F (Effect.periodic, Periodic.length)
-  let periodic_delay = F (Effect.periodic, Periodic.delay)
-  let periodic_button = F (Effect.periodic, Periodic.button)
-  let periodic_interval = F (Effect.periodic, Periodic.interval)
-  let periodic_period = F (Effect.periodic, Periodic.period)
-  let periodic_magnitude = F (Effect.periodic, Periodic.magnitude)
-  let periodic_offset = F (Effect.periodic, Periodic.offset)
-  let periodic_phase = F (Effect.periodic, Periodic.phase)
-  let periodic_attack_length = F (Effect.periodic, Periodic.attack_length)
-  let periodic_attack_level = F (Effect.periodic, Periodic.attack_level)
-  let periodic_fade_length = F (Effect.periodic, Periodic.fade_length)
-  let periodic_fade_level = F (Effect.periodic, Periodic.fade_level)
+  let periodic_type =
+    F (Effect.periodic, Periodic.typ,
+       Unsigned.UInt16.to_int, Unsigned.UInt16.of_int)
+  let periodic_direction =
+    F (Effect.periodic, Periodic.direction, Fun.id, Fun.id)
+  let periodic_length =
+    F (Effect.periodic, Periodic.length,
+       Unsigned.UInt32.to_int32, Unsigned.UInt32.of_int32)
+  let periodic_delay =
+    F (Effect.periodic, Periodic.delay,
+       Unsigned.UInt16.to_int, Unsigned.UInt16.of_int)
+  let periodic_button =
+    F (Effect.periodic, Periodic.button,
+       Unsigned.UInt16.to_int, Unsigned.UInt16.of_int)
+  let periodic_interval =
+    F (Effect.periodic, Periodic.interval,
+       Unsigned.UInt16.to_int, Unsigned.UInt16.of_int)
+  let periodic_period =
+    F (Effect.periodic, Periodic.period,
+       Unsigned.UInt16.to_int, Unsigned.UInt16.of_int)
+  let periodic_magnitude =
+    F (Effect.periodic, Periodic.magnitude, Fun.id, Fun.id)
+  let periodic_offset =
+    F (Effect.periodic, Periodic.offset, Fun.id, Fun.id)
+  let periodic_phase =
+    F (Effect.periodic, Periodic.phase,
+       Unsigned.UInt16.to_int, Unsigned.UInt16.of_int)
+  let periodic_attack_length =
+    F (Effect.periodic, Periodic.attack_length,
+       Unsigned.UInt16.to_int, Unsigned.UInt16.of_int)
+  let periodic_attack_level =
+    F (Effect.periodic, Periodic.attack_level,
+       Unsigned.UInt16.to_int, Unsigned.UInt16.of_int)
+  let periodic_fade_length =
+    F (Effect.periodic, Periodic.fade_length,
+       Unsigned.UInt16.to_int, Unsigned.UInt16.of_int)
+  let periodic_fade_level =
+    F (Effect.periodic, Periodic.fade_level,
+       Unsigned.UInt16.to_int, Unsigned.UInt16.of_int)
 
   (* Condition *)
 
-  let condition_type = F (Effect.condition, Condition.typ)
-  let condition_direction = F (Effect.condition, Condition.direction)
-  let condition_length = F (Effect.condition, Condition.length)
-  let condition_delay = F (Effect.condition, Condition.delay)
-  let condition_button = F (Effect.condition, Condition.button)
-  let condition_interval = F (Effect.condition, Condition.interval)
-  let condition_right_sat_0 = F (Effect.condition, Condition.right_sat_0)
-  let condition_right_sat_1 = F (Effect.condition, Condition.right_sat_1)
-  let condition_right_sat_2 = F (Effect.condition, Condition.right_sat_2)
-  let condition_left_sat_0 = F (Effect.condition, Condition.left_sat_0)
-  let condition_left_sat_1 = F (Effect.condition, Condition.left_sat_1)
-  let condition_left_sat_2 = F (Effect.condition, Condition.left_sat_2)
-  let condition_right_coeff_0 = F (Effect.condition, Condition.right_coeff_0)
-  let condition_right_coeff_1 = F (Effect.condition, Condition.right_coeff_1)
-  let condition_right_coeff_2 = F (Effect.condition, Condition.right_coeff_2)
-  let condition_left_coeff_0 = F (Effect.condition, Condition.left_coeff_0)
-  let condition_left_coeff_1 = F (Effect.condition, Condition.left_coeff_1)
-  let condition_left_coeff_2 = F (Effect.condition, Condition.left_coeff_2)
-  let condition_deadband_0 = F (Effect.condition, Condition.deadband_0)
-  let condition_deadband_1 = F (Effect.condition, Condition.deadband_1)
-  let condition_deadband_2 = F (Effect.condition, Condition.deadband_2)
-  let condition_center_0 = F (Effect.condition, Condition.center_0)
-  let condition_center_1 = F (Effect.condition, Condition.center_1)
-  let condition_center_2 = F (Effect.condition, Condition.center_2)
+  let condition_type =
+    F (Effect.condition, Condition.typ,
+       Unsigned.UInt16.to_int, Unsigned.UInt16.of_int)
+  let condition_direction =
+    F (Effect.condition, Condition.direction, Fun.id, Fun.id)
+  let condition_length =
+    F (Effect.condition, Condition.length,
+       Unsigned.UInt32.to_int32, Unsigned.UInt32.of_int32)
+  let condition_delay =
+    F (Effect.condition, Condition.delay,
+       Unsigned.UInt16.to_int, Unsigned.UInt16.of_int)
+  let condition_button =
+    F (Effect.condition, Condition.button,
+       Unsigned.UInt16.to_int, Unsigned.UInt16.of_int)
+  let condition_interval =
+    F (Effect.condition, Condition.interval,
+       Unsigned.UInt16.to_int, Unsigned.UInt16.of_int)
+  let condition_right_sat_0 =
+    F (Effect.condition, Condition.right_sat_0,
+       Unsigned.UInt16.to_int, Unsigned.UInt16.of_int)
+  let condition_right_sat_1 =
+    F (Effect.condition, Condition.right_sat_1,
+       Unsigned.UInt16.to_int, Unsigned.UInt16.of_int)
+  let condition_right_sat_2 =
+    F (Effect.condition, Condition.right_sat_2,
+       Unsigned.UInt16.to_int, Unsigned.UInt16.of_int)
+  let condition_left_sat_0 =
+    F (Effect.condition, Condition.left_sat_0,
+       Unsigned.UInt16.to_int, Unsigned.UInt16.of_int)
+  let condition_left_sat_1 =
+    F (Effect.condition, Condition.left_sat_1,
+       Unsigned.UInt16.to_int, Unsigned.UInt16.of_int)
+  let condition_left_sat_2 =
+    F (Effect.condition, Condition.left_sat_2,
+       Unsigned.UInt16.to_int, Unsigned.UInt16.of_int)
+  let condition_right_coeff_0 =
+    F (Effect.condition, Condition.right_coeff_0, Fun.id, Fun.id)
+  let condition_right_coeff_1 =
+    F (Effect.condition, Condition.right_coeff_1, Fun.id, Fun.id)
+  let condition_right_coeff_2 =
+    F (Effect.condition, Condition.right_coeff_2, Fun.id, Fun.id)
+  let condition_left_coeff_0 =
+    F (Effect.condition, Condition.left_coeff_0, Fun.id, Fun.id)
+  let condition_left_coeff_1 =
+    F (Effect.condition, Condition.left_coeff_1, Fun.id, Fun.id)
+  let condition_left_coeff_2 =
+    F (Effect.condition, Condition.left_coeff_2, Fun.id, Fun.id)
+  let condition_deadband_0 =
+    F (Effect.condition, Condition.deadband_0,
+       Unsigned.UInt16.to_int, Unsigned.UInt16.of_int)
+  let condition_deadband_1 =
+    F (Effect.condition, Condition.deadband_1,
+       Unsigned.UInt16.to_int, Unsigned.UInt16.of_int)
+  let condition_deadband_2 =
+    F (Effect.condition, Condition.deadband_2,
+       Unsigned.UInt16.to_int, Unsigned.UInt16.of_int)
+  let condition_center_0 =
+    F (Effect.condition, Condition.center_0, Fun.id, Fun.id)
+  let condition_center_1 =
+    F (Effect.condition, Condition.center_1, Fun.id, Fun.id)
+  let condition_center_2 =
+    F (Effect.condition, Condition.center_2, Fun.id, Fun.id)
 
   (* Ramp *)
 
-  let ramp_type = F (Effect.ramp, Ramp.typ)
-  let ramp_direction = F (Effect.ramp, Ramp.direction)
-  let ramp_length = F (Effect.ramp, Ramp.length)
-  let ramp_delay = F (Effect.ramp, Ramp.delay)
-  let ramp_button = F (Effect.ramp, Ramp.button)
-  let ramp_interval = F (Effect.ramp, Ramp.interval)
-  let ramp_start = F (Effect.ramp, Ramp.start)
-  let ramp_end = F (Effect.ramp, Ramp.end_)
-  let ramp_attack_length = F (Effect.ramp, Ramp.attack_length)
-  let ramp_attack_level = F (Effect.ramp, Ramp.attack_level)
-  let ramp_fade_length = F (Effect.ramp, Ramp.fade_length)
-  let ramp_fade_level = F (Effect.ramp, Ramp.fade_level)
+  let ramp_type =
+    F (Effect.ramp, Ramp.typ,
+       Unsigned.UInt16.to_int, Unsigned.UInt16.of_int)
+  let ramp_direction =
+    F (Effect.ramp, Ramp.direction, Fun.id, Fun.id)
+  let ramp_length =
+    F (Effect.ramp, Ramp.length,
+       Unsigned.UInt32.to_int32, Unsigned.UInt32.of_int32)
+  let ramp_delay =
+    F (Effect.ramp, Ramp.delay,
+       Unsigned.UInt16.to_int, Unsigned.UInt16.of_int)
+  let ramp_button =
+    F (Effect.ramp, Ramp.button,
+       Unsigned.UInt16.to_int, Unsigned.UInt16.of_int)
+  let ramp_interval =
+    F (Effect.ramp, Ramp.interval,
+       Unsigned.UInt16.to_int, Unsigned.UInt16.of_int)
+  let ramp_start =
+    F (Effect.ramp, Ramp.start, Fun.id, Fun.id)
+  let ramp_end =
+    F (Effect.ramp, Ramp.end_, Fun.id, Fun.id)
+  let ramp_attack_length =
+    F (Effect.ramp, Ramp.attack_length,
+       Unsigned.UInt16.to_int, Unsigned.UInt16.of_int)
+  let ramp_attack_level =
+    F (Effect.ramp, Ramp.attack_level,
+       Unsigned.UInt16.to_int, Unsigned.UInt16.of_int)
+  let ramp_fade_length =
+    F (Effect.ramp, Ramp.fade_length,
+       Unsigned.UInt16.to_int, Unsigned.UInt16.of_int)
+  let ramp_fade_level =
+    F (Effect.ramp, Ramp.fade_level,
+       Unsigned.UInt16.to_int, Unsigned.UInt16.of_int)
 
   (* Left right *)
 
-  let left_right_type = F (Effect.left_right, Left_right.typ)
-  let left_right_direction = F (Effect.left_right, Left_right.direction)
-  let left_right_length = F (Effect.left_right, Left_right.length)
+  let left_right_type =
+    F (Effect.left_right, Left_right.typ,
+       Unsigned.UInt16.to_int, Unsigned.UInt16.of_int)
+  let left_right_length =
+    F (Effect.left_right, Left_right.length,
+       Unsigned.UInt32.to_int32, Unsigned.UInt32.of_int32)
   let left_right_large_magnitude =
-    F (Effect.left_right, Left_right.large_magnitude)
+    F (Effect.left_right, Left_right.large_magnitude,
+       Unsigned.UInt16.to_int, Unsigned.UInt16.of_int)
   let left_right_small_magnitude =
-    F (Effect.left_right, Left_right.small_magnitude)
+    F (Effect.left_right, Left_right.small_magnitude,
+       Unsigned.UInt16.to_int, Unsigned.UInt16.of_int)
 
   (* Custom *)
 
-  let custom_type = F (Effect.custom, Custom.typ)
-  let custom_direction = F (Effect.custom, Custom.direction)
-  let custom_length = F (Effect.custom, Custom.length)
-  let custom_delay = F (Effect.custom, Custom.delay)
-  let custom_button = F (Effect.custom, Custom.button)
-  let custom_interval = F (Effect.custom, Custom.interval)
-  let custom_channels = F (Effect.custom, Custom.channels)
-  let custom_period = F (Effect.custom, Custom.period)
-  let custom_samples = F (Effect.custom, Custom.samples)
-  let custom_data = F (Effect.custom, Custom.data)
-  let custom_attack_length = F (Effect.custom, Custom.attack_length)
-  let custom_attack_level = F (Effect.custom, Custom.attack_level)
-  let custom_fade_length = F (Effect.custom, Custom.fade_length)
-  let custom_fade_level = F (Effect.custom, Custom.fade_level)
+  let custom_type =
+    F (Effect.custom, Custom.typ,
+       Unsigned.UInt16.to_int, Unsigned.UInt16.of_int)
+  let custom_direction =
+    F (Effect.custom, Custom.direction, Fun.id, Fun.id)
+  let custom_length =
+    F (Effect.custom, Custom.length,
+       Unsigned.UInt32.to_int32, Unsigned.UInt32.of_int32)
+  let custom_delay =
+    F (Effect.custom, Custom.delay,
+       Unsigned.UInt16.to_int, Unsigned.UInt16.of_int)
+  let custom_button =
+    F (Effect.custom, Custom.button,
+       Unsigned.UInt16.to_int, Unsigned.UInt16.of_int)
+  let custom_interval =
+    F (Effect.custom, Custom.interval,
+       Unsigned.UInt16.to_int, Unsigned.UInt16.of_int)
+  let custom_channels =
+    F (Effect.custom, Custom.channels,
+       Unsigned.UInt8.to_int, Unsigned.UInt8.of_int)
+  let custom_period =
+    F (Effect.custom, Custom.period,
+       Unsigned.UInt16.to_int, Unsigned.UInt16.of_int)
+  let custom_samples =
+    F (Effect.custom, Custom.samples,
+       Unsigned.UInt16.to_int, Unsigned.UInt16.of_int)
+  let custom_data =
+    F (Effect.custom, Custom.data,
+       (fun p -> invalid_arg err_read_field),
+       (fun l ->
+          let l = List.map Unsigned.UInt16.of_int l in
+          let a = Ctypes.CArray.of_list Ctypes.uint16_t l in
+          Ctypes.CArray.start a))
+  let custom_attack_length =
+    F (Effect.custom, Custom.attack_length,
+       Unsigned.UInt16.to_int, Unsigned.UInt16.of_int)
+  let custom_attack_level =
+    F (Effect.custom, Custom.attack_level,
+       Unsigned.UInt16.to_int, Unsigned.UInt16.of_int)
+  let custom_fade_length =
+    F (Effect.custom, Custom.fade_length,
+       Unsigned.UInt16.to_int, Unsigned.UInt16.of_int)
+  let custom_fade_level =
+    F (Effect.custom, Custom.fade_level,
+       Unsigned.UInt16.to_int, Unsigned.UInt16.of_int)
 end
+
+type haptic = Haptic.t ptr
 
 type haptic_effect = Haptic.Effect.t union
 
 type haptic_effect_id = int
-let haptic_effect_id : int typ = int
 
-let haptic_close =
-  foreign "SDL_HapticClose" (haptic @-> returning void)
+let haptic_close = C.Functions.haptic_close
 
-let haptic_destroy_effect =
-  foreign "SDL_HapticDestroyEffect"
-    (haptic @-> int @-> returning void)
-
-let haptic_effect_supported =
-  foreign "SDL_HapticEffectSupported"
-    (haptic @-> ptr Haptic.Effect.t @-> returning int)
+let haptic_destroy_effect = C.Functions.haptic_destroy_effect
 
 let haptic_effect_supported h e =
-  haptic_effect_supported h (addr e) |> bool_to_ok
+  bool_to_ok (C.Functions.haptic_effect_supported h (addr e))
 
-let haptic_get_effect_status =
-  foreign "SDL_HapticGetEffectStatus"
-    (haptic @-> haptic_effect_id @-> returning int)
-let haptic_get_effect_status h i = haptic_get_effect_status h i |> bool_to_ok
+let haptic_get_effect_status h i =
+  bool_to_ok (C.Functions.haptic_get_effect_status h i)
 
-let haptic_index =
-  foreign "SDL_HapticIndex" (haptic @-> returning int)
-let haptic_index h = haptic_index h |> nat_to_ok
+let haptic_index h = nat_to_ok (C.Functions.haptic_index h)
 
-let haptic_name =
-  foreign "SDL_HapticName" (int @-> returning string_opt)
-let haptic_name i = haptic_name i |> some_to_ok
-
-let haptic_new_effect =
-  foreign "SDL_HapticNewEffect"
-    (haptic @-> ptr Haptic.Effect.t @-> returning int)
+let haptic_name i = some_to_ok (C.Functions.haptic_name i)
 
 let haptic_new_effect h e =
-  haptic_new_effect h (addr e) |> nat_to_ok
+  nat_to_ok (C.Functions.haptic_new_effect h (addr e))
 
-let haptic_num_axes =
-  foreign "SDL_HapticNumAxes" (haptic @-> returning int)
-let haptic_num_axes h = haptic_num_axes h |> nat_to_ok
+let haptic_num_axes h =
+  nat_to_ok (C.Functions.haptic_num_axes h)
 
-let haptic_num_effects =
-  foreign "SDL_HapticNumEffects" (haptic @-> returning int)
-let haptic_num_effects h = haptic_num_effects h |> nat_to_ok
+let haptic_num_effects h =
+  nat_to_ok (C.Functions.haptic_num_effects h)
 
-let haptic_num_effects_playing =
-  foreign "SDL_HapticNumEffectsPlaying" (haptic @-> returning int)
-let haptic_num_effects_playing h = haptic_num_effects_playing h |> nat_to_ok
+let haptic_num_effects_playing h =
+  nat_to_ok (C.Functions.haptic_num_effects_playing h)
 
-let haptic_open =
-  foreign "SDL_HapticOpen" (int @-> returning haptic_opt)
-let haptic_open i = haptic_open i |> some_to_ok
+let haptic_open i = some_to_ok (C.Functions.haptic_open i)
 
-let haptic_open_from_joystick =
-  foreign "SDL_HapticOpenFromJoystick"
-  (joystick @-> returning haptic_opt)
-let haptic_open_from_joystick j = haptic_open_from_joystick j |> some_to_ok
+let haptic_open_from_joystick j =
+  some_to_ok (C.Functions.haptic_open_from_joystick j)
 
-let haptic_open_from_mouse =
-  foreign "SDL_HapticOpenFromMouse"
-    (void @-> returning haptic_opt)
-let haptic_open_from_mouse () = haptic_open_from_mouse () |> some_to_ok
+let haptic_open_from_mouse () =
+  some_to_ok (C.Functions.haptic_open_from_mouse ())
 
-let haptic_opened =
-  foreign "SDL_HapticOpened" (int @-> returning int)
-
-let haptic_opened i = match haptic_opened i with
+let haptic_opened i = match C.Functions.haptic_opened i with
 | 0 -> false | 1 -> true | _ -> assert false
 
-let haptic_pause =
-  foreign "SDL_HapticPause" (haptic @-> returning int)
-let haptic_pause h = haptic_pause h |> zero_to_ok
+let haptic_pause h = zero_to_ok (C.Functions.haptic_pause h)
 
-let haptic_query =
-  foreign "SDL_HapticQuery" (haptic @-> returning int)
+let haptic_query = C.Functions.haptic_query
 
-let haptic_rumble_init =
-  foreign "SDL_HapticRumbleInit" (haptic @-> returning int)
-let haptic_rumble_init h = haptic_rumble_init h |> zero_to_ok
+let haptic_rumble_init h =
+  zero_to_ok (C.Functions.haptic_rumble_init h)
 
-let haptic_rumble_play =
-  foreign "SDL_HapticRumblePlay"
-    (haptic @-> float @-> int32_t @-> returning int)
-let haptic_rumble_play h x y = haptic_rumble_play h x y |> zero_to_ok
+let haptic_rumble_play h x y =
+  zero_to_ok (C.Functions.haptic_rumble_play h x y)
 
-let haptic_rumble_stop =
-  foreign "SDL_HapticRumbleStop" (haptic @-> returning int)
-let haptic_rumble_stop h = haptic_rumble_stop h |> zero_to_ok
+let haptic_rumble_stop h =
+  zero_to_ok (C.Functions.haptic_rumble_stop h)
 
-let haptic_rumble_supported =
-  foreign "SDL_HapticRumbleSupported" (haptic @-> returning int)
-let haptic_rumble_supported h = haptic_rumble_supported h |> bool_to_ok
+let haptic_rumble_supported h =
+  bool_to_ok (C.Functions.haptic_rumble_supported h)
 
-let haptic_run_effect =
-  foreign "SDL_HapticRunEffect"
-    (haptic @-> haptic_effect_id  @-> int32_t @-> returning int)
-let haptic_run_effect h i n = haptic_run_effect h i n |> zero_to_ok
+let haptic_run_effect h i n =
+  zero_to_ok (C.Functions.haptic_run_effect h i n)
 
-let haptic_set_autocenter =
-  foreign "SDL_HapticSetAutocenter" (haptic @-> int @-> returning int)
-let haptic_set_autocenter h n = haptic_set_autocenter h n |> zero_to_ok
+let haptic_set_autocenter h n =
+  zero_to_ok (C.Functions.haptic_set_autocenter h n)
 
-let haptic_set_gain =
-  foreign "SDL_HapticSetGain" (haptic @-> int @-> returning int)
-let haptic_set_gain h n = haptic_set_gain h n |> zero_to_ok
+let haptic_set_gain h n = zero_to_ok (C.Functions.haptic_set_gain h n)
 
-let haptic_stop_all =
-  foreign "SDL_HapticStopAll" (haptic @-> returning int)
-let haptic_stop_all h = haptic_stop_all h |> zero_to_ok
+let haptic_stop_all h = zero_to_ok (C.Functions.haptic_stop_all h)
 
-let haptic_stop_effect =
-  foreign "SDL_HapticStopEffect"
-    (haptic @-> haptic_effect_id @-> returning int)
-let haptic_stop_effect h i = haptic_stop_effect h i |> zero_to_ok
+let haptic_stop_effect h i = zero_to_ok (C.Functions.haptic_stop_effect h i)
 
-let haptic_unpause =
-  foreign "SDL_HapticUnpause" (haptic @-> returning int)
-let haptic_unpause h = haptic_unpause h |> zero_to_ok
-
-let haptic_update_effect =
-  foreign "SDL_HapticUpdateEffect"
-    (haptic @-> haptic_effect_id @-> ptr Haptic.Effect.t @->
-     returning int)
+let haptic_unpause h = zero_to_ok (C.Functions.haptic_unpause h)
 
 let haptic_update_effect h id e =
-  haptic_update_effect h id (addr e) |> zero_to_ok
+  zero_to_ok (C.Functions.haptic_update_effect h id (addr e))
 
-let joystick_is_haptic =
-  foreign "SDL_JoystickIsHaptic"
-    (joystick @-> returning int)
-let joystick_is_haptic j = joystick_is_haptic j |> bool_to_ok
+let joystick_is_haptic j = bool_to_ok (C.Functions.joystick_is_haptic j)
 
-let mouse_is_haptic =
-  foreign "SDL_MouseIsHaptic" (void @-> returning int)
-let mouse_is_haptic () = mouse_is_haptic () |> bool_to_ok
+let mouse_is_haptic () = bool_to_ok (C.Functions.mouse_is_haptic ())
 
-let num_haptics =
-  foreign "SDL_NumHaptics" (void @-> returning int)
-let num_haptics () = num_haptics () |> nat_to_ok
+let num_haptics () = nat_to_ok (C.Functions.num_haptics ())
 
 (* Audio *)
 
