@@ -1466,6 +1466,11 @@ module Functions (F : FOREIGN) = struct
   let lock_audio_device =
     F.(foreign "SDL_LockAudioDevice" (uint32_t @-> returning void))
 
+  let open_audio_device =
+    F.(foreign "SDL_OpenAudioDevice"
+         (const_string_opt @-> bool @-> ptr Types.audio_spec @->
+          ptr Types.audio_spec @-> int @-> returning uint32_t))
+
   let pause_audio_device =
     F.(foreign "SDL_PauseAudioDevice" (uint32_t @-> bool @-> returning void))
 
