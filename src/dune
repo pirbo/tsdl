@@ -21,7 +21,11 @@
  (ctypes
   (external_library_name sdl2)
   (headers
-   (include "SDL.h" "SDL_vulkan.h"))
+   (preamble
+   "#define SDL_MAIN_HANDLED 1
+   #include \"SDL.h\"
+   #include \"SDL_vulkan.h\"
+   #undef main"))
   (build_flags_resolver pkg_config)
   (type_description
    (instance Types)
