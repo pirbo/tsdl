@@ -184,11 +184,11 @@ module Functions (F : FOREIGN) = struct
 
   let set_palette_colors =
     F.(foreign "SDL_SetPaletteColors"
-         (ptr Types.palette @-> ptr void @-> int @-> int @-> returning int))
+         (ptr Types.palette @-> ptr void(*Types.Color.t*) @-> int @-> int @-> returning int))
 
-
+  (* See https://github.com/yallop/ocaml-ctypes/issues/109 for why (*u*) *)
   let calculate_gamma_ramp =
-    F.(foreign "SDL_CalculateGammaRamp" (float @-> ptr void @-> returning void))
+    F.(foreign "SDL_CalculateGammaRamp" (float @-> ptr (*u*)int16_t @-> returning void))
 
   let compose_custom_blend_mode =
     F.(foreign "SDL_ComposeCustomBlendMode"

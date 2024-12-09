@@ -520,7 +520,7 @@ type gamma_ramp = (int, Bigarray.int16_unsigned_elt) bigarray
 
 let calculate_gamma_ramp g =
   let ba = Bigarray.(Array1.create int16_unsigned c_layout 256) in
-  C.Functions.calculate_gamma_ramp g (to_voidp (bigarray_start array1 ba));
+  C.Functions.calculate_gamma_ramp g (bigarray_start array1 ba);
   ba
 
 module Blend = struct
