@@ -290,12 +290,13 @@ module Functions (F : FOREIGN) = struct
 
   let fill_rect =
     F.(foreign "SDL_FillRect"
-         (ptr Types.surface @-> ptr Types.Rect.t@-> uint32_t @-> returning int))
+         (ptr Types.surface @-> ptr Types.Rect.t @-> uint32_t @->
+          returning int))
 
   let fill_rects =
     F.(foreign "SDL_FillRects"
-         (ptr Types.surface @-> ptr void @-> int @-> uint32_t @->
-          returning int))
+         (ptr Types.surface @-> ptr void (* Types.Rect.t *) @-> int @->
+          uint32_t @-> returning int))
 
   let free_surface =
     F.(foreign "SDL_FreeSurface" (ptr Types.surface @-> returning void))
@@ -404,7 +405,7 @@ module Functions (F : FOREIGN) = struct
 
   let get_render_target =
     F.(foreign "SDL_GetRenderTarget"
-         (ptr Types.Renderer.t @-> returning (ptr_opt void)))
+         (ptr Types.Renderer.t @-> returning (ptr_opt Types.Texture.t)))
 
   let get_renderer =
     F.(foreign "SDL_GetRenderer"
@@ -423,12 +424,12 @@ module Functions (F : FOREIGN) = struct
 
   let render_copy =
     F.(foreign "SDL_RenderCopy"
-         (ptr Types.Renderer.t @-> ptr void @-> ptr Types.Rect.t @->
+         (ptr Types.Renderer.t @-> ptr Types.Texture.t @-> ptr Types.Rect.t @->
           ptr Types.Rect.t @-> returning int))
 
   let render_copy_ex =
     F.(foreign "SDL_RenderCopyEx"
-         (ptr Types.Renderer.t @-> ptr void @-> ptr Types.Rect.t @->
+         (ptr Types.Renderer.t @-> ptr Types.Texture.t @-> ptr Types.Rect.t @->
           ptr Types.Rect.t @-> double @-> ptr Types.Point.t @-> int @->
           returning int))
 
@@ -480,12 +481,12 @@ module Functions (F : FOREIGN) = struct
 
   let render_geometry =
     F.(foreign "SDL_RenderGeometry"
-         (ptr Types.Renderer.t @-> ptr void @-> ptr void @-> int @->
+         (ptr Types.Renderer.t @-> ptr_opt Types.Texture.t @-> ptr void @-> int @->
           ptr void @-> int @-> returning int))
 
   let render_geometry_raw =
     F.(foreign "SDL_RenderGeometryRaw"
-         (ptr Types.Renderer.t @-> ptr void @->
+         (ptr Types.Renderer.t @-> ptr_opt Types.Texture.t @->
           ptr void @-> int @->
           ptr void @-> int @->
           ptr void @-> int @->
@@ -555,66 +556,67 @@ module Functions (F : FOREIGN) = struct
 
   let set_render_target =
     F.(foreign "SDL_SetRenderTarget"
-         (ptr Types.Renderer.t @-> ptr void @-> returning int))
+         (ptr Types.Renderer.t @-> ptr_opt Types.Texture.t @-> returning int))
 
   let create_texture =
     F.(foreign "SDL_CreateTexture"
          (ptr Types.Renderer.t @-> uint32_t @-> int @-> int @-> int @->
-          returning (ptr_opt void)))
+          returning (ptr_opt Types.Texture.t)))
 
   let create_texture_from_surface =
     F.(foreign "SDL_CreateTextureFromSurface"
          (ptr Types.Renderer.t @-> ptr Types.surface @->
-          returning (ptr_opt void)))
+          returning (ptr_opt Types.Texture.t)))
 
   let destroy_texture =
-    F.(foreign "SDL_DestroyTexture" (ptr void @-> returning void))
+    F.(foreign "SDL_DestroyTexture" (ptr Types.Texture.t @-> returning void))
 
   let get_texture_alpha_mod =
     F.(foreign "SDL_GetTextureAlphaMod"
-         (ptr void @-> ptr uint8_t @-> returning int))
+         (ptr Types.Texture.t @-> ptr uint8_t @-> returning int))
 
   let get_texture_blend_mode =
     F.(foreign "SDL_GetTextureBlendMode"
-         (ptr void @-> ptr Types.Blend.mode @-> returning int))
+         (ptr Types.Texture.t @-> ptr Types.Blend.mode @-> returning int))
 
   let get_texture_color_mod =
     F.(foreign "SDL_GetTextureColorMod"
-         (ptr void @-> ptr uint8_t @-> ptr uint8_t @-> ptr uint8_t @->
-          returning int))
+         (ptr Types.Texture.t @-> ptr uint8_t @-> ptr uint8_t @->
+          ptr uint8_t @-> returning int))
 
   let query_texture =
     F.(foreign "SDL_QueryTexture"
-         (ptr void @-> ptr uint32_t @-> ptr int @-> ptr int @-> ptr int @->
-          returning int))
+         (ptr Types.Texture.t @-> ptr uint32_t @-> ptr int @-> ptr int @->
+          ptr int @-> returning int))
 
   let lock_texture =
     F.(foreign "SDL_LockTexture"
-         (ptr void @-> ptr Types.Rect.t @-> ptr (ptr void) @-> ptr int @->
-          returning int))
+         (ptr Types.Texture.t @-> ptr Types.Rect.t @-> ptr (ptr void) @->
+          ptr int @-> returning int))
 
   let set_texture_alpha_mod =
     F.(foreign "SDL_SetTextureAlphaMod"
-         (ptr void @-> uint8_t @-> returning int))
+         (ptr Types.Texture.t @-> uint8_t @-> returning int))
 
   let set_texture_blend_mode =
     F.(foreign "SDL_SetTextureBlendMode"
-         (ptr void @-> Types.Blend.mode @-> returning int))
+         (ptr Types.Texture.t @-> Types.Blend.mode @-> returning int))
 
   let set_texture_color_mod =
     F.(foreign "SDL_SetTextureColorMod"
-         (ptr void @-> uint8_t @-> uint8_t @-> uint8_t @-> returning int))
+         (ptr Types.Texture.t @-> uint8_t @-> uint8_t @-> uint8_t @-> returning int))
 
   let unlock_texture =
-    F.(foreign "SDL_UnlockTexture" (ptr void @-> returning void))
+    F.(foreign "SDL_UnlockTexture" (ptr Types.Texture.t @-> returning void))
 
   let update_texture =
     F.(foreign "SDL_UpdateTexture"
-         (ptr void @-> ptr Types.Rect.t @-> ptr void @-> int @-> returning int))
+         (ptr Types.Texture.t @-> ptr Types.Rect.t @-> ptr void @-> int @->
+          returning int))
 
   let update_yuv_texture =
     F.(foreign "SDL_UpdateYUVTexture"
-         (ptr void @-> ptr Types.Rect.t @->
+         (ptr Types.Texture.t @-> ptr Types.Rect.t @->
           ptr void @-> int @-> ptr void @-> int @-> ptr void @-> int @->
           returning int))
 
@@ -845,7 +847,7 @@ module Functions (F : FOREIGN) = struct
 
   let gl_bind_texture =
     F.(foreign "SDL_GL_BindTexture"
-         (ptr void @-> ptr float @-> ptr float @-> returning int))
+         (ptr Types.Texture.t @-> ptr float @-> ptr float @-> returning int))
 
   let gl_create_context =
     F.(foreign "SDL_GL_CreateContext"
@@ -888,7 +890,7 @@ module Functions (F : FOREIGN) = struct
     F.(foreign "SDL_GL_SwapWindow" (Types.Window.t @-> returning void))
 
   let gl_unbind_texture =
-    F.(foreign "SDL_GL_UnbindTexture" (ptr void @-> returning int))
+    F.(foreign "SDL_GL_UnbindTexture" (ptr Types.Texture.t @-> returning int))
 
   module Vulkan = struct
     let load_library =

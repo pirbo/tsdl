@@ -269,6 +269,11 @@ module Types (F : Ctypes.TYPE) = struct
     let modulate_none = F.constant "SDL_TEXTUREMODULATE_NONE" F.uint32_t
     let modulate_color = F.constant "SDL_TEXTUREMODULATE_COLOR" F.uint32_t
     let modulate_alpha = F.constant "SDL_TEXTUREMODULATE_ALPHA" F.uint32_t
+
+    type _t
+
+    type t = _t Ctypes_static.structure
+    let t : t F.typ = F.structure "SDL_Texture"
   end
 
   type _display_mode

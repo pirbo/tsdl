@@ -810,10 +810,10 @@ module Flip = struct
   include C.Types.Flip
 end
 
-type texture = unit ptr
+type texture = C.Types.Texture.t ptr
 
 let unsafe_texture_of_ptr addr : texture =
-  ptr_of_raw_address addr
+  from_voidp C.Types.Texture.t (ptr_of_raw_address addr)
 let unsafe_ptr_of_texture texture =
   raw_address_of_ptr (to_voidp texture)
 
@@ -991,9 +991,6 @@ let render_fill_rects r rs =
 
 let render_geometry ?indices ?texture r vertices =
   let a1 = CArray.of_list vertex vertices in
-  let t = match texture with
-  | None -> null | Some texture -> texture
-  in
   let a2_ptr, a2_len = match indices with
   | None -> (null, 0)
   | Some is ->
@@ -1002,15 +999,12 @@ let render_geometry ?indices ?texture r vertices =
   in
   zero_to_ok
     (C.Functions.render_geometry
-       r t (to_voidp (CArray.start a1)) (CArray.length a1) a2_ptr a2_len)
+       r texture (to_voidp (CArray.start a1)) (CArray.length a1) a2_ptr a2_len)
 
 let render_geometry_raw
     ?indices ?texture r ~xy ?(xy_stride = 8) ~color ?(color_stride = 4)
     ~uv ?(uv_stride = 8) ~num_vertices ()
   =
-  let t = match texture with
-  | None -> null | Some texture -> texture
-  in
   let i_ptr, i_len = match indices with
   | None -> null, 0
   | Some is -> to_voidp (bigarray_start array1 is), Bigarray.Array1.dim is
@@ -1043,7 +1037,7 @@ let render_geometry_raw
   end;
   zero_to_ok
     (C.Functions.render_geometry_raw
-       r t xy_ptr xy_stride color_ptr color_stride uv_ptr uv_stride
+       r texture xy_ptr xy_stride color_ptr color_stride uv_ptr uv_stride
        num_vertices i_ptr i_len i_stride)
 
 let render_get_clip_rect rend =
@@ -1108,7 +1102,6 @@ let set_render_draw_color r a b c d =
                 (Unsigned.UInt8.of_int d))
 
 let set_render_target r t =
-  let t = match t with None -> null | Some t -> t in
   zero_to_ok (C.Functions.set_render_target r t)
 
 (* Textures *)
