@@ -107,9 +107,6 @@ module Functions (F : FOREIGN) = struct
   let get_revision =
     F.(foreign "SDL_GetRevision" (void @-> returning string))
 
-  let get_revision_number =
-    F.(foreign "SDL_GetRevisionNumber" (void @-> returning int))
-
   (* IO absraction *)
 
   let load_file_rw =

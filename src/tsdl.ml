@@ -233,8 +233,6 @@ let get_version () =
 
 let get_revision = C.Functions.get_revision
 
-let get_revision_number = C.Functions.get_revision_number
-
 type rw_ops = C.Types.rw_ops
 
 let load_file_rw rw_ops close =
