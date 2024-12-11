@@ -1188,9 +1188,9 @@ let update_texture t rect pixels pitch =
   zero_to_ok (C.Functions.update_texture t (Rect.opt_addr rect) pixels pitch)
 
 let update_yuv_texture r rect ~y ypitch ~u upitch ~v vpitch =
-  let yp = to_voidp (bigarray_start array1 y) in
-  let up = to_voidp (bigarray_start array1 u) in
-  let vp = to_voidp (bigarray_start array1 v) in
+  let yp = bigarray_start array1 y in
+  let up = bigarray_start array1 u in
+  let vp = bigarray_start array1 v in
   zero_to_ok (C.Functions.update_yuv_texture
                 r (Rect.opt_addr rect) yp ypitch up upitch vp vpitch)
 
@@ -1344,7 +1344,7 @@ let get_window_from_id x =
 let get_window_gamma_ramp w =
   let create_ramp () = ba_create Bigarray.int16_unsigned 256 in
   let r, g, b = create_ramp (), create_ramp (), create_ramp () in
-  let ramp_ptr r = to_voidp (bigarray_start array1 r) in
+  let ramp_ptr r = bigarray_start array1 r in
   match C.Functions.get_window_gamma_ramp
           w (ramp_ptr r) (ramp_ptr g) (ramp_ptr b) with
   | 0 -> Ok (r, g, b) | _ -> error ()
@@ -1415,7 +1415,7 @@ let set_window_fullscreen w x =
   zero_to_ok (C.Functions.set_window_fullscreen w x)
 
 let set_window_gamma_ramp w r g b =
-  let ramp_ptr r = to_voidp (bigarray_start array1 r) in
+  let ramp_ptr r = bigarray_start array1 r in
   zero_to_ok (C.Functions.set_window_gamma_ramp
                 w (ramp_ptr r) (ramp_ptr g) (ramp_ptr b))
 

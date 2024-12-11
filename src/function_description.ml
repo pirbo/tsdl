@@ -617,8 +617,8 @@ module Functions (F : FOREIGN) = struct
   let update_yuv_texture =
     F.(foreign "SDL_UpdateYUVTexture"
          (ptr Types.Texture.t @-> ptr Types.Rect.t @->
-          ptr void @-> int @-> ptr void @-> int @-> ptr void @-> int @->
-          returning int))
+          ptr (*u*)int8_t @-> int @-> ptr (*u*)int8_t @-> int @->
+          ptr (*u*)int8_t @-> int @-> returning int))
 
   (* Video drivers *)
 
@@ -714,7 +714,8 @@ module Functions (F : FOREIGN) = struct
 
   let get_window_gamma_ramp =
     F.(foreign "SDL_GetWindowGammaRamp"
-         (Types.Window.t @-> ptr void @-> ptr void @-> ptr void @-> returning int))
+         (Types.Window.t @-> ptr (*u*)int16_t @-> ptr (*u*)int16_t @->
+          ptr (*u*)int16_t @-> returning int))
 
   let get_window_grab =
     F.(foreign "SDL_GetWindowGrab" (Types.Window.t @-> returning bool))
@@ -789,8 +790,8 @@ module Functions (F : FOREIGN) = struct
 
   let set_window_gamma_ramp =
     F.(foreign "SDL_SetWindowGammaRamp"
-         (Types.Window.t @-> ptr void @-> ptr void @-> ptr void @->
-          returning int))
+         (Types.Window.t @-> ptr (*u*)int16_t @-> ptr (*u*)int16_t @->
+          ptr (*u*)int16_t @-> returning int))
 
   let set_window_grab =
     F.(foreign "SDL_SetWindowGrab" (Types.Window.t @-> bool @-> returning void))
