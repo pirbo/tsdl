@@ -340,29 +340,25 @@ end
 
 (* Vertices *)
 
-type _vertex
-type vertex = _vertex structure
-let vertex : vertex typ = structure "SDL_Vertex"
-let vertex_position = field vertex "position" C.Types.Fpoint.t
-let vertex_color = field vertex "color" color
-let vertex_tex_coord = field vertex "tex_coord" C.Types.Fpoint.t
-let () = seal vertex
+type vertex = C.Types.Vertex.t
 
 module Vertex = struct
+  open C.Types
+
   let create ~position ~color ~tex_coord =
-    let v = make vertex in
-    setf v vertex_position position;
-    setf v vertex_color color;
-    setf v vertex_tex_coord tex_coord;
+    let v = make Vertex.t in
+    setf v Vertex.position position;
+    setf v Vertex.color color;
+    setf v Vertex.tex_coord tex_coord;
     v
 
-  let position v = getf v vertex_position
-  let color v = getf v vertex_color
-  let tex_coord v = getf v vertex_tex_coord
+  let position v = getf v Vertex.position
+  let color v = getf v Vertex.color
+  let tex_coord v = getf v Vertex.tex_coord
 
-  let set_position v position = setf v vertex_position position
-  let set_color v color = setf v vertex_color color
-  let set_tex_coord v tex_coord = setf v vertex_tex_coord tex_coord
+  let set_position v position = setf v Vertex.position position
+  let set_color v color = setf v Vertex.color color
+  let set_tex_coord v tex_coord = setf v Vertex.tex_coord tex_coord
 end
 
 (* Rectangle *)
@@ -990,16 +986,16 @@ let render_fill_rects r rs =
                 r (to_voidp (CArray.start a)) (CArray.length a))
 
 let render_geometry ?indices ?texture r vertices =
-  let a1 = CArray.of_list vertex vertices in
+  let a1 = CArray.of_list C.Types.Vertex.t vertices in
   let a2_ptr, a2_len = match indices with
-  | None -> (null, 0)
+  | None -> (None, 0)
   | Some is ->
       let a2 = CArray.of_list int is in
-      (to_voidp (CArray.start a2), CArray.length a2)
+      (Some (CArray.start a2), CArray.length a2)
   in
   zero_to_ok
     (C.Functions.render_geometry
-       r texture (to_voidp (CArray.start a1)) (CArray.length a1) a2_ptr a2_len)
+       r texture (CArray.start a1) (CArray.length a1) a2_ptr a2_len)
 
 let render_geometry_raw
     ?indices ?texture r ~xy ?(xy_stride = 8) ~color ?(color_stride = 4)
@@ -1010,7 +1006,7 @@ let render_geometry_raw
   | Some is -> to_voidp (bigarray_start array1 is), Bigarray.Array1.dim is
   in
   let i_stride = 4 in (* indices are assumed to be 4-byte integers *)
-  let xy_ptr = to_voidp (bigarray_start array1 xy) in
+  let xy_ptr = bigarray_start array1 xy in
   let xy_len_bytes = Bigarray.Array1.dim xy * 4 in
   let xy_exp_bytes = num_vertices * xy_stride - (xy_stride - 8) in
   if xy_len_bytes < xy_exp_bytes then begin
@@ -1026,7 +1022,7 @@ let render_geometry_raw
     in
     invalid_arg msg
   end;
-  let uv_ptr = to_voidp (bigarray_start array1 uv) in
+  let uv_ptr = bigarray_start array1 uv in
   let uv_len_bytes = Bigarray.Array1.dim uv * 4 in
   let uv_exp_bytes = num_vertices * uv_stride - (uv_stride - 8) in
   if uv_len_bytes < uv_exp_bytes then begin

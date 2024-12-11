@@ -481,15 +481,15 @@ module Functions (F : FOREIGN) = struct
 
   let render_geometry =
     F.(foreign "SDL_RenderGeometry"
-         (ptr Types.Renderer.t @-> ptr_opt Types.Texture.t @-> ptr void @-> int @->
-          ptr void @-> int @-> returning int))
+         (ptr Types.Renderer.t @-> ptr_opt Types.Texture.t @->
+          ptr Types.Vertex.t @-> int @-> ptr_opt int @-> int @-> returning int))
 
   let render_geometry_raw =
     F.(foreign "SDL_RenderGeometryRaw"
          (ptr Types.Renderer.t @-> ptr_opt Types.Texture.t @->
-          ptr void @-> int @->
-          ptr void @-> int @->
-          ptr void @-> int @->
+          ptr float @-> int @->
+          ptr void (*Types.Color.t*) @-> int @->
+          ptr float @-> int @->
           int @-> ptr void @-> int @-> int @-> returning int))
 
   let render_get_clip_rect =

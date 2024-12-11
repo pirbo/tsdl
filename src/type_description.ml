@@ -94,6 +94,16 @@ module Types (F : Ctypes.TYPE) = struct
     let () = F.seal t
   end
 
+  module Vertex = struct
+    type _t
+    type t = _t Ctypes_static.structure
+    let t : t F.typ = F.structure "SDL_Vertex"
+    let position = F.field t "position" Fpoint.t
+    let color = F.field t "color" Color.t
+    let tex_coord = F.field t "tex_coord" Fpoint.t
+    let () = F.seal t
+  end
+
   module Rect = struct
     type _t
     type t = _t Ctypes_static.structure
