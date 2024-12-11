@@ -1920,10 +1920,10 @@ type joystick_guid = C.Types.guid
 
 type joystick_id = int32
 
-type joystick = unit ptr
+type joystick = C.Types.joystick ptr
 
 let unsafe_joystick_of_ptr addr : joystick =
-  ptr_of_raw_address addr
+  from_voidp C.Types.joystick (ptr_of_raw_address addr)
 let unsafe_ptr_of_joystick joystick =
   raw_address_of_ptr (to_voidp joystick)
 

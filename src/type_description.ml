@@ -993,6 +993,11 @@ module Types (F : Ctypes.TYPE) = struct
 
   let joystick_guid = F.typedef guid "SDL_JoystickGUID"
 
+  type _joystick
+  type joystick = _joystick Ctypes_static.structure
+  let joystick : joystick F.typ =
+    F.typedef (F.structure "_SDL_Joystick") "SDL_Joystick"
+
   module Hat = struct
     type t = int
     let centered = F.constant "SDL_HAT_CENTERED" F.int

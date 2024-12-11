@@ -1082,35 +1082,38 @@ module Functions (F : FOREIGN) = struct
     F.(foreign "SDL_SaveAllDollarTemplates" (Types.rw_ops @-> returning int))
 
   let joystick_close =
-    F.(foreign "SDL_JoystickClose" (ptr void @-> returning void))
+    F.(foreign "SDL_JoystickClose" (ptr Types.joystick @-> returning void))
 
   let joystick_current_power_level =
     F.(foreign "SDL_JoystickCurrentPowerLevel"
-         (ptr void @-> returning int))
+         (ptr Types.joystick @-> returning int))
 
   let joystick_event_state =
     F.(foreign "SDL_JoystickEventState" (int @-> returning int))
 
   let joystick_from_instance_id =
-    F.(foreign "SDL_JoystickFromInstanceID" (int32_t @-> returning (ptr void)))
+    F.(foreign "SDL_JoystickFromInstanceID"
+         (int32_t @-> returning (ptr Types.joystick)))
 
   let joystick_get_attached =
-    F.(foreign "SDL_JoystickGetAttached" (ptr void @-> returning bool))
+    F.(foreign "SDL_JoystickGetAttached"
+         (ptr Types.joystick @-> returning bool))
 
   let joystick_get_axis =
-    F.(foreign "SDL_JoystickGetAxis" (ptr void @-> int @-> returning int16_t))
+    F.(foreign "SDL_JoystickGetAxis"
+         (ptr Types.joystick @-> int @-> returning int16_t))
 
   let joystick_get_axis_initial_state =
     F.(foreign "SDL_JoystickGetAxisInitialState"
-         (ptr void @-> int @-> ptr int16_t @-> returning bool))
+         (ptr Types.joystick @-> int @-> ptr int16_t @-> returning bool))
 
   let joystick_get_ball =
     F.(foreign "SDL_JoystickGetBall"
-         (ptr void @-> int @-> (ptr int) @-> (ptr int) @-> returning int))
+         (ptr Types.joystick @-> int @-> ptr int @-> ptr int @-> returning int))
 
   let joystick_get_button =
     F.(foreign "SDL_JoystickGetButton"
-         (ptr void @-> int @-> returning uint8_t))
+         (ptr Types.joystick @-> int @-> returning uint8_t))
 
   let joystick_get_device_guid =
     F.(foreign "SDL_JoystickGetDeviceGUID" (int @-> returning Types.joystick_guid))
@@ -1132,54 +1135,61 @@ module Functions (F : FOREIGN) = struct
     F.(foreign "SDL_JoystickGetDeviceVendor" (int @-> returning uint16_t))
 
   let joystick_get_guid =
-    F.(foreign "SDL_JoystickGetGUID" (ptr void @-> returning Types.joystick_guid))
+    F.(foreign "SDL_JoystickGetGUID"
+         (ptr Types.joystick @-> returning Types.joystick_guid))
 
   let joystick_get_guid_from_string =
-    F.(foreign "SDL_JoystickGetGUIDFromString" (string @-> returning Types.joystick_guid))
+    F.(foreign "SDL_JoystickGetGUIDFromString"
+         (string @-> returning Types.joystick_guid))
 
   let joystick_get_guid_string =
     F.(foreign "SDL_JoystickGetGUIDString"
          (Types.joystick_guid @-> ptr char @-> int @-> returning void))
 
   let joystick_get_hat =
-    F.(foreign "SDL_JoystickGetHat" (ptr void @-> int @-> returning uint8_t))
+    F.(foreign "SDL_JoystickGetHat"
+         (ptr Types.joystick @-> int @-> returning uint8_t))
 
   let joystick_get_product =
-    F.(foreign "SDL_JoystickGetProduct" (ptr void @-> returning uint16_t))
+    F.(foreign "SDL_JoystickGetProduct"
+         (ptr Types.joystick @-> returning uint16_t))
 
   let joystick_get_product_version =
     F.(foreign "SDL_JoystickGetProductVersion"
-         (ptr void @-> returning uint16_t))
+         (ptr Types.joystick @-> returning uint16_t))
 
   let joystick_get_type =
-    F.(foreign "SDL_JoystickGetType" (ptr void @-> returning int))
+    F.(foreign "SDL_JoystickGetType" (ptr Types.joystick @-> returning int))
 
   let joystick_get_vendor =
-    F.(foreign "SDL_JoystickGetVendor" (ptr void @-> returning uint16_t))
+    F.(foreign "SDL_JoystickGetVendor"
+         (ptr Types.joystick @-> returning uint16_t))
 
   let joystick_instance_id =
-    F.(foreign "SDL_JoystickInstanceID" (ptr void @-> returning int32_t))
+    F.(foreign "SDL_JoystickInstanceID"
+         (ptr Types.joystick @-> returning int32_t))
 
   let joystick_name =
-    F.(foreign "SDL_JoystickName" (ptr void @-> returning const_string_opt))
+    F.(foreign "SDL_JoystickName"
+         (ptr Types.joystick @-> returning const_string_opt))
 
   let joystick_name_for_index =
     F.(foreign "SDL_JoystickNameForIndex" (int @-> returning const_string_opt))
 
   let joystick_num_axes =
-    F.(foreign "SDL_JoystickNumAxes" (ptr void @-> returning int))
+    F.(foreign "SDL_JoystickNumAxes" (ptr Types.joystick @-> returning int))
 
   let joystick_num_balls =
-    F.(foreign "SDL_JoystickNumBalls" (ptr void @-> returning int))
+    F.(foreign "SDL_JoystickNumBalls" (ptr Types.joystick @-> returning int))
 
   let joystick_num_buttons =
-    F.(foreign "SDL_JoystickNumButtons" (ptr void @-> returning int))
+    F.(foreign "SDL_JoystickNumButtons" (ptr Types.joystick @-> returning int))
 
   let joystick_num_hats =
-    F.(foreign "SDL_JoystickNumHats" (ptr void @-> returning int))
+    F.(foreign "SDL_JoystickNumHats" (ptr Types.joystick @-> returning int))
 
   let joystick_open =
-    F.(foreign "SDL_JoystickOpen" (int @-> returning (ptr_opt void)))
+    F.(foreign "SDL_JoystickOpen" (int @-> returning (ptr_opt Types.joystick)))
 
   let joystick_update =
     F.(foreign "SDL_JoystickUpdate" (void @-> returning void))
@@ -1241,7 +1251,7 @@ module Functions (F : FOREIGN) = struct
 
   let game_controller_get_joystick =
     F.(foreign "SDL_GameControllerGetJoystick"
-         (ptr Types.game_controller @-> returning (ptr_opt void)))
+         (ptr Types.game_controller @-> returning (ptr_opt Types.joystick)))
 
   let game_controller_get_product =
     F.(foreign "SDL_GameControllerGetProduct"
@@ -1364,7 +1374,7 @@ module Functions (F : FOREIGN) = struct
 
   let haptic_open_from_joystick =
     F.(foreign "SDL_HapticOpenFromJoystick"
-         (ptr void @-> returning (ptr_opt Types.Haptic.t)))
+         (ptr Types.joystick @-> returning (ptr_opt Types.Haptic.t)))
 
   let haptic_open_from_mouse =
     F.(foreign "SDL_HapticOpenFromMouse"
@@ -1418,7 +1428,7 @@ module Functions (F : FOREIGN) = struct
           returning int))
 
   let joystick_is_haptic =
-    F.(foreign "SDL_JoystickIsHaptic" (ptr void @-> returning int))
+    F.(foreign "SDL_JoystickIsHaptic" (ptr Types.joystick @-> returning int))
 
   let mouse_is_haptic =
     F.(foreign "SDL_MouseIsHaptic" (void @-> returning int))
