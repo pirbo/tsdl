@@ -938,6 +938,10 @@ module Types (F : Ctypes.TYPE) = struct
     let gui = F.constant "KMOD_GUI" F.uint16_t
   end
 
+  type _cursor
+  type cursor = _cursor Ctypes_static.structure
+  let cursor : cursor F.typ = F.structure "SDL_Cursor"
+
   module System_cursor = struct
     let arrow = F.constant "SDL_SYSTEM_CURSOR_ARROW" F.int
     let ibeam = F.constant "SDL_SYSTEM_CURSOR_IBEAM" F.int

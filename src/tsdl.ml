@@ -1797,10 +1797,10 @@ let stop_text_input = C.Functions.stop_text_input
 
 (* Mouse *)
 
-type cursor = unit ptr
+type cursor = C.Types.cursor ptr
 
 let unsafe_cursor_of_ptr addr : cursor =
-  ptr_of_raw_address addr
+  from_voidp C.Types.cursor (ptr_of_raw_address addr)
 let unsafe_ptr_of_cursor cursor =
   raw_address_of_ptr (to_voidp cursor)
 
@@ -1818,8 +1818,8 @@ let create_color_cursor s ~hot_x ~hot_y =
 
 let create_cursor d m ~w ~h ~hot_x ~hot_y =
   (* FIXME: we could try to check bounds *)
-  let d = to_voidp (bigarray_start array1 d) in
-  let m = to_voidp (bigarray_start array1 m) in
+  let d = bigarray_start array1 d in
+  let m = bigarray_start array1 m in
   some_to_ok (C.Functions.create_cursor d m w h hot_x hot_y)
 
 let create_system_cursor i =

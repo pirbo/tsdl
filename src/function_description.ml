@@ -999,25 +999,26 @@ module Functions (F : FOREIGN) = struct
 
   let create_color_cursor =
     F.(foreign "SDL_CreateColorCursor"
-         (ptr Types.surface @-> int @-> int @-> returning (ptr_opt void)))
+         (ptr Types.surface @-> int @-> int @->
+          returning (ptr_opt Types.cursor)))
 
   let create_cursor =
     F.(foreign "SDL_CreateCursor"
-         (ptr void @-> ptr void @-> int @-> int @-> int @-> int @->
-          returning (ptr_opt void)))
+         (ptr (*u*)int8_t @-> ptr (*u*)int8_t @-> int @-> int @-> int @->
+          int @-> returning (ptr_opt Types.cursor)))
 
   let create_system_cursor =
     F.(foreign "SDL_CreateSystemCursor"
-         (int @-> returning (ptr_opt void)))
+         (int @-> returning (ptr_opt Types.cursor)))
 
   let free_cursor =
-    F.(foreign "SDL_FreeCursor" (ptr void @-> returning void))
+    F.(foreign "SDL_FreeCursor" (ptr Types.cursor @-> returning void))
 
   let get_cursor =
-    F.(foreign "SDL_GetCursor" (void @-> returning (ptr_opt void)))
+    F.(foreign "SDL_GetCursor" (void @-> returning (ptr_opt Types.cursor)))
 
   let get_default_cursor =
-    F.(foreign "SDL_GetDefaultCursor" (void @-> returning (ptr_opt void)))
+    F.(foreign "SDL_GetDefaultCursor" (void @-> returning (ptr_opt Types.cursor)))
 
   let get_global_mouse_state =
     F.(foreign "SDL_GetGlobalMouseState"
@@ -1041,7 +1042,7 @@ module Functions (F : FOREIGN) = struct
     F.(foreign "SDL_ShowCursor" (int @-> returning int))
 
   let set_cursor =
-    F.(foreign "SDL_SetCursor" (ptr_opt void @-> returning void))
+    F.(foreign "SDL_SetCursor" (ptr_opt Types.cursor @-> returning void))
 
   let set_relative_mouse_mode =
     F.(foreign "SDL_SetRelativeMouseMode" (bool @-> returning int))
