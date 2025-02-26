@@ -3395,13 +3395,13 @@ end
 type event = Event.t union
 
 let event_state =
-  foreign "SDL_EventState" (event_type @-> uint8_t @-> returning uint8_t)
+  foreign "SDL_EventState" (event_type @-> int @-> returning uint8_t)
 
 let get_event_state e =
-  event_state e (Unsigned.UInt8.of_int Types.sdl_query)
+  event_state e Types.sdl_query
 
 let set_event_state e s =
-  ignore (event_state e s)
+  ignore (event_state e (Unsigned.UInt8.to_int s))
 
 let flush_event =
   foreign "SDL_FlushEvent" (event_type @-> returning void)
