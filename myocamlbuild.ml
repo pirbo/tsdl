@@ -129,6 +129,8 @@ let () =
         ~src_dir:"src" ~stublib:"tsdl_stubs";
       lib_with_clib ~lib:"tsdl" ~clib:"sdl2" ~has_lib:"-DHAS_SDL2"
         ~src_dir:"src" ~stublib:"async_functions_stubs";
+      lib_with_clib ~lib:"tsdl" ~clib:"sdl2" ~has_lib:"-DHAS_SDL2"
+        ~src_dir:"src" ~stublib:"functions_stubs";
       sdl_consts_build ();
       ctypes_stub_gen ()
   | _ -> ()
