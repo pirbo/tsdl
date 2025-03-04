@@ -1,0 +1,4 @@
+(library
+ (name tsdl_top)
+ (public_name tsdl.top)
+ (libraries tsdl compiler-libs.toplevel))

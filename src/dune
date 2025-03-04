@@ -1,0 +1,46 @@
+(rule
+ (targets c_flags.sexp c_library_flags.sexp)
+ (action
+  (run ../config/discover.exe)))
+
+(library
+ (name tsdl)
+ (public_name tsdl)
+ (modules
+  (:standard \ Tsdl_top_init))
+ (c_library_flags
+  (:include c_library_flags.sexp))
+ (libraries ctypes-foreign)
+ (flags
+  (:standard -w -9-27))
+ (foreign_stubs
+  (language c)
+  (names tsdl_stubs)
+  (flags
+   (:include c_flags.sexp)))
+ (ctypes
+  (external_library_name sdl2)
+  (headers
+   (preamble
+   "#define SDL_MAIN_HANDLED 1
+   #include \"SDL.h\"
+   #include \"SDL_vulkan.h\"
+   #undef main"))
+  (build_flags_resolver pkg_config)
+  (type_description
+   (instance Types)
+   (functor Type_description))
+  (function_description
+   (instance Functions)
+   (functor Function_description))
+  (function_description
+   (instance Async_functions)
+   (concurrency unlocked)
+   (functor Async_function_description))
+  (generated_entry_point C)))
+
+(install
+ (section lib)
+ (package tsdl)
+ (files
+  (tsdl_top_init.ml as top/tsdl_top_init.ml)))

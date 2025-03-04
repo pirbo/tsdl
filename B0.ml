@@ -29,15 +29,14 @@ let default =
     |> ~~ B0_opam.available
       {|[(os-distribution != "opensuse-leap" | os-version >= 16)]|}
     |> ~~ B0_opam.depends
-      [ "ocaml", {|>= "4.08.0"|};
-        "ocamlfind", {|build|};
-        "ocamlbuild", {|build|};
-        "topkg", {|build & >= "1.0.3"|};
+      [ "dune", {|>= "3.15"|};
+        "ocaml", {|>= "4.08.0"|};
         "conf-sdl2", "";
         "ctypes", {|>= "0.21.1"|};
-        "ctypes-foreign", {|>= "0.21.1"|} ]
+        "ctypes-foreign", {|>= "0.21.1"|};
+        "odoc", {|with-doc|}]
     |> ~~ B0_opam.build
-      {|[["ocaml" "pkg/pkg.ml" "build" "--dev-pkg" "%{dev}%"]]|}
+      {|[["dune" "subst"] {dev}  ["dune" "build" "-p" name "-j" jobs "@install" "@runtest" {with-test} "@doc" {with-doc}]]|}
   in
   B0_pack.make "default" ~doc:"tsdl package" ~meta ~locked:true @@
   B0_unit.list ()
