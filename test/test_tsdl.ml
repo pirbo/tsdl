@@ -91,7 +91,7 @@ let test_rw_ops () =
       | Ok () -> ()
       end
   end;
-  begin match Sdl.load_file "test/rw_test_data" with
+  begin match Sdl.load_file "rw_test_data" with
   | Error `Msg e -> log_err " Could not open file %s:%s" file e
   | Ok x -> assert (x = "nothing\n")
   end

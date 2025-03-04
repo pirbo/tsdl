@@ -6,11 +6,6 @@
 let unsafe_get = Array.unsafe_get
 
 open Ctypes
-module C = struct
-  module Types = Types_generated
-  module Async_functions = Async_function_description.Functions (Async_functions_generated)
-  module Functions = Function_description.Functions (Functions_generated)
-end
 
 module Sdl = struct
 
