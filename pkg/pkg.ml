@@ -19,4 +19,6 @@ let () =
     Pkg.test "test/test_audio";
     Pkg.test "test/test_audio_queue";
     Pkg.test "test/test_audio_capture";
-    Pkg.test "test/sdlevents"; ]
+    Pkg.test "test/sdlevents"; 
+    Pkg.bin ~built:false ~auto:false "_build/SDL2-bundled/bin/SDL2.dll"
+    ]

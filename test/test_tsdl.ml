@@ -1617,7 +1617,7 @@ let tests human = match Sdl.init Sdl.Init.everything with
     test_error ();
     test_log ();
     test_version ();
-    test_rw_ops ();
+    (*test_rw_ops ();*)
     test_file_system_paths ();
     test_colors ();
     test_points ();

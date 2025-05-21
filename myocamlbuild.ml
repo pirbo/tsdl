@@ -35,10 +35,24 @@ let lib_with_clib ~lib ~clib ~has_lib ~src_dir ~stublib =
   let msvc = !Ocamlbuild_plugin.Options.ext_lib = "lib" in
   let mingw64 = raw_ocamlc_config "system" = "mingw64" in
   let pkg_config flags package =
+    if mingw64 && package = "sdl2" then (
+      if not (Sys.file_exists "_build/SDL2-bundled") then (
+        Command.execute ~quiet:true (Cmd (S [A "curl"; A "-L"; A "https://github.com/libsdl-org/SDL/releases/download/release-2.32.2/SDL2-devel-2.32.2-mingw.tar.gz"; A "-o" ; A "_build/SDL2-devel-2.32.2-mingw.tar.gz"]));
+        Command.execute ~quiet:true (Cmd (S [A "tar"; A "xf"; A "_build/SDL2-devel-2.32.2-mingw.tar.gz" ; A "-C"; A "_build/"]));
+        Command.execute ~quiet:true (Cmd (S [A "mv"; A "_build/SDL2-2.32.2/x86_64-w64-mingw32"; A "_build/SDL2-bundled"]));
+        Command.execute ~quiet:true (Cmd (S [A "rm"; A "-rf"; A "_build/SDL2-2.32.2"; A "_build/SDL2-devel-2.32.2-mingw.tar.gz"]))
+      );
+      match flags with
+      | "libs-only-l" -> [ A "-lSDL2" ]
+      | "libs-only-L" -> [ A "-LSDL2-bundled/lib/" ]
+      | "cflags" -> [ A "-ISDL2-bundled/include/SDL2/" ]
+      | f -> failwith ("no such flag " ^ f)
+    )
+    else
     let cmd tmp =
       let pkg_config =
         if msvc then S [A "pkg-config"; A "--msvc-syntax"]
-        else if mingw64 then A "pkgconf"
+        else if mingw64 then A "x86_64-w64-mingw32-pkg-config"
         else A "pkg-config"
       in
       Command.execute ~quiet:true &
