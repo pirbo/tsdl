@@ -3,14 +3,43 @@ open Command
 
 (* Generic pkg-config(1) support. *)
 
+(* FIXME: The following is copy pasted from OCamlBuild ([options.ml]). *)
+let raw_ocamlc_config =
+  let raw_ocamlc_config =
+    try Command.run_spec_and_read ~quiet:true (S [!Ocamlbuild_plugin.Options.ocamlc; A "-config"])
+    with Failure _ -> Command.run_spec_and_read ~quiet:true (S [!Ocamlbuild_plugin.Options.ocamlopt; A "-config"])
+  in
+  let ocamlc_config_lines = String.split_on_char '\n' raw_ocamlc_config in
+  let ocamlc_configs =
+    List.filter_map
+      (fun config ->
+         (* As [raw_ocamlc_config] ends by a ['\n'], [split_on_char]
+            puts an empty string at the end of the list, that's the
+            only line expected to not follow the pattern. *)
+         match String.split_on_char ':' config with
+         | [ k; v ] -> Some (k, String.trim v)
+         | _ -> None)
+      ocamlc_config_lines in
+  let get_field k =
+    match List.assoc_opt (k : string) ocamlc_configs with
+    | Some s -> s
+    | None -> failwith (k^" could not be found in ocamlc -config")
+  in
+  get_field
+
+(* FIXME: opt or byte versions? *)
+let cc = A (raw_ocamlc_config "c_compiler")
+
 let lib_with_clib ~lib ~clib ~has_lib ~src_dir ~stublib =
   let strf = Printf.sprintf in
-  let windows = !Ocamlbuild_plugin.Options.ext_lib = "lib" in
+  let msvc = !Ocamlbuild_plugin.Options.ext_lib = "lib" in
+  let mingw64 = raw_ocamlc_config "system" = "mingw64" in
   let pkg_config flags package =
     let cmd tmp =
       let pkg_config =
-        if not windows then A "pkg-config" else
-        S [A "pkg-config"; A "--msvc-syntax"]
+        if msvc then S [A "pkg-config"; A "--msvc-syntax"]
+        else if mingw64 then A "pkgconf"
+        else A "pkg-config"
       in
       Command.execute ~quiet:true &
       Cmd( S [ pkg_config; A ("--" ^ flags); A package; Sh ">"; A tmp]);
@@ -31,20 +60,20 @@ let lib_with_clib ~lib ~clib ~has_lib ~src_dir ~stublib =
   let link_stub_archive = strf "link_%s_archive" stublib in
   let stub_ar = ar (strf "%s/lib%s" src_dir stublib) in
   let static_stub_l =
-    if windows then A (strf "lib%s.lib" stublib) else A (strf "-l%s" stublib)
+    if msvc then A (strf "lib%s.lib" stublib) else A (strf "-l%s" stublib)
   in
   let dynamic_stub_l =
-    if windows then A (strf "dll%s.dll" stublib) else static_stub_l
+    if msvc then A (strf "dll%s.dll" stublib) else static_stub_l
   in
   let clib_l = pkg_config "libs-only-l" clib in
   let clib_L =
     let dashldify = function
-    | A l when windows -> A (String.subst "/libpath:" "-L" l)
+    | A l when msvc -> A (String.subst "/libpath:" "-L" l)
     | arg -> arg
     in
     List.map dashldify (pkg_config "libs-only-L" clib)
   in
-  let clib_cflags = ccopts @@ (A has_lib) :: pkg_config "cflags" clib in
+  let clib_cflags = ccopts @@ (A "-DSDL_MAIN_HANDLED") :: (A has_lib) :: pkg_config "cflags" clib in
   let clib_cclibs = cclibs @@ static_stub_l :: clib_l in
   let clib_ccopts = ccopts @@ clib_L in
   begin
@@ -83,7 +112,7 @@ let ctypes_stub_gen () =
     ~dep:"%_stubs_gen.o"
     ~prod:"%_stubs_gen"
     (fun env _build ->
-      Cmd (S [ A "cc"; A "-o"; A (env "%_stubs_gen"); A (env "%_stubs_gen.o") ]));
+      Cmd (S [  cc ; A "-o"; A (env "%_stubs_gen"); A (env "%_stubs_gen.o") ]));
 
   (* Step 5. Generate ml stubs.  C -> ML  *)
   rule "stubs_gen 2: x_stubs_gen -> x_stubs.ml"
